@@ -2,14 +2,18 @@
 SeaFour is the Ch4t.io community's chat engine. 
 Powered by Node.js and Socket.io.
 
-## Depends Upon
+### Depends Upon
 * Node.JS
 * Socket.io
 * Express
 * JsonFile
 * SHA512
 
-## To Run
+### Developer Notes
+The key files responsible for the functionality of the site are server.js and 
+public/client.js. 
+
+### To Run
 * First, change directory to the location of your SeaFour folder. For me, this would be
 
 
