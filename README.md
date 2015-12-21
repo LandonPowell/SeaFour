@@ -13,13 +13,13 @@ Powered by Node.js and Socket.io.
 * First, change directory to the location of your SeaFour folder. For me, this would be
 
 
-`cd ~/Prog/WebDev/SeaFour/`
+  `cd ~/Prog/WebDev/SeaFour/`
 
 
 * Next, run node's server.js file.
 
 
-`node server.js`
+  `node server.js`
 
 
 * You're now running SeaFour. 
