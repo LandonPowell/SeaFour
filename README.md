@@ -12,6 +12,8 @@ Powered by Node.js and Socket.io.
 ### Developer Notes
 The key files responsible for the functionality of the site are server.js and 
 public/client.js. 
+
+
 Indents should be done in K&R style using 4-space tabs like so:
 ```
 if (x) {
@@ -19,6 +21,13 @@ if (x) {
 }
 else {
     console.log("Nein!");
+}
+```
+
+Whenver possible, fuctions should be defined like so:
+```
+function funcName(args) {
+    return args + 1;
 }
 ```
 
