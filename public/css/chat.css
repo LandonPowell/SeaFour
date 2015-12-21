@@ -1,0 +1,148 @@
+@font-face { 
+    font-family: JosefinSans; 
+    font-weight: 300;
+    src: url('JosefinSans-Light.ttf'); 
+} 
+@font-face { 
+    font-family: JosefinSans; 
+    font-weight: 500;
+    src: url('JosefinSans-Regular.ttf'); 
+} 
+@font-face { 
+    font-family: JosefinSans; 
+    font-weight: 700;
+    src: url('JosefinSans-SemiBold.ttf'); 
+} 
+
+body {
+    margin: 0px;
+    padding: 0px;
+    background-color: #f00; /* This is to make #messages fuck ups obvious. */
+    font-family: "JosefinSans", sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    color: #f7f7f7;
+}
+#messages {
+    height: 100%;
+    background: #779 url("http://i.imgur.com/G2xJOIM.jpg") repeat;
+    word-wrap: break-word;
+    overflow-x: hidden;
+} 
+#inputbox {
+    font-family: "JosefinSans", sans-serif;
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    height: 150px;
+    width: 600px; 
+    margin: 10px;
+    padding: 10px;
+    background-color: rgba(0,0,0,0.05);
+    color: #f7f7f7;
+    border: 0px;
+    border-radius: 2px;
+    box-shadow: -1px 3px 10px rgba(0, 0, 10, 0.25) inset, 
+                -1px 1px 2px rgba(255, 255, 255, .01);
+}
+
+.global {
+    color: #8AFFD3;
+    text-align: center;
+    font-size: 60px;
+    font-weight: normal;
+}
+
+#title {
+    position: fixed;
+    left: 50%;
+    transform: translate(-50%, 0);
+    color: #8AFFD3;
+    text-align: center;
+    font-size: 60px;
+    font-weight: normal;
+}
+
+.message {
+    padding: 10px 20px;
+}
+
+.me {
+    color: #b53fff;
+}
+.me:before {
+    content: "- ";
+}
+
+.system-message {
+    padding-top: 10px;
+    padding-left: 20px;
+    color: #FFB946;
+    word-wrap: break-word;
+    font-weight: bold;
+}
+
+/*\
+|*| THE FOLLOWING CSS IS FOR STYLE CLASSES.
+|*| PLEASE DO NOT PUT STYLE CLASSES OUTSIDE
+|*| OF THIS PART OF THE CSS. 
+\*/
+
+.quote {
+    color: #8AFFD3;
+}
+.quote:before {
+    content: ">";
+}
+
+.spoiler {
+    padding: 5px;
+    background-color:#2a2530;
+    color:#2a2530;
+    box-shadow: 0px 0px 10px rgba(0,0,10, 0.5) inset;
+}
+.spoiler:hover {
+    color: #ffb946;
+    text-shadow: 0px 0px 10px rgba(255, 185, 70, 0.5);
+}
+
+.ghost {
+    color: rgba(0,0,0,0);
+    text-shadow: 0px 0px 2px #666;
+}
+.big {
+    font-size: 40px;
+}
+@keyframes rainbow {
+    16% {
+        color: #f00;
+        text-shadow: 0px 0px 2px rgba(255,0,0,0.5);
+    }
+    33% {
+        color: #ff0;
+        text-shadow: 0px 0px 2px rgba(255,255,0,0.5);
+    }
+    50% {
+        color: #0f0;
+        text-shadow: 0px 0px 2px rgba(0,255,0,0.5);
+    }
+    66% {
+        color: #0ff;
+        text-shadow: 0px 0px 2px rgba(0,255,255,0.5);
+    }
+    83% {
+        color: #00f;
+        text-shadow: 0px 0px 2px rgba(0,0,255,0.5);
+    }
+    100% {
+        color: #f0f;
+        text-shadow: 0px 0px 2px rgba(255,0,255,0.5);
+    }
+}
+.rainbow {
+    animation-name: rainbow;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+}
+
+/* End of Style Classes */

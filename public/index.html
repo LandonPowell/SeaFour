@@ -1,0 +1,15 @@
+<head>
+    <title>Chat</title>
+    <script src="socket.io/socket.io.js"></script>
+    <script src="js/jquery.js"></script>
+    <script src="js/sha512.js"></script>
+    <script src="js/client.js"></script>
+    <link href="css/chat.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="messages">
+        <h1 id="title"></h1>
+    </div>
+    <textarea id="inputbox" onKeydown="keyPressed(event);" placeholder="Type your message here."></textarea>
+</body>
