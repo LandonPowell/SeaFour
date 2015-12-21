@@ -6,5 +6,6 @@ Powered by Node.js and Socket.io.
 * Express
 * JsonFile
 * Socket.io
+* SHA512
 
 Copyright (c) 2015 Landon Powell under the zlib license. 
