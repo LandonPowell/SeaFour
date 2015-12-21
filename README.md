@@ -12,6 +12,15 @@ Powered by Node.js and Socket.io.
 ### Developer Notes
 The key files responsible for the functionality of the site are server.js and 
 public/client.js. 
+Indents should be done in K&R style using 4-space tabs like so:
+`
+if (x) {
+    console.log("Ja!");
+}
+else {
+    console.log("Nein!");
+}
+`
 
 ### To Run
 * First, change directory to the location of your SeaFour folder. For me, this would be
