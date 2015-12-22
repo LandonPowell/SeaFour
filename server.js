@@ -4,6 +4,7 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var hash = require('./lib/hash');
 var jsonfile = require('jsonfile');
+
 String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
 
 var users;
