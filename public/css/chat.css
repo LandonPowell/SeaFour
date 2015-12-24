@@ -1,18 +1,18 @@
-@font-face { 
-    font-family: JosefinSans; 
+@font-face {
+    font-family: JosefinSans;
     font-weight: 300;
-    src: url('JosefinSans-Light.ttf'); 
-} 
-@font-face { 
-    font-family: JosefinSans; 
+    src: url('JosefinSans-Light.ttf');
+}
+@font-face {
+    font-family: JosefinSans;
     font-weight: 500;
-    src: url('JosefinSans-Regular.ttf'); 
-} 
-@font-face { 
-    font-family: JosefinSans; 
+    src: url('JosefinSans-Regular.ttf');
+}
+@font-face {
+    font-family: JosefinSans;
     font-weight: 700;
-    src: url('JosefinSans-SemiBold.ttf'); 
-} 
+    src: url('JosefinSans-SemiBold.ttf');
+}
 
 body {
     margin: 0px;
@@ -28,21 +28,32 @@ body {
     background: #779 url("http://i.imgur.com/G2xJOIM.jpg") repeat;
     word-wrap: break-word;
     overflow-x: hidden;
-} 
-#inputbox {
-    font-family: "JosefinSans", sans-serif;
+}
+
+#handle {
     position: fixed;
     bottom: 0px;
     right: 0px;
-    height: 150px;
-    width: 600px; 
     margin: 10px;
-    padding: 10px;
+    border-radius: 4px;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset;
+    height: 160px;
+    width: 600px;
     background-color: rgba(0,0,0,0.05);
+}
+
+#inputbox {
+    font-family: "JosefinSans", sans-serif;
+    height: calc(100% - 10px);
+    width: 100%;
+    resize: none;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: rgba(0,0,0,0);
     color: #f7f7f7;
     border: 0px;
     border-radius: 2px;
-    box-shadow: -1px 3px 10px rgba(0, 0, 10, 0.25) inset, 
+    box-shadow: -1px 3px 10px rgba(0, 0, 10, 0.15) inset,
                 -1px 1px 2px rgba(255, 255, 255, .01);
 }
 
@@ -85,7 +96,7 @@ body {
 /*\
 |*| THE FOLLOWING CSS IS FOR STYLE CLASSES.
 |*| PLEASE DO NOT PUT STYLE CLASSES OUTSIDE
-|*| OF THIS PART OF THE CSS. 
+|*| OF THIS PART OF THE CSS.
 \*/
 
 .quote {
