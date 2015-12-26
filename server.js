@@ -109,6 +109,6 @@ function updateID(id, name) {
     clients.push({name:id, id:name});
 }
 
-http.listen(process.env.PORT, function(){
-    console.log('listening on *:'+process.env.PORT);
+http.listen(process.env.PORT || 8080, function(){
+    console.log('listening on *:' + (process.env.PORT || 8080));
 });
