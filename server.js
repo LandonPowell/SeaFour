@@ -23,8 +23,9 @@ function generateSalt() { /* ! THIS IS NOT CRYPTO-HEALTHY CODE ! */
      *  one thing I can't remember right now that made you shake your
      *  mouse around when you installed it.
      *
-     *  Your thinking of a bitcoin wallet program, I think.
-     *  This shouldn't be hard to do.
+     *  You're thinking of a bitcoin wallet program, I think.
+     *  This shouldn't be hard to do. DON'T DO IT THOUGH. IT'S NOT
+     *  SAFE. MORE THOUGHT NEEDS TO BE DONE. 
     \*/
 }
 
@@ -37,21 +38,24 @@ jsonfile.readFile('database.json', function(err, obj) {
     }
 });
 
-
 app.use(express.static(__dirname + '/public/'));
 
 io.on('connection', function(socket){
     /* Start Up */
     socket.emit('topic', "Topic - " + topic);
-    updateID(socket, 'anon');
     socket.emit('data-request');
     socket.attributes = {};
     
+    clients[socket.id] = Math.random().toString(16).substr(2,6);
+    
+    console.log("JOIN: " + socket.id);
+    io.emit('system-message', clients[socket.id] + ' has joined.');
+
     /* Listeners */
     socket.on('message', function(msg){
         if (msg.message !== undefined || msg.message != '' || msg.message !== null) {
-            console.log(msg.nick+": "+msg.message);
-            io.emit('message', msg.nick, msg.message);
+            console.log(clients[socket.id]+": "+msg);
+            io.emit('message', clients[socket.id], msg);
         }
     });
     socket.on('me', function(msg){
@@ -66,48 +70,55 @@ io.on('connection', function(socket){
     });
     
     socket.on('disconnect', function(){
-        io.emit('system-message', socket.attributes.nick + ' has left.')
-        console.log("LEAVE: " + socket.attributes.nick);
+        io.emit('system-message', socket.attributes.nick + ' has left.');
+        console.log("LEAVE: " + socket.id);
+        delete clients[socket.id];
     });
     
-    socket.on('command', function(object) {
-        if (object === undefined) {
-            console.log('Object is: ' + object);
-            return false;
+    socket.on('changeNick', function(nick) {
+        if (users[nick.toLowerCase()] === undefined) {
+            io.emit('system-message', clients[socket.id] + 
+                                      " is now known as " + 
+                                      nick);
+            clients[socket.id] = nick;
         }
-        
-        //Start handling shit
-        if (object.command !== undefined) {
-            if (object.command == 'login') {
-                var nick = object.nick;
-                if (users[nick] !== undefined && users[nick].password !== undefined) {
-                    var password = hash.sha512(object.password + users[nick].salt);
-                    if (users[nick].password == password) {
-                        io.emit('system-message', 
-                                object.oldNick + " is now known as " + nick);
-                                    
-                        socket.to(socket.id).emit('auth', true);
-                    }
-                }
-                else {
-                    socket.emit('system-message', 
-                                "That doesn't seem to be a registered user. " +
-                                "Please make sure you type '.login User Password'.");
-                }
-            }
-            if (object.command == 'topic') {
-                io.emit('topic', "Topic - " + object.topic);
-                topic = object.topic;
-            }
+        else {
+            socket.emit('system-message', "That user is already registered.");
         }
     });
-});
+    
+    socket.on('register', function(password) {
+        
+    });
+    
+    socket.on('login', function(nick, password) {
+        if (users[nick.toLowerCase()] !== undefined) {
+            password = hash.sha512(password + users[nick.toLowerCase()].salt);
+            if (users[nick.toLowerCase()].password == password) {
+                io.emit('system-message', clients[socket.id] + " is now known as " + nick);
+                clients[socket.id] = nick;
+                socket.to(socket.id).emit('auth', true);
+            }
+        }
+        else {
+            socket.emit('system-message', 
+                        "That doesn't seem to be a registered combination. "+
+                        "Please make sure you type '.login User Password'.");
+        }
+    });
 
+    socket.on('topic', function(newTopic){
+        if (users[ clients[socket.id].toLowerCase() ] != undefined && 
+            users[ clients[socket.id].toLowerCase() ].role > 0) {
+            io.emit('topic', "Topic - " + newTopic);
+            topic = newTopic;
 
-
-function updateID(id, name) {
-    clients.push({name:id, id:name});
-}
+        } 
+        else {
+            socket.emit('system-message', "Your role must be mod or higher.");
+        }
+    });
+}); 
 
 http.listen(process.env.PORT || 8080, function(){
     console.log('listening on *:' + (process.env.PORT || 8080));
