@@ -1,7 +1,4 @@
 var client = {};
-client.attributes = {
-    nick: "Anon",
-};
 var socket = io();
 //Make textbox draggable
 $(function(){
@@ -28,60 +25,49 @@ var parser = {
                      .replace(/\n/g,"<br>")
         ;
     },
-    quote : function(string) { /* THIS CREATES THE QUOTES/GREENTEXT */
-        return string.replace(/&gt;([^<]+)/gi,
+    quote : function(string) { /* THIS CREATES THE QUOTES/GREENTEXT */ 
+        return string.replace(/&gt;([^<]+)/gi, 
                               "<span class=\"quote\">$1</span>");
     },
-    style : function(string) { /* ALL STYLES ARE CONTAINED IN THIS BLOCK. */
-        return string.replace(/\(\*([^)]+)\)/gi,
+    style : function(string) { /* ALL STYLES ARE CONTAINED IN THIS BLOCK. */ 
+        return string.replace(/\(\*([^)]+)\)/gi, 
                               "<b>$1</b>")
-                     .replace(/\(\%([^)]+)\)/gi,
+                     .replace(/\(\%([^)]+)\)/gi, 
                               "<i>$1</i>")
-                     .replace(/\(meme([^)]+)\)/gi,
+                     .replace(/\(meme([^)]+)\)/gi, 
                               "<span class=\"quote\">$1</span>")
-                     .replace(/\(\$([^)]+)\)/gi,
+                     .replace(/\(\$([^)]+)\)/gi, 
                               "<span class=\"spoiler\">$1</span>")
-                     .replace(/\(@([^)]+)\)/gi,
+                     .replace(/\(@([^)]+)\)/gi, 
                               "<span class=\"ghost\">$1</span>")
-                     .replace(/\(\^([^)]+)\)/gi,
+                     .replace(/\(\^([^)]+)\)/gi, 
                               "<span class=\"big\">$1</span>")
-                     .replace(/\(~([^)]+)\)/gi,
+                     .replace(/\(~([^)]+)\)/gi, 
                               "<span class=\"rainbow\">$1</span>")
-                     .replace(/\(#([\dabcdef]+)([^)]+)\)/gi,
+                     .replace(/\(#([\dabcdef]+)([^)]+)\)/gi, 
                               "<span style=\"color:#$1\">$2</span>")
         ;
     }
 };
 //Command Functions.
+//Command Functions.
 function send(msg) {
-    socket.emit('message', {nick: client.attributes.nick, message: msg});
+    socket.emit('message',msg);
 }
 function me(msg) {
-    socket.emit('me', {
-        nick: client.attributes.nick,
-        message: msg
-    });
+    socket.emit('me', msg);
 }
 function login(nick, password) {
-    socket.emit('command', {
-        command: 'login',
-        nick: nick,
-        password: password,
-        oldNick: client.attributes.nick
-    });
+    socket.emit('login', nick, password);
 }
 function nick(name) {
-    socket.emit('command', {
-        command: 'changeNick',
-        oldNick: client.attributes.nick,
-        newNick: name
-    });
+    socket.emit('changeNick', name);
+}
+function register(name) {
+    socket.emit('changeNick', name);
 }
 function topic(text) {
-    socket.emit('command', {
-        command: 'topic',
-        topic: text
-    });
+    socket.emit('topic', text);
 }
 
 //When user is typing.
@@ -90,7 +76,7 @@ function keyPressed(event) {
         var text = document.getElementById("inputbox").value;
         document.getElementById("inputbox").value = null;
         event.preventDefault();
-        if(text[0] != ".") { /* Commands start with a period. */
+        if(text[0] != ".") { /* Commands start with a period. */ 
             send(text);
         }
         else {
@@ -103,7 +89,6 @@ function keyPressed(event) {
                     me(text.substring(4));
                     break;
                 case ".nick":
-                    /* Change this to nick(text.substring(6); later. */
                     nick(text.substring(6));
                     break;
                 case ".topic":
@@ -122,15 +107,12 @@ function autoscroll(height) {
         }, 100);
     }
 }
-function containsNick(text) {
-    return text.indexOf(client.attributes.nick) >= 0;
-}
 
-//Event handlers.
+//Event handlers. 
 socket.on('message', function(nick, post){
-    var height = $("#messages").prop('scrollHeight') -
+    var height = $("#messages").prop('scrollHeight') - 
                  $("#messages").prop('clientHeight');
-    $("#messages").append("<div class=\"message\">" +
+    $("#messages").append("<div class=\"message\">" + 
                           parser.htmlEscape(
                               nick
                           ) + ": " +
@@ -155,9 +137,9 @@ socket.on('me', function(post){
     autoscroll(height);
 });
 socket.on('system-message', function(post){
-    var height = $("#messages").prop('scrollHeight') -
+    var height = $("#messages").prop('scrollHeight') - 
                  $("#messages").prop('clientHeight');
-    $("#messages").append("<div class=\"system-message\">" +
+    $("#messages").append("<div class=\"system-message\">" + 
                           parser.htmlEscape(
                               post
                           ) +
@@ -166,7 +148,7 @@ socket.on('system-message', function(post){
     autoscroll(height);
 });
 socket.on('disconnect', function(){
-    var height = $("#messages").prop('scrollHeight') -
+    var height = $("#messages").prop('scrollHeight') - 
                  $("#messages").prop('clientHeight');
     $("#messages").append("<div class=\"system-message\">" +
                           "Your socket has been disconnected." +
@@ -174,26 +156,17 @@ socket.on('disconnect', function(){
     autoscroll(height);
 });
 socket.on('global', function(global){
-    var height = $("#messages").prop('scrollHeight') -
+    var height = $("#messages").prop('scrollHeight') - 
                  $("#messages").prop('clientHeight');
-    $("#messages").append("<h1 class=\"global\">" +
+    $("#messages").append("<h1 class=\"global\">" + 
                           parser.htmlEscape(
                               global
-                          )+
+                          )+ 
                           "</h1>");
     autoscroll(height);
 });
 
 socket.on('topic', function(title){
-    var height = $("#messages").prop('scrollHeight') -
-                 $("#messages").prop('clientHeight');
-    $("#title").html(parser.htmlEscape(
-                        title
-                    ));
-    document.title = title;
-    autoscroll(height);
+    $("#title").html(parser.htmlEscape( title ));
 });
 
-socket.on('userChange', function(){
-
-});
