@@ -140,7 +140,7 @@ io.on('connection', function(socket){
                                           " has been removed by " + 
                                           clients[socket.id]);
                 io.sockets.connected[ removedUserID ].disconnect();
-            }
+            } 
             else {
                 socket.emit('system-message', "They don't seem to be online.");
             }
