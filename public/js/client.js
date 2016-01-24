@@ -173,8 +173,13 @@ socket.on('system-message', function(post){
 socket.on('disconnect', function(){
     autoscroll("<div class=\"system-message\">Your socket has been disconnected.</div>");
 });
-socket.on('clientChange', function(newClient){
-    client = newClient;
+
+socket.on('listRefresh', function(newList){
+    $("#menuButton").html("Users: " + newList.length);
+    $("#userlist").html("");
+    for (var i = 0; i < newList.length; i++) {
+        $("#userlist").append(newList[i] + "<br>");
+    }
 });
 
 socket.on('global', function(global){

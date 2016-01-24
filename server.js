@@ -4,8 +4,17 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var hash = require('./lib/hash');
 var jsonfile = require('jsonfile');
+
 //Why isn't this default within Ecma? Fuck you, Ecma. 
 String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
+
+function toArray(object) {
+    var newArray = [];
+    for (var key in object) {
+        newArray.push(object[key]);
+    }
+    return newArray;
+}
 
 var users;
 var clients = [];
@@ -50,6 +59,7 @@ io.on('connection', function(socket){
 
     console.log("JOIN: " + socket.id);
     io.emit('system-message', clients[socket.id] + ' has joined.');
+    io.emit('listRefresh', toArray(clients));
 
     //Core Listeners.
     socket.on('message', function(msg){
@@ -71,6 +81,7 @@ io.on('connection', function(socket){
                                       " is now known as " + 
                                       nick);
             clients[socket.id] = nick;
+            io.emit('listRefresh', toArray(clients));
         }
         else {
             socket.emit('system-message', "That user is already registered.");
@@ -124,6 +135,10 @@ io.on('connection', function(socket){
         });
     }
 
+    adminCommand('roleChange', 2, function(userName, role){
+        console.log('THIS IS TO BE DONE LATER');
+    });
+    
     adminCommand('topic', 1, function(newTopic){
         io.emit('topic', "Topic - " + newTopic);
         topic = newTopic;
@@ -156,6 +171,7 @@ io.on('connection', function(socket){
         io.emit('system-message', clients[socket.id] + ' has left.');
         console.log("LEAVE: " + socket.id);
         delete clients[socket.id];
+        io.emit('listRefresh', toArray(clients));
     });
 
 }); 
