@@ -41,13 +41,19 @@ body {
     width: 600px;
     background-color: rgba(0,0,0,0.05);
 }
-
+#handlebar {
+    font-size: 12px;
+    height: 12px;
+    padding: 5px;
+    border-radius: 2px;
+    background-color: rgba(0,0,0,0.2);
+    cursor: all-scroll; 
+}
 #inputbox {
     font-family: "JosefinSans", sans-serif;
-    height: calc(100% - 10px);
+    height: calc(100% - 23px);
     width: 100%;
     resize: none;
-    margin-top: 10px;
     padding: 10px;
     background-color: rgba(0,0,0,0);
     color: #f7f7f7;
@@ -94,10 +100,35 @@ body {
 }
 
 /*\
-|*| THE FOLLOWING CSS IS FOR STYLE CLASSES.
-|*| PLEASE DO NOT PUT STYLE CLASSES OUTSIDE
+|*| THE FOLLOWING CSS IS FOR STYLES.
+|*| PLEASE DO NOT PUT STYLES OUTSIDE
 |*| OF THIS PART OF THE CSS.
 \*/
+@keyframes link {
+    from { text-shadow: none; }
+    to { text-shadow: 0px 0px 10px rgba(100,230,255,.9); }
+}
+.link {
+    color: #8AFFD3;
+    text-decoration: none;
+    padding: 7px;
+    box-shadow: 0px 1px 0px rgba(255,255,200, 0.1) inset, 
+                0px 2px 3px rgba(0,0,10,0.6);
+    background-color:#2a2530;
+}
+.link:hover {
+    animation-name: link;
+    animation-duration: .4s;
+    text-shadow: 0px 0px 10px rgba(100,230,255,.9);
+}
+
+.inlineimage {
+    max-width: 120px;
+    max-height: 120px;
+    border: 10px solid #2a2530;
+    box-shadow: 0px 1px 0px rgba(255,255,200, 0.1) inset, 
+                0px 2px 3px rgba(0,0,10,0.6);
+}
 
 .quote {
     color: #8AFFD3;
@@ -106,6 +137,10 @@ body {
     content: ">";
 }
 
+@keyframes spoiler {
+    from { color:#2a2530; }
+    to { color: #ffb946; }
+}
 .spoiler {
     padding: 5px;
     background-color:#2a2530;
@@ -113,6 +148,8 @@ body {
     box-shadow: 0px 0px 10px rgba(0,0,10, 0.5) inset;
 }
 .spoiler:hover {
+    animation-name: spoiler;
+    animation-duration: .5s;
     color: #ffb946;
     text-shadow: 0px 0px 10px rgba(255, 185, 70, 0.5);
 }

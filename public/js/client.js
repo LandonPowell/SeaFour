@@ -1,17 +1,6 @@
 var client = {};
 var socket = io();
-//Make textbox draggable
-$(function(){
-    $('#handle')
-        .draggable({
-            containment: "#messages"
-        })
-        .resizable({
-            minHeight: 51,
-            minWidth: 177,
-            handles: "se"
-        });
-});
+
 //Parser.
 var parser = {
     htmlEscape : function(string) { /* THIS ESCAPES HTML SPECIAL CHARACTERS */
@@ -20,6 +9,7 @@ var parser = {
                      .replace(/>/g,"&gt;")
                      .replace(/'/g,"&apos;")
                      .replace(/\"/g,"&quot;")
+                     .replace(/\'/g,"&rsquo;")
                      .replace(/\\/g,"&bsol;")
                      .replace(/  /g," &nbsp;")
                      .replace(/\n/g,"<br>")
@@ -29,8 +19,29 @@ var parser = {
         return string.replace(/&gt;([^<]+)/gi, 
                               "<span class=\"quote\">$1</span>");
     },
-    style : function(string) { /* ALL STYLES ARE CONTAINED IN THIS BLOCK. */ 
-        return string.replace(/\(\*([^)]+)\)/gi, 
+    style : function(string) { /* THE MIGHTY LISP STYLE SYNTAX PARSER. */ 
+        //Tokenizer.
+        var tokens = string.replace(/\(LP\)/g,"&#40;") //Escape codes.
+                           .replace(/\(RP\)/g,"&#41;")
+                           .replace(/\(/g," ( ")
+                           .replace(/\)/g," ) ").split(" ");
+
+        //Nester.
+        function nest(array) {
+            var item = array.pop(0);
+            if (item == '(') {
+                var newList = [];
+                while (array[0] != ')') newList.append(nest(array));
+                array.pop(0);
+                return newList;
+            }
+            else {
+                return item;
+            }
+        }
+        
+        /* THE FOLLOWING IS PLACEHOLDER CODE BECAUSE I'M A LAZY SHAZBOT */
+        string = string.replace(/\(\*([^)]+)\)/gi, 
                               "<b>$1</b>")
                      .replace(/\(\%([^)]+)\)/gi, 
                               "<i>$1</i>")
@@ -46,10 +57,14 @@ var parser = {
                               "<span class=\"rainbow\">$1</span>")
                      .replace(/\(#([\dabcdef]+)([^)]+)\)/gi, 
                               "<span style=\"color:#$1\">$2</span>")
-        ;
+                     .replace(/([a-z]*:\/+[a-z0-9\-]*.[^<>\s]+)/gi, /* URL links */
+                              "<a class=\"link\" href=\"$1\">$1</a>")
+                     .replace(/([a-z]*:\/*[a-z0-9\-]*.[^<>\s]*(?:\.jpg|\.png|\.svg|\.gif))/gi, /* Image links */
+                              "<img class=\"inlineimage\" src=\"$1\"");
+        return string;
     }
 };
-//Command Functions.
+
 //Command Functions.
 function send(msg) {
     socket.emit('message',msg);
@@ -64,13 +79,30 @@ function nick(name) {
     socket.emit('changeNick', name);
 }
 function register(name) {
-    socket.emit('changeNick', name);
+    socket.emit('register', name);
 }
+
+//Admin Commands.
 function topic(text) {
     socket.emit('topic', text);
 }
+function fistOfRemoval(nick) {
+    socket.emit('fistOfRemoval', nick);
+}
 
-//When user is typing.
+//User Interface.
+$(function(){
+    $('#handle')
+        .draggable({
+            containment: "#messages"
+        })
+        .resizable({
+            minHeight: 51,
+            minWidth: 177,
+            handles: "se"
+        });
+});
+
 function keyPressed(event) {
     if(event.keyCode == 13 && !event.shiftKey) { /* Enter is pressed. */
         var text = document.getElementById("inputbox").value;
@@ -91,14 +123,28 @@ function keyPressed(event) {
                 case ".nick":
                     nick(text.substring(6));
                     break;
+                case ".register":
+                    register(text.substring(10));
+                    break;
                 case ".topic":
                     topic(text.substring(7));
+                    break;
+                case ".fistOfRemoval":
+                    fistOfRemoval(text.substring(15));
+                    break;
+                default:
+                    send(text);
             }
         }
     }
 }
 
-function autoscroll(height) {
+function autoscroll(appendstring) {
+    var height = $("#messages").prop('scrollHeight') - 
+                 $("#messages").prop('clientHeight');
+
+    $("#messages").append(appendstring);
+    
     var maxScroll = $("#messages").prop('scrollHeight') -
                     $("#messages").prop('clientHeight');
     if ($("#messages").scrollTop() > height - 400) {
@@ -110,63 +156,34 @@ function autoscroll(height) {
 
 //Event handlers. 
 socket.on('message', function(nick, post){
-    var height = $("#messages").prop('scrollHeight') - 
-                 $("#messages").prop('clientHeight');
-    $("#messages").append("<div class=\"message\">" + 
-                          parser.htmlEscape(
-                              nick
-                          ) + ": " +
-                          parser.style(
-                          parser.quote(
-                          parser.htmlEscape(
-                              post
-                          ))) +
-                          "</div>"
-                        );
-    console.log(nick+": "+post);
-    autoscroll(height);
+    autoscroll("<div class=\"message\">" +  parser.htmlEscape( nick ) + ": " +
+                parser.style(parser.quote(parser.htmlEscape( post ))) + "</div>");
 });
+
 socket.on('me', function(post){
-    var height = $("#messages").prop('scrollHeight') -
-                 $("#messages").prop('clientHeight');
-    $("#messages").append("<div class=\"me message\">" +
-                          parser.htmlEscape( post ) +
-                          "</div>"
-                        );
-    console.log(post);
-    autoscroll(height);
+    autoscroll("<div class=\"me message\">"+parser.htmlEscape(post)+"</div>");
 });
+
 socket.on('system-message', function(post){
-    var height = $("#messages").prop('scrollHeight') - 
-                 $("#messages").prop('clientHeight');
-    $("#messages").append("<div class=\"system-message\">" + 
-                          parser.htmlEscape(
-                              post
-                          ) +
-                          "</div>");
-    console.log(post);
-    autoscroll(height);
+    autoscroll("<div class=\"system-message\">" + 
+                parser.htmlEscape( post ) + 
+               "</div>");
 });
+
 socket.on('disconnect', function(){
-    var height = $("#messages").prop('scrollHeight') - 
-                 $("#messages").prop('clientHeight');
-    $("#messages").append("<div class=\"system-message\">" +
-                          "Your socket has been disconnected." +
-                          "</div>");
-    autoscroll(height);
+    autoscroll("<div class=\"system-message\">Your socket has been disconnected.</div>");
 });
+socket.on('clientChange', function(newClient){
+    client = newClient;
+});
+
 socket.on('global', function(global){
-    var height = $("#messages").prop('scrollHeight') - 
-                 $("#messages").prop('clientHeight');
-    $("#messages").append("<h1 class=\"global\">" + 
-                          parser.htmlEscape(
-                              global
-                          )+ 
-                          "</h1>");
-    autoscroll(height);
+    autoscroll("<h1 class=\"global\">" + 
+                parser.htmlEscape( global )+ 
+               "</h1>");
 });
 
 socket.on('topic', function(title){
     $("#title").html(parser.htmlEscape( title ));
+    $("title").html(parser.htmlEscape( title ));
 });
-
