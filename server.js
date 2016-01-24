@@ -176,6 +176,6 @@ io.on('connection', function(socket){
 
 }); 
 
-http.listen(process.env.PORT || 8080, function(){
-    console.log('listening on *:' + (process.env.PORT || 8080));
+http.listen(process.env.PORT || 80, function(){
+    console.log('listening on *:' + (process.env.PORT || 80));
 });
