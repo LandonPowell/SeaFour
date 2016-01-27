@@ -38,7 +38,13 @@ function funcName(args) {
   `cd ~/Prog/WebDev/SeaFour/`
 
 
-* Next, run node's server.js file.
+* Next, npm install the dependencies in `package.json`.
+
+
+  `npm install`
+  
+
+* Finally, run node's server.js file.  
 
 
   `node server.js`
