@@ -16,6 +16,10 @@ function toArray(object) {
     return newArray;
 }
 
+function usableVar(variable) {
+    return typeof( variable ) === "string" && variable !== "";
+}
+
 var users;
 var clients = [];
 var topic = "Welcome to Ch4t.io";
@@ -76,7 +80,7 @@ io.on('connection', function(socket){
     
     // Commands related to Registration and User Accounts.
     socket.on('changeNick', function(nick) {
-        if (nick != undefined && users[nick.toLowerCase()] === undefined) {
+        if ( usableVar(nick) && usableVar(users[nick.toLowerCase()]) ) {
             io.emit('system-message', clients[socket.id] + 
                                       " is now known as " + 
                                       nick);
@@ -91,13 +95,18 @@ io.on('connection', function(socket){
     socket.on('register', function(password) {
         var salt = generateSalt();
 
-        users[clients[socket.id].toLowerCase()] = {
-            "password": hash.sha512(password + salt),
-            "salt": salt,
-            "flair": null,
-            "prefix": null,
-            "role" : 0 /* Default role is 0 */
-        };
+        if ( usableVar(password) ) {
+            users[clients[socket.id].toLowerCase()] = {
+                "password": hash.sha512(password + salt),
+                "salt": salt,
+                "flair": null,
+                "prefix": null,
+                "role" : 0 /* Default role is 0 */
+            };
+        } 
+        else {
+            socket.emit('system-message', "You forgot to include a password");
+        }
         
         jsonfile.writeFile('database.json', users, function(err) {
             if (err != null) socket.emit('system-message', 'ERROR: '+err);
@@ -106,8 +115,8 @@ io.on('connection', function(socket){
     });
     
     socket.on('login', function(nick, password) {
-        if (nick != undefined && password != undefined && 
-            users[nick.toLowerCase()] !== undefined) {
+        if (usableVar(nick) && usableVar(password) && 
+            usableVar( users[nick.toLowerCase()] )) {
             password = hash.sha512(password + users[nick.toLowerCase()].salt);
             if (users[nick.toLowerCase()].password == password) {
                 io.emit('system-message', clients[socket.id] + " is now known as " + nick);
@@ -152,7 +161,7 @@ io.on('connection', function(socket){
             var removedUserID = Object.keys(clients).find(key => clients[key] == removedUser); 
             if (removedUserID !== undefined) {
                 io.emit('system-message', removedUser + 
-                                          " has been removed by " + 
+                                          " has been dismissed by " + 
                                           clients[socket.id]);
                 io.sockets.connected[ removedUserID ].disconnect();
             } 
