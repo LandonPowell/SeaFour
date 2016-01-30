@@ -7,18 +7,25 @@
     <script src="js/jquery-ui.js"></script>
     <link href="css/chat.css" rel="stylesheet">
     <link href="css/jquery-ui.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/x-icon" href="css/images/iconPurple.png" />
 </head>
 
 <body>
     <div id="messages">
         <h1 id="title"></h1>
+
         <div id="handle">
             <div id="handlebar"></div>
             <textarea id="inputbox" onKeydown="keyPressed(event);" placeholder="Type your message here."></textarea>
         </div>
     </div>
+    
     <button onclick="$('#userlist').slideToggle();" id="menuButton">User Count - 0</button>
     <div id="userlist">
-        Users display here. 
+        <!-- Users display here. -->
+    </div>
+    
+    <div id="notifications">
+        <!-- System messages display here -->
     </div>
 </body>
