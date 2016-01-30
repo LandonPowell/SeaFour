@@ -139,11 +139,11 @@ function keyPressed(event) {
     }
 }
 
-function autoscroll(appendstring) {
+function autoscroll(appendTo, appendstring) {
     var height = $("#messages").prop('scrollHeight') - 
                  $("#messages").prop('clientHeight');
 
-    $("#messages").append(appendstring);
+    $(appendTo).append(appendstring);
     
     var maxScroll = $("#messages").prop('scrollHeight') -
                     $("#messages").prop('clientHeight');
@@ -156,22 +156,30 @@ function autoscroll(appendstring) {
 
 //Event handlers. 
 socket.on('message', function(nick, post){
-    autoscroll("<div class=\"message\">" +  parser.htmlEscape( nick ) + ": " +
+    autoscroll("#messages", 
+               "<div class=\"message\">" +  parser.htmlEscape( nick ) + ": " +
                 parser.style(parser.quote(parser.htmlEscape( post ))) + "</div>");
 });
 
 socket.on('me', function(post){
-    autoscroll("<div class=\"me message\">"+parser.htmlEscape(post)+"</div>");
+    autoscroll("#messages", 
+               "<div class=\"me message\">"+parser.htmlEscape(post)+"</div>");
 });
 
 socket.on('system-message', function(post){
-    autoscroll("<div class=\"system-message\">" + 
+    autoscroll("#notifications",
+               "<div class=\"system-message\">" + 
+               "<div class=\"notificationIcon\"></div>"+
                 parser.htmlEscape( post ) + 
                "</div>");
+    if ($("#notifications .system-message").length > 5) {
+        $("#notifications").html("");
+    }
 });
 
 socket.on('disconnect', function(){
-    autoscroll("<div class=\"system-message\">Your socket has been disconnected.</div>");
+    autoscroll("#notifications", 
+                "<div class=\"system-message\">Your socket has been disconnected.</div>");
 });
 
 socket.on('listRefresh', function(newList){

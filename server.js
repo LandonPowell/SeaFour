@@ -80,7 +80,7 @@ io.on('connection', function(socket){
     
     // Commands related to Registration and User Accounts.
     socket.on('changeNick', function(nick) {
-        if ( usableVar(nick) && usableVar(users[nick.toLowerCase()]) ) {
+        if ( usableVar(nick) && users[nick.toLowerCase()] === undefined ) {
             io.emit('system-message', clients[socket.id] + 
                                       " is now known as " + 
                                       nick);
@@ -116,7 +116,7 @@ io.on('connection', function(socket){
     
     socket.on('login', function(nick, password) {
         if (usableVar(nick) && usableVar(password) && 
-            usableVar( users[nick.toLowerCase()] )) {
+            users[nick.toLowerCase()] !== undefined) {
             password = hash.sha512(password + users[nick.toLowerCase()].salt);
             if (users[nick.toLowerCase()].password == password) {
                 io.emit('system-message', clients[socket.id] + " is now known as " + nick);
