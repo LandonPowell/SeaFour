@@ -80,7 +80,7 @@ io.on('connection', function(socket){
     
     // Commands related to Registration and User Accounts.
     socket.on('changeNick', function(nick) {
-        if ( usableVar(nick) && users[nick.toLowerCase()] === undefined ) {
+        if ( usableVar(nick) && users[nick.toLowerCase()] !== undefined ) {
             io.emit('system-message', clients[socket.id] + 
                                       " is now known as " + 
                                       nick);
