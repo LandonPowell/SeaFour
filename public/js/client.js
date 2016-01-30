@@ -28,11 +28,11 @@ var parser = {
 
         //Nester.
         function nest(array) {
-            var item = array.pop(0);
+            var item = array.shift();
             if (item == '(') {
                 var newList = [];
                 while (array[0] != ')') newList.append(nest(array));
-                array.pop(0);
+                array.shift();
                 return newList;
             }
             else {
@@ -175,6 +175,13 @@ socket.on('system-message', function(post){
     if ($("#notifications .system-message").length > 5) {
         $("#notifications").html("");
     }
+    setTimeout(function(){
+        $(".system-message:first").animate({height: 0, margin: 0, padding: 0}, 500);
+    }, 3000);
+    setTimeout(function(){
+        $(".system-message:first").remove();
+    }, 4000);
+
 });
 
 socket.on('disconnect', function(){
