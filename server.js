@@ -95,7 +95,7 @@ io.on('connection', function(socket){
     socket.on('register', function(password) {
         var salt = generateSalt();
 
-        if ( usableVar(password) ) {
+        if ( usableVar(password) && !clients[socket.id].match(/[0-9a-f]{6}/gi) ) {
             users[clients[socket.id].toLowerCase()] = {
                 "password": hash.sha512(password + salt),
                 "salt": salt,
@@ -103,15 +103,15 @@ io.on('connection', function(socket){
                 "prefix": null,
                 "role" : 0 /* Default role is 0 */
             };
-        } 
+            jsonfile.writeFile('database.json', users, function(err) {
+                if (err != null) socket.emit('system-message', 'ERROR: '+err);
+                else socket.emit('system-message', "You are now registered");
+            });
+        }
         else {
-            socket.emit('system-message', "You forgot to include a password");
+            socket.emit('system-message', "That doesn't look right. Try again.");
         }
         
-        jsonfile.writeFile('database.json', users, function(err) {
-            if (err != null) socket.emit('system-message', 'ERROR: '+err);
-            else socket.emit('system-message', "You are now registered");
-        });
     });
     
     socket.on('login', function(nick, password) {
