@@ -89,6 +89,9 @@ function topic(text) {
 function fistOfRemoval(nick) {
     socket.emit('fistOfRemoval', nick);
 }
+function roleChange(userName, role) {
+    socket.emit('roleChange', userName, role);
+}
 
 //User Interface.
 $(function(){
@@ -126,11 +129,15 @@ function keyPressed(event) {
                 case ".register":
                     register(text.substring(10));
                     break;
+                    
                 case ".topic":
                     topic(text.substring(7));
                     break;
                 case ".fistOfRemoval":
                     fistOfRemoval(text.substring(15));
+                    break;
+                case ".roleChange": 
+                    roleChange(command[1], command[2]);
                     break;
                 default:
                     send(text);
