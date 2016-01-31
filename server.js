@@ -145,7 +145,23 @@ io.on('connection', function(socket){
     }
 
     adminCommand('roleChange', 2, function(userName, role){
-        console.log('THIS IS TO BE DONE LATER');
+        if ( usableVar(userName) && usableVar(role) && 
+             users[userName.toLowerCase()] !== undefined &&
+             users[clients[socket.id].toLowerCase()].role > users[userName.toLowerCase()].role &&
+             users[clients[socket.id].toLowerCase()].role > parseInt(role, 10) ) {
+                 
+                users[userName].role = parseInt(role, 10);
+                
+                jsonfile.writeFile('database.json', users, function(err) {
+                    if (err != null) socket.emit('system-message', 'ERROR: '+err);
+                    else socket.emit('system-message', "You are now registered");
+                });
+
+                socket.emit('system-message', userName + " is now role:" + role);
+        }
+        else {
+            socket.emit('system-message', "That ain't gonna happen.");
+        }
     });
     
     adminCommand('topic', 1, function(newTopic){
