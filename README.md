@@ -52,4 +52,4 @@ function funcName(args) {
 
 * You're now running SeaFour. 
 
-Copyright (c) 2015 Landon Powell under the zlib license. 
+Copyright (c) 2015 Landon Powell
