@@ -174,21 +174,22 @@ socket.on('me', function(post){
 });
 
 socket.on('system-message', function(post){
-    autoscroll("#notifications",
-               "<div class=\"system-message\">" + 
-               "<div class=\"notificationIcon\"></div>"+
-                parser.htmlEscape( post ) + 
-               "</div>");
+    $("#notifications").append(
+       "<div class=\"system-message\">" + 
+       "<div class=\"notificationIcon\"></div>"+
+          parser.htmlEscape( post ) + 
+       "</div>");
     if ($("#notifications .system-message").length > 5) {
         $("#notifications").html("");
+    } 
+    else {
+        setTimeout(function(){
+            $(".system-message:first").animate({height: 0, margin: 0, padding: 0}, 500);
+        }, 3000);
+        setTimeout(function(){
+            $(".system-message:first").remove();
+        }, 4000);
     }
-    setTimeout(function(){
-        $(".system-message:first").animate({height: 0, margin: 0, padding: 0}, 500);
-    }, 3000);
-    setTimeout(function(){
-        $(".system-message:first").remove();
-    }, 4000);
-
 });
 
 socket.on('disconnect', function(){

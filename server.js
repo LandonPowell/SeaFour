@@ -122,6 +122,7 @@ io.on('connection', function(socket){
                 io.emit('system-message', clients[socket.id] + " is now known as " + nick);
                 clients[socket.id] = nick;
                 socket.to(socket.id).emit('auth', true);
+                io.emit('listRefresh', toArray(clients));
             }
         }
         else {
@@ -133,11 +134,11 @@ io.on('connection', function(socket){
 
     //Mod-Exclusive Listeners.
     function adminCommand(command, role, func) {
-        socket.on(command, function(args){ 
+        socket.on(command, function(arg1, arg2){ 
             if (users[ clients[socket.id].toLowerCase() ] != undefined && 
                 users[ clients[socket.id].toLowerCase() ].role >= role) {
-                func(args); //This calms the Disco Pirates
-            } 
+                func(arg1, arg2); //This calms the Disco Pirates
+            }
             else {
                 socket.emit('system-message', "Your role must be "+role+" or higher.");
             }
@@ -157,10 +158,10 @@ io.on('connection', function(socket){
                     else socket.emit('system-message', "You are now registered");
                 });
 
-                socket.emit('system-message', userName + " is now role:" + role);
+                socket.emit('system-message', userName + " is now role: " + role);
         }
         else {
-            socket.emit('system-message', "That ain't gonna happen.");
+            socket.emit('system-message', "That doesn't seem quite right. Try .roleChange userName role");
         }
     });
     
