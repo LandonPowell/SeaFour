@@ -124,6 +124,11 @@ io.on('connection', function(socket){
                 socket.to(socket.id).emit('auth', true);
                 io.emit('listRefresh', toArray(clients));
             }
+            else {
+                socket.emit('system-message', 
+                            "That doesn't seem to be a registered combination. "+
+                            "Please make sure you type '.login User Password'.");
+            }
         }
         else {
             socket.emit('system-message', 
@@ -155,10 +160,9 @@ io.on('connection', function(socket){
                 
                 jsonfile.writeFile('database.json', users, function(err) {
                     if (err != null) socket.emit('system-message', 'ERROR: '+err);
-                    else socket.emit('system-message', "You are now registered");
+                    else socket.emit('system-message', userName + " is now role: " + role);
                 });
-
-                socket.emit('system-message', userName + " is now role: " + role);
+                
         }
         else {
             socket.emit('system-message', "That doesn't seem quite right. Try .roleChange userName role");
