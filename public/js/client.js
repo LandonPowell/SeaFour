@@ -161,6 +161,14 @@ function autoscroll(appendTo, appendstring) {
     }
 }
 
+socket.on('listRefresh', function(newList){
+    $("#menuButton").html("Users: " + newList.length);
+    $("#userList").html("");
+    for (var i = 0; i < newList.length; i++) {
+        $("#userList").append(newList[i] + "<br>");
+    }
+});
+
 //Event handlers. 
 socket.on('message', function(nick, post){
     autoscroll("#messages", 
@@ -195,14 +203,6 @@ socket.on('system-message', function(post){
 socket.on('disconnect', function(){
     autoscroll("#notifications", 
                 "<div class=\"system-message\">Your socket has been disconnected.</div>");
-});
-
-socket.on('listRefresh', function(newList){
-    $("#menuButton").html("Users: " + newList.length);
-    $("#userlist").html("");
-    for (var i = 0; i < newList.length; i++) {
-        $("#userlist").append(newList[i] + "<br>");
-    }
 });
 
 socket.on('global', function(global){
