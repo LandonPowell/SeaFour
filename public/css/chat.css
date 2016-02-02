@@ -30,7 +30,7 @@ body {
     overflow-x: hidden;
 }
 
-@keyframes button {
+@keyframes menuButton {
     from {
     box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
                  1px 3px 10px rgba(0, 0, 10, 0.15) inset,
@@ -65,14 +65,14 @@ body {
     cursor: pointer;
 }
 #menuButton:hover {
-    animation-name: button;
+    animation-name: menuButton;
     animation-duration: .3s;
     box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
                  1px 3px 10px rgba(0, 0, 10, 0.15) inset,
                 -1px 1px 2px  rgba(255, 255, 255, .01),
                  0px 1px 3px rgba(0,0,0, 0.9);
 }
-#userlist {
+#menu {
     display: none;
     position: fixed;
     top: 45px;
@@ -85,6 +85,56 @@ body {
                  1px 3px 10px rgba(0, 0, 10, 0.15) inset,
                 -1px 1px 2px  rgba(255, 255, 255, .01);
     border-radius: 2px;
+}
+#userList {
+    margin-left: 10px;
+    float: right;   
+    text-align: center;
+    padding: 10px;
+    background-color: rgba(0,0,0,0.1);
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01);
+}
+#login {
+    float: left;
+    text-align: center;
+}
+#login input {
+    display: block;
+    margin-bottom: 10px;
+    border: 0px;
+    background-color: rgba(0,0,0,0.1);
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01);
+    font-family: "JosefinSans"; 
+    font-size: 20px;
+    width: 100px;
+    color: white;
+    padding: 5px;
+}
+#submitButton {
+    cursor: pointer;
+    height: 30px;
+    width: 30px;
+    border-radius: 100%;
+    border: 0px;
+    background-image: url(images/iconPurple.png);
+    background-position: center;
+    background-size: 40px;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01),
+                 0px 1px 3px rgba(0,0,0, 0.9);
+}
+#submitButton:hover {
+    animation-name: menuButton;
+    animation-duration: .3s;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01),
+                 0px 1px 3px rgba(0,0,0, 0.9);
 }
 
 #notifications {
