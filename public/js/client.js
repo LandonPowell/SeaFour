@@ -39,23 +39,23 @@ var parser = {
                 return item;
             }
         }
-        
+
         /* THE FOLLOWING IS PLACEHOLDER CODE BECAUSE I'M A LAZY SHAZBOT */
-        string = string.replace(/\(\*([^)]+)\)/gi, 
+        string = string.replace(/\(\*([^)]+)\)/gi,
                               "<b>$1</b>")
-                     .replace(/\(\%([^)]+)\)/gi, 
+                     .replace(/\(\%([^)]+)\)/gi,
                               "<i>$1</i>")
-                     .replace(/\(meme([^)]+)\)/gi, 
+                     .replace(/\(meme([^)]+)\)/gi,
                               "<span class=\"quote\">$1</span>")
-                     .replace(/\(\$([^)]+)\)/gi, 
+                     .replace(/\(\$([^)]+)\)/gi,
                               "<span class=\"spoiler\">$1</span>")
-                     .replace(/\(@([^)]+)\)/gi, 
+                     .replace(/\(@([^)]+)\)/gi,
                               "<span class=\"ghost\">$1</span>")
-                     .replace(/\(\^([^)]+)\)/gi, 
+                     .replace(/\(\^([^)]+)\)/gi,
                               "<span class=\"big\">$1</span>")
-                     .replace(/\(~([^)]+)\)/gi, 
+                     .replace(/\(~([^)]+)\)/gi,
                               "<span class=\"rainbow\">$1</span>")
-                     .replace(/\(#([\dabcdef]+)([^)]+)\)/gi, 
+                     .replace(/\(#([\dabcdef]+)([^)]+)\)/gi,
                               "<span style=\"color:#$1\">$2</span>")
                      .replace(/([a-z]*:\/+[a-z0-9\-]*.[^<>\s]+)/gi, /* URL links */
                               "<a class=\"link\" href=\"$1\">$1</a>")
@@ -104,7 +104,7 @@ $(function(){
             minWidth: 177,
             handles: "se"
         });
-        
+
     $("#submitButton").click(function(){
         login(
             $("#userName").val(),
@@ -112,7 +112,7 @@ $(function(){
         );
         $("#userName").val("");
         $("#passWord").val("");
-        
+
         $("#menu").slideToggle();
     });
 });
@@ -122,7 +122,7 @@ function keyPressed(event) {
         var text = document.getElementById("inputbox").value;
         document.getElementById("inputbox").value = null;
         event.preventDefault();
-        if(text[0] != ".") { /* Commands start with a period. */ 
+        if(text[0] != ".") { /* Commands start with a period. */
             send(text);
         }
         else {
@@ -140,14 +140,14 @@ function keyPressed(event) {
                 case ".register":
                     register(text.substring(10));
                     break;
-                    
+
                 case ".topic":
                     topic(text.substring(7));
                     break;
                 case ".fistOfRemoval":
                     fistOfRemoval(text.substring(15));
                     break;
-                case ".roleChange": 
+                case ".roleChange":
                     roleChange(command[1], command[2]);
                     break;
                 default:
@@ -158,11 +158,11 @@ function keyPressed(event) {
 }
 
 function autoscroll(appendTo, appendstring) {
-    var height = $("#messages").prop('scrollHeight') - 
+    var height = $("#messages").prop('scrollHeight') -
                  $("#messages").prop('clientHeight');
 
     $(appendTo).append(appendstring);
-    
+
     var maxScroll = $("#messages").prop('scrollHeight') -
                     $("#messages").prop('clientHeight');
     if ($("#messages").scrollTop() > height - 400) {
@@ -180,23 +180,23 @@ socket.on('listRefresh', function(newList){
     }
 });
 
-//Event handlers. 
+//Event handlers.
 socket.on('message', function(nick, post){
-    autoscroll("#messages", 
+    autoscroll("#messages",
                "<div class=\"message\">" +  parser.htmlEscape( nick ) + ": " +
                 parser.style(parser.quote(parser.htmlEscape( post ))) + "</div>");
 });
 
 socket.on('me', function(post){
-    autoscroll("#messages", 
+    autoscroll("#messages",
                "<div class=\"me message\">"+parser.htmlEscape(post)+"</div>");
 });
 
 socket.on('system-message', function(post){
     $("#notifications").append(
-       "<div class=\"system-message\">" + 
+       "<div class=\"system-message\">" +
        "<div class=\"notificationIcon\"></div>"+
-          parser.htmlEscape( post ) + 
+          parser.htmlEscape( post ) +
        "</div>");
     if ($("#notifications .system-message").length > 5) {
         $("#notifications").html("");
@@ -212,13 +212,13 @@ socket.on('system-message', function(post){
 });
 
 socket.on('disconnect', function(){
-    autoscroll("#notifications", 
+    autoscroll("#notifications",
                 "<div class=\"system-message\">Your socket has been disconnected.</div>");
 });
 
 socket.on('global', function(global){
-    autoscroll("<h1 class=\"global\">" + 
-                parser.htmlEscape( global )+ 
+    autoscroll("<h1 class=\"global\">" +
+                parser.htmlEscape( global )+
                "</h1>");
 });
 
