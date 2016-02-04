@@ -104,6 +104,17 @@ $(function(){
             minWidth: 177,
             handles: "se"
         });
+        
+    $("#submitButton").click(function(){
+        login(
+            $("#userName").val(),
+            $("#passWord").val()
+        );
+        $("#userName").val("");
+        $("#passWord").val("");
+        
+        $("#menu").slideToggle();
+    });
 });
 
 function keyPressed(event) {
@@ -162,8 +173,8 @@ function autoscroll(appendTo, appendstring) {
 }
 
 socket.on('listRefresh', function(newList){
-    $("#menuButton").html("Users: " + newList.length);
-    $("#userList").html("");
+    $("#menuButton").html("Users - " + newList.length);
+    $("#userlist").html("");
     for (var i = 0; i < newList.length; i++) {
         $("#userList").append(newList[i] + "<br>");
     }
