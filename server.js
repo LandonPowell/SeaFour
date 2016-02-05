@@ -111,11 +111,11 @@ io.on('connection', function(socket){
         else {
             socket.emit('system-message', "That doesn't look right. Try again.");
         }
-        
+
     });
-    
+
     socket.on('login', function(nick, password) {
-        if (usableVar(nick) && usableVar(password) && 
+        if (usableVar(nick) && usableVar(password) &&
             users[nick.toLowerCase()] !== undefined) {
             password = hash.sha512(password + users[nick.toLowerCase()].salt);
             if (users[nick.toLowerCase()].password == password) {

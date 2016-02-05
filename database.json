@@ -1,1 +1,9 @@
-{"xultra":{"password":"8ea203baf108878473bd9c9597bd8944298a338013e7ddd29efe2ab5726a70d38c36105b205978ed090fb40fa8b4c60fbac3bbbf00425475c8ff3cf11768eec5","salt":"n92gih0sdbk2ook4h1ftmnma0npmr78al20pcd68mb5jrf9b9l3r8adcmu7hdb3f","flair":null,"prefix":null,"role":3}
+{
+"xultra":{
+    "password":"8ea203baf108878473bd9c9597bd8944298a338013e7ddd29efe2ab5726a70d38c36105b205978ed090fb40fa8b4c60fbac3bbbf00425475c8ff3cf11768eec5",
+    "salt":"n92gih0sdbk2ook4h1ftmnma0npmr78al20pcd68mb5jrf9b9l3r8adcmu7hdb3f",
+    "flair":null,
+    "prefix":null,
+    "role":3
+    }
+}
