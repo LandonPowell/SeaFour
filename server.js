@@ -32,19 +32,19 @@ jsonfile.readFile('database.json', function(err, obj) {
 
 function generateSalt() { /* ! THIS IS NOT CRYPTO-HEALTHY CODE ! */
     var salt = "";
-    for (var i = 0; i < 64; i ++) 
+    for (var i = 0; i < 64; i ++)
         salt += Math.random().toString(36).substr(2,1); /* ! PSEUDORANDOM ! */
     return salt;
-    /*\ 
+    /*\
      *  Later idea for higher sec - Allow the users to seed using input
-     *  from their mouse. This would be way less prediction-prone than 
+     *  from their mouse. This would be way less prediction-prone than
      *  using a pseudorandom number generator. Kind of inspired by that
      *  one thing I can't remember right now that made you shake your
      *  mouse around when you installed it.
      *
      *  You're thinking of a bitcoin wallet program, I think.
      *  This shouldn't be hard to do. DON'T DO IT THOUGH. IT'S NOT
-     *  SAFE. MORE THOUGHT NEEDS TO BE DONE. 
+     *  SAFE. MORE THOUGHT NEEDS TO BE DONE.
     \*/
 }
 
@@ -54,7 +54,7 @@ io.on('connection', function(socket){
     //IP Address
     console.log(socket.handshake.address);
     console.log(socket.request.connection.remoteAddress);
-    
+
     //Start Up.
     socket.emit('topic', "Topic - " + topic);
     socket.emit('data-request');
@@ -71,18 +71,18 @@ io.on('connection', function(socket){
             io.emit('message', clients[socket.id], msg);
         }
     });
-    
+
     socket.on('me', function(msg){
         if (msg !== undefined && msg != '' && msg !== null) {
             io.emit('me', clients[socket.id]+" "+msg);
         }
     });
-    
+
     // Commands related to Registration and User Accounts.
     socket.on('changeNick', function(nick) {
         if ( usableVar(nick) && users[nick.toLowerCase()] === undefined ) {
-            io.emit('system-message', clients[socket.id] + 
-                                      " is now known as " + 
+            io.emit('system-message', clients[socket.id] +
+                                      " is now known as " +
                                       nick);
             clients[socket.id] = nick;
             io.emit('listRefresh', toArray(clients));
@@ -91,7 +91,7 @@ io.on('connection', function(socket){
             socket.emit('system-message', "That user is already registered.");
         }
     });
-    
+
     socket.on('register', function(password) {
         var salt = generateSalt();
 
@@ -155,20 +155,20 @@ io.on('connection', function(socket){
              users[userName.toLowerCase()] !== undefined &&
              users[clients[socket.id].toLowerCase()].role > users[userName.toLowerCase()].role &&
              users[clients[socket.id].toLowerCase()].role > parseInt(role, 10) ) {
-                 
+
                 users[userName].role = parseInt(role, 10);
-                
+
                 jsonfile.writeFile('database.json', users, function(err) {
                     if (err != null) socket.emit('system-message', 'ERROR: '+err);
                     else socket.emit('system-message', userName + " is now role: " + role);
                 });
-                
+
         }
         else {
             socket.emit('system-message', "That doesn't seem quite right. Try .roleChange userName role");
         }
     });
-    
+
     adminCommand('topic', 1, function(newTopic){
         io.emit('topic', "Topic - " + newTopic);
         topic = newTopic;
