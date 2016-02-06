@@ -67,13 +67,13 @@ io.on('connection', function(socket){
 
     //Core Listeners.
     socket.on('message', function(msg){
-        if (msg !== undefined && msg != '' && msg !== null) {
+        if (usableVar(msg)) {
             io.emit('message', clients[socket.id], msg);
         }
     });
 
     socket.on('me', function(msg){
-        if (msg !== undefined && msg != '' && msg !== null) {
+        if (usableVar(msg)) {
             io.emit('me', clients[socket.id]+" "+msg);
         }
     });
