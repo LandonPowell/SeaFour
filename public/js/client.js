@@ -174,7 +174,7 @@ function autoscroll(appendTo, appendstring) {
 
 socket.on('listRefresh', function(newList){
     $("#menuButton").html("Users - " + newList.length);
-    $("#userlist").html("");
+    $("#userList").html("");
     for (var i = 0; i < newList.length; i++) {
         $("#userList").append(newList[i] + "<br>");
     }
