@@ -9,11 +9,7 @@ var jsonfile = require('jsonfile');
 String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
 
 function toArray(object) {
-    var newArray = [];
-    for (var key in object) {
-        newArray.push(object[key]);
-    }
-    return newArray;
+    return $.map(object, function(element){ return element });
 }
 
 function usableVar(variable) {
