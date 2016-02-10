@@ -117,9 +117,10 @@ $(function(){ /* On Load */
 
 function keyPressed(event) {
     if(event.keyCode == 13 && !event.shiftKey) { /* Enter is pressed. */
-        var text = document.getElementById("inputbox").value;
-        document.getElementById("inputbox").value = null;
+        var text = $("#inputbox").val();
+        $("#inputbox").val("");
         event.preventDefault();
+
         if(text[0] != ".") { /* Commands start with a period. */ 
             send(text);
         }
