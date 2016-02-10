@@ -9,7 +9,6 @@ var parser = {
                      .replace(/>/g,"&gt;")
                      .replace(/'/g,"&apos;")
                      .replace(/\"/g,"&quot;")
-                     .replace(/\'/g,"&rsquo;")
                      .replace(/\\/g,"&bsol;")
                      .replace(/  /g," &nbsp;")
                      .replace(/\n/g,"<br>")
@@ -41,7 +40,7 @@ var parser = {
         }
         
         /* THE FOLLOWING IS PLACEHOLDER CODE BECAUSE I'M A LAZY SHAZBOT */
-        string = string.replace(/\(\*([^)]+)\)/gi, 
+        string=string.replace(/\(\*([^)]+)\)/gi, 
                               "<b>$1</b>")
                      .replace(/\(\%([^)]+)\)/gi, 
                               "<i>$1</i>")
@@ -57,6 +56,8 @@ var parser = {
                               "<span class=\"rainbow\">$1</span>")
                      .replace(/\(#([\dabcdef]+)([^)]+)\)/gi, 
                               "<span style=\"color:#$1\">$2</span>")
+                     .replace(/\(:([0-9a-z]+)\)/gi,
+                              "<span class=\"postLink\">$1</span>")
                      .replace(/([a-z]*:\/+[a-z0-9\-]*.[^<>\s]+)/gi, /* URL links */
                               "<a class=\"link\" href=\"$1\">$1</a>")
                      .replace(/([a-z]*:\/*[a-z0-9\-]*.[^<>\s]*(?:\.jpg|\.png|\.svg|\.gif))/gi, /* Image links */
@@ -94,17 +95,15 @@ function roleChange(userName, role) {
 }
 
 //User Interface.
-$(function(){
+$(function(){ /* On Load */
     $('#handle')
-        .draggable({
-            containment: "#messages"
-        })
+        .draggable({ containment: "#messages" })
         .resizable({
             minHeight: 51,
             minWidth: 177,
             handles: "se"
         });
-        
+
     $("#submitButton").click(function(){
         login(
             $("#userName").val(),
@@ -181,10 +180,20 @@ socket.on('listRefresh', function(newList){
 });
 
 //Event handlers. 
-socket.on('message', function(nick, post){
+socket.on('message', function(nick, post, id){
     autoscroll("#messages", 
-               "<div class=\"message\">" +  parser.htmlEscape( nick ) + ": " +
-                parser.style(parser.quote(parser.htmlEscape( post ))) + "</div>");
+               "<div class=\"message\"> \
+                   <span class=\"postId\" id=\""+id+"\">"+id+
+                  "</span>" +
+                parser.htmlEscape( nick ) + ": " +
+                parser.style(parser.quote(parser.htmlEscape( post ))) + 
+               "</div>");
+    $("#"+id).click(function(event) {
+        $("#inputbox").val(
+            $("#inputbox").val() + 
+            "(:"+id+")" 
+        );
+    });
 });
 
 socket.on('me', function(post){

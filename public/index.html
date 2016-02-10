@@ -12,10 +12,11 @@
 
 <body>
     <div id="messages">
-        <h1 id="title"></h1>
 
         <div id="handle">
-            <div id="handlebar"></div>
+            <div id="handlebar">
+                <span id="title"></span>
+            </div>
             <textarea id="inputbox" onKeydown="keyPressed(event);" placeholder="Type your message here."></textarea>
         </div>
     </div>
@@ -24,7 +25,7 @@
     <div id="menu">
         <div id="login">
             <input type="text" id="userName" placeholder="Username"/>
-            <input type="text" id="passWord" placeholder="Password"/>
+            <input type="password" id="passWord" placeholder="Password"/>
             <button id="submitButton">
         </div>
         <div id="userList">

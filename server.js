@@ -22,7 +22,8 @@ function usableVar(variable) {
 
 var users;
 var clients = [];
-var topic = "Welcome to Ch4t.io";
+var topic = "Welcome to SeaFour.club";
+var postCount = 0; 
 
 jsonfile.readFile('database.json', function(err, obj) {
     users = obj;
@@ -56,7 +57,7 @@ io.on('connection', function(socket){
     console.log(socket.request.connection.remoteAddress);
 
     //Start Up.
-    socket.emit('topic', "Topic - " + topic);
+    socket.emit('topic', topic);
     socket.emit('data-request');
 
     clients[socket.id] = Math.random().toString(16).substr(2,6);
@@ -68,7 +69,8 @@ io.on('connection', function(socket){
     //Core Listeners.
     socket.on('message', function(msg){
         if (usableVar(msg)) {
-            io.emit('message', clients[socket.id], msg);
+            postCount++;
+            io.emit('message', clients[socket.id], msg, postCount.toString(36));
         }
     });
 
@@ -170,7 +172,7 @@ io.on('connection', function(socket){
     });
 
     adminCommand('topic', 1, function(newTopic){
-        io.emit('topic', "Topic - " + newTopic);
+        io.emit('topic', newTopic);
         topic = newTopic;
     });
     
