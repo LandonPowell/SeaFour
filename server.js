@@ -5,8 +5,8 @@ var io = require('socket.io')(http);
 var hash = require('./lib/hash');
 var jsonfile = require('jsonfile');
 
-//Why isn't this default within Ecma? Fuck you, Ecma. 
-String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
+//We don't really need this, but I'll leave it as a comment.
+//String.prototype.contains = function(it) { return this.indexOf(it)+1; };
 
 function toArray(object) {
     var newArray = [];

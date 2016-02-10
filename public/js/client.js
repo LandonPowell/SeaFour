@@ -56,7 +56,7 @@ var parser = {
                               "<span class=\"rainbow\">$1</span>")
                      .replace(/\(#([\dabcdef]+)([^)]+)\)/gi, 
                               "<span style=\"color:#$1\">$2</span>")
-                     .replace(/\(:([0-9a-z]+)\)/gi,
+                     .replace(/\(:([a-z0-9]+)\)/gi,
                               "<span class=\"postLink\">$1</span>")
                      .replace(/([a-z]*:\/+[a-z0-9\-]*.[^<>\s]+)/gi, /* URL links */
                               "<a class=\"link\" href=\"$1\">$1</a>")
