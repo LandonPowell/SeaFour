@@ -228,6 +228,9 @@ body {
     font-size: 19px;
     float: right;
 }
+.postLink {
+    padding-right: 5px;
+}
 
 .me {
     color: #b53fff;

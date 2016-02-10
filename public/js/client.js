@@ -1,5 +1,4 @@
-var client = {};
-var socket = io();
+var socket = io(); 
 
 //Parser.
 var parser = {
@@ -57,7 +56,7 @@ var parser = {
                      .replace(/\(#([\dabcdef]+)([^)]+)\)/gi, 
                               "<span style=\"color:#$1\">$2</span>")
                      .replace(/\(:([a-z0-9]+)\)/gi,
-                              "<span class=\"postLink\">$1</span>")
+                              "<span onclick=\"idJump('$1')\" class=\"postLink\">$1</span>")
                      .replace(/([a-z]*:\/+[a-z0-9\-]*.[^<>\s]+)/gi, /* URL links */
                               "<a class=\"link\" href=\"$1\">$1</a>")
                      .replace(/([a-z]*:\/*[a-z0-9\-]*.[^<>\s]*(?:\.jpg|\.png|\.svg|\.gif))/gi, /* Image links */
@@ -154,6 +153,12 @@ function keyPressed(event) {
             }
         }
     }
+}
+
+function idJump(postId) {
+    $("#messages").animate({
+        scrollTop: $("#" + postId).offset().top
+    },250);
 }
 
 function autoscroll(appendTo, appendstring) {
