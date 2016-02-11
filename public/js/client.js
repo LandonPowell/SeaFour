@@ -1,10 +1,5 @@
 var socket = io(); 
 
-var client = {
-    flair: 0,
-    prefix: 0,
-};
-
 //Parser.
 var parser = {
     htmlEscape : function(string) { /* THIS ESCAPES HTML SPECIAL CHARACTERS */
@@ -18,8 +13,8 @@ var parser = {
                      .replace(/\n/g,"<br>")
         ;
     },
-    quote : function(string) { /* THIS CREATES THE QUOTES/GREENTEXT */ 
-        return string.replace(/&gt;([^<]+)/gi, 
+    quote : function(string) { /* THIS CREATES THE QUOTES/GREENTEXT */
+        return string.replace(/&gt;([^<]+)/gi,
                               "<span class=\"quote\">$1</span>");
     },
     style : function(string) { /* THE MIGHTY LISP STYLE SYNTAX PARSER. */ 
@@ -46,7 +41,7 @@ var parser = {
         /* THE FOLLOWING IS PLACEHOLDER CODE BECAUSE I'M A LAZY SHAZBOT */
         string=string.replace(/\(\*([^)]+)\)/gi, 
                               "<b>$1</b>")
-                     .replace(/\(\%([^)]+)\)/gi, 
+                     .replace(/\(%([^)]+)\)/gi, 
                               "<i>$1</i>")
                      .replace(/\(meme([^)]+)\)/gi, 
                               "<span class=\"quote\">$1</span>")

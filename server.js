@@ -74,8 +74,13 @@ io.on('connection', function(socket){
     socket.on('message', function(msg){
         if (usableVar(msg)) {
             postCount++;
-            var flair = users[clients[socket.id]].flair;
+            var flair;
+
+            if (users[clients[socket.id]] !== undefined ) {
+                flair = users[clients[socket.id]].flair;
+            }
             if (! usableVar(flair) ) flair = 0;
+
             io.emit('message', clients[socket.id], msg, postCount.toString(36), flair);
         }
     });
