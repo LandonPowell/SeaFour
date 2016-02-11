@@ -65,32 +65,12 @@ var parser = {
     }
 };
 
-//Command Functions.
-function send(msg) {
-    socket.emit('message',msg);
-}
-function me(msg) {
-    socket.emit('me', msg);
+//Sockit Emitance Functions.
+function send(msg) { /* Setting a function allows the end-user to modify it. */
+    socket.emit('message', msg);
 }
 function login(nick, password) {
     socket.emit('login', nick, password);
-}
-function nick(name) {
-    socket.emit('changeNick', name);
-}
-function register(name) {
-    socket.emit('register', name);
-}
-
-//Admin Commands.
-function topic(text) {
-    socket.emit('topic', text);
-}
-function fistOfRemoval(nick) {
-    socket.emit('fistOfRemoval', nick);
-}
-function roleChange(userName, role) {
-    socket.emit('roleChange', userName, role);
 }
 
 //User Interface.
@@ -131,35 +111,38 @@ function keyPressed(event) {
                     login(command[1], command[2]);
                     break;
                 case ".me":
-                    me(text.substring(4));
+                    socket.emit('me', text.substring(4));
                     break;
                 case ".nick":
-                    nick(text.substring(6));
+                    socket.emit('changeNick', text.substring(6));
                     break;
                 case ".register":
-                    register(text.substring(10));
+                    socket.emit('register', text.substring(10));
+                    break;
+                case ".who":
+                    socket.emit('who', text.substring(5));
                     break;
                     
                 case ".topic":
-                    topic(text.substring(7));
+                    socket.emit('topic', text.substring(7));
                     break;
                 case ".fistOfRemoval":
-                    fistOfRemoval(text.substring(15));
+                    socket.emit('fistOfRemoval', text.substring(15));
                     break;
                 case ".roleChange": 
-                    roleChange(command[1], command[2]);
+                    socket.emit('roleChange', command[1], command[2]);
                     break;
                 default:
-                    send(text);
+                    socket.emit(command[0].substr(1), 
+                        text.substring(command[0].length + 1));
             }
         }
     }
 }
 
 function idJump(postId) {
-    $("#messages").animate({
-        scrollTop: $("#" + postId).offset().top
-    },250);
+    window.location.hash = "";
+    window.location.hash = "#" + postId;
 }
 
 function autoscroll(appendTo, appendstring) {

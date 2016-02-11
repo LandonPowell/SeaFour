@@ -20,6 +20,10 @@ function usableVar(variable) {
     return typeof( variable ) === "string" && variable !== "";
 }
 
+function nameSanitize(nick) {
+    return nick.toLowerCase().replace(/[^a-z0-9]/gi, "-");
+}
+
 var users;
 var clients = [];
 var topic = "Welcome to SeaFour.club";
@@ -82,7 +86,7 @@ io.on('connection', function(socket){
 
     // Commands related to Registration and User Accounts.
     socket.on('changeNick', function(nick) {
-        if ( usableVar(nick) && users[nick.toLowerCase()] === undefined ) {
+        if ( usableVar(nick) && users[nameSanitize(nick)] === undefined ) {
             io.emit('system-message', clients[socket.id] +
                                       " is now known as " +
                                       nick);
@@ -103,6 +107,7 @@ io.on('connection', function(socket){
                 "salt": salt,
                 "flair": null,
                 "prefix": null,
+                "corp": 0, /* Becomes an object upon incorporation */
                 "role" : 0 /* Default role is 0 */
             };
             jsonfile.writeFile('database.json', users, function(err) {
@@ -138,6 +143,25 @@ io.on('connection', function(socket){
                         "Please make sure you type '.login User Password'.");
         }
     });
+    
+    socket.on('who', function(userName) {
+        if (users[nameSanitize(userName)] != undefined) {
+            var user = users[nameSanitize(userName)];
+            var message = nameSanitize(userName) + 
+                          " is role " + user.role + 
+                          ", with flair " + user.flair;
+
+            if (user.corp) message += ", and is incorporated.";
+            else           message += ", and isn't incorporated.";
+
+            socket.emit('system-message', message);
+        }
+        else {
+            socket.emit('system-message', 
+                nameSanitize(userName) + " is not registered."
+            );
+        }
+    });
 
     //Mod-Exclusive Listeners.
     function adminCommand(command, role, func) {
@@ -152,7 +176,7 @@ io.on('connection', function(socket){
         });
     }
 
-    adminCommand('roleChange', 2, function(userName, role){
+    adminCommand('roleChange', 2, function(userName, role) {
         if ( usableVar(userName) && usableVar(role) && 
              users[userName.toLowerCase()] !== undefined &&
              users[clients[socket.id].toLowerCase()].role > users[userName.toLowerCase()].role &&
@@ -171,12 +195,12 @@ io.on('connection', function(socket){
         }
     });
 
-    adminCommand('topic', 1, function(newTopic){
+    adminCommand('topic', 1, function(newTopic) {
         io.emit('topic', newTopic);
         topic = newTopic;
     });
     
-    adminCommand('fistOfRemoval', 1, function(removedUser){ /* Kick Command */ 
+    adminCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
         if ( users[removedUser] !== undefined &&
              users[ clients[socket.id].toLowerCase() ].role > users[ removedUser.toLowerCase() ].role ||
              users[removedUser] === undefined ) {
