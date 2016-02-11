@@ -1,5 +1,10 @@
 var socket = io(); 
 
+var client = {
+    flair: 0,
+    prefix: 0,
+};
+
 //Parser.
 var parser = {
     htmlEscape : function(string) { /* THIS ESCAPES HTML SPECIAL CHARACTERS */
@@ -74,7 +79,7 @@ function login(nick, password) {
 }
 
 //User Interface.
-$(function(){ /* On Load */
+$(function(){ /* On load */
     $('#handle')
         .draggable({ containment: "#messages" })
         .resizable({
@@ -168,15 +173,38 @@ socket.on('listRefresh', function(newList){
     }
 });
 
+
+function flairify(nick, flair) {
+    var parsedNick = parser.htmlEscape(nick);
+    
+    if (flair) {
+        var parsedFlair = parser.style(
+                          parser.htmlEscape(
+                            flair
+                          ));
+
+        if (parsedNick == parsedFlair.replace(/<[^>]+>/g, "")) {
+            return parsedFlair; 
+        }
+        else {
+            return parsedNick;
+        }
+    }
+    else {
+        return parsedNick;
+    }
+}
+
 //Event handlers. 
-socket.on('message', function(nick, post, id){
+socket.on('message', function(nick, post, id, flair){
+
     autoscroll("#messages", 
                "<div class=\"message\"> \
-                   <span class=\"postId\" id=\""+id+"\">"+id+
-                  "</span>" +
-                parser.htmlEscape( nick ) + ": " +
+                   <span class=\"postId\" id=\""+id+"\">"+id+"</span>" +
+                flairify(nick, flair) + ": " +
                 parser.style(parser.quote(parser.htmlEscape( post ))) + 
                "</div>");
+
     $("#"+id).click(function(event) {
         $("#inputbox").val(
             $("#inputbox").val() + 
@@ -196,6 +224,7 @@ socket.on('system-message', function(post){
        "<div class=\"notificationIcon\"></div>"+
           parser.htmlEscape( post ) + 
        "</div>");
+
     if ($("#notifications .system-message").length > 5) {
         $("#notifications").html("");
     } 
