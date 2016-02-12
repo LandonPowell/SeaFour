@@ -14,7 +14,8 @@ The key files responsible for the functionality of the site are server.js and
 public/client.js. 
 
 
-Indents should be done in K&R style using 4-space tabs like so:
+Indents should be done in the Stroustrup variant of K&R style 
+using 4-space indents like so:
 ```
 if (x) {
     console.log("Ja!");
