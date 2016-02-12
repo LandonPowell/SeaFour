@@ -122,6 +122,10 @@ function keyPressed(event) {
                 case ".who":
                     socket.emit('who', text.substring(5));
                     break;
+                
+                case ".flair":
+                    socket.emit('flair', text.substring(7));
+                    break;
                     
                 case ".topic":
                     socket.emit('topic', text.substring(7));
@@ -192,7 +196,6 @@ function flairify(nick, flair) {
 
 //Event handlers. 
 socket.on('message', function(nick, post, id, flair){
-
     autoscroll("#messages", 
                "<div class=\"message\"> \
                    <span class=\"postId\" id=\""+id+"\">"+id+"</span>" +

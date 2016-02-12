@@ -35,6 +35,13 @@ jsonfile.readFile('database.json', function(err, obj) {
     else console.log('Database loaded.');
 });
 
+function updateDatabase(socket, successMessage) {
+    jsonfile.writeFile('database.json', users, function(err) {
+        if (err) socket.emit('system-message', 'ERROR: '+err);
+        else socket.emit('system-message', successMessage);
+    });
+}
+
 function generateSalt() { /* ! THIS IS NOT CRYPTO-HEALTHY CODE ! */
     var salt = "";
     for (var i = 0; i < 64; i ++)
@@ -76,8 +83,8 @@ io.on('connection', function(socket){
             postCount++;
             var flair;
 
-            if (users[clients[socket.id]] !== undefined ) {
-                flair = users[clients[socket.id]].flair;
+            if (users[nameSanitize(clients[socket.id])] !== undefined ) {
+                flair = users[nameSanitize(clients[socket.id])].flair;
             }
             if (! usableVar(flair) ) flair = 0;
 
@@ -109,7 +116,7 @@ io.on('connection', function(socket){
         var salt = generateSalt();
 
         if ( usableVar(password) && !clients[socket.id].match(/[0-9a-f]{6}/gi) ) {
-            users[clients[socket.id].toLowerCase()] = {
+            users[nameSanitize(clients[socket.id])] = {
                 "password": hash.sha512(password + salt),
                 "salt": salt,
                 "flair": null,
@@ -117,10 +124,7 @@ io.on('connection', function(socket){
                 "corp": 0, /* Becomes an object upon incorporation */
                 "role" : 0 /* Default role is 0 */
             };
-            jsonfile.writeFile('database.json', users, function(err) {
-                if (err != null) socket.emit('system-message', 'ERROR: '+err);
-                else socket.emit('system-message', "You are now registered");
-            });
+            updateDatabase(socket, "You are now registered.");
         }
         else {
             socket.emit('system-message', "That doesn't look right. Try again.");
@@ -170,11 +174,11 @@ io.on('connection', function(socket){
         }
     });
 
-    //Mod-Exclusive Listeners.
-    function adminCommand(command, role, func) {
+    //Function for commands that require registering. 
+    function userCommand(command, role, func) {
         socket.on(command, function(arg1, arg2){ 
-            if (users[ clients[socket.id].toLowerCase() ] != undefined && 
-                users[ clients[socket.id].toLowerCase() ].role >= role) {
+            if (users[ nameSanitize(clients[socket.id]) ] != undefined && 
+                users[ nameSanitize(clients[socket.id]) ].role >= role) {
                 func(arg1, arg2); //This calms the Disco Pirates
             }
             else {
@@ -182,32 +186,35 @@ io.on('connection', function(socket){
             }
         });
     }
+    
+    //Registered-Exclusive listeners.
+    userCommand('flair', 0, function(newFlair) {
+        users[nameSanitize(clients[socket.id])].flair = newFlair;
+        updateDatabase(socket, "Your flair is now " + newFlair);
+    });
 
-    adminCommand('roleChange', 2, function(userName, role) {
+    //Mod-Exclusive Listeners.
+    userCommand('roleChange', 2, function(userName, role) {
         if ( usableVar(userName) && usableVar(role) && 
-             users[userName.toLowerCase()] !== undefined &&
-             users[clients[socket.id].toLowerCase()].role > users[userName.toLowerCase()].role &&
-             users[clients[socket.id].toLowerCase()].role > parseInt(role, 10) ) {
+             nameSanitize(clients[socket.id]) !== undefined &&
+             nameSanitize(clients[socket.id]).role > nameSanitize(clients[socket.id]).role &&
+             nameSanitize(clients[socket.id]).role > parseInt(role, 10) ) {
 
                 users[userName].role = parseInt(role, 10);
 
-                jsonfile.writeFile('database.json', users, function(err) {
-                    if (err != null) socket.emit('system-message', 'ERROR: '+err);
-                    else socket.emit('system-message', userName + " is now role: " + role);
-                });
-
+                updateDatabase(socket, userName + " is now role: " + role);
         }
         else {
             socket.emit('system-message', "That doesn't seem quite right. Try .roleChange userName role");
         }
     });
 
-    adminCommand('topic', 1, function(newTopic) {
+    userCommand('topic', 1, function(newTopic) {
         io.emit('topic', newTopic);
         topic = newTopic;
     });
     
-    adminCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
+    userCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
         if ( users[removedUser] !== undefined &&
              users[ clients[socket.id].toLowerCase() ].role > users[ removedUser.toLowerCase() ].role ||
              users[removedUser] === undefined ) {
