@@ -200,8 +200,7 @@ io.on('connection', function(socket){
              nameSanitize(clients[socket.id]).role > nameSanitize(clients[socket.id]).role &&
              nameSanitize(clients[socket.id]).role > parseInt(role, 10) ) {
 
-                users[userName].role = parseInt(role, 10);
-
+                users[nameSanitize(userName)].role = parseInt(role, 10);
                 updateDatabase(socket, userName + " is now role: " + role);
         }
         else {
