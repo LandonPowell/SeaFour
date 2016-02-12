@@ -186,7 +186,7 @@ io.on('connection', function(socket){
             }
         });
     }
-    
+
     //Registered-Exclusive listeners.
     userCommand('flair', 0, function(newFlair) {
         users[nameSanitize(clients[socket.id])].flair = newFlair;

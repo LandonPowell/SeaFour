@@ -1,17 +1,17 @@
 @font-face {
     font-family: JosefinSans;
     font-weight: 300;
-    src: url('JosefinSans-Light.ttf');
+    src: url('fonts/JosefinSans-Light.ttf');
 }
 @font-face {
     font-family: JosefinSans;
     font-weight: 500;
-    src: url('JosefinSans-Regular.ttf');
+    src: url('fonts/JosefinSans-Regular.ttf');
 }
 @font-face {
     font-family: JosefinSans;
     font-weight: 700;
-    src: url('JosefinSans-SemiBold.ttf');
+    src: url('fonts/JosefinSans-SemiBold.ttf');
 }
 
 body {
