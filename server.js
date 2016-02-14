@@ -115,7 +115,7 @@ io.on('connection', function(socket){
     socket.on('register', function(password) {
         var salt = generateSalt();
 
-        if ( usableVar(password) && !clients[socket.id].match(/[0-9a-f]{6}/gi) ) {
+        if ( usableVar(password) && !clients[socket.id].match(/[\da-f]{6}/gi) ) {
             users[nameSanitize(clients[socket.id])] = {
                 "password": hash.sha512(password + salt),
                 "salt": salt,
@@ -212,7 +212,7 @@ io.on('connection', function(socket){
         io.emit('topic', newTopic);
         topic = newTopic;
     });
-    
+
     userCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
         if ( users[removedUser] !== undefined &&
              users[ clients[socket.id].toLowerCase() ].role > users[ removedUser.toLowerCase() ].role ||

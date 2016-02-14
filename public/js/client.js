@@ -53,7 +53,7 @@ var parser = {
                               "<span class=\"big\">$1</span>")
                      .replace(/\(~([^)]+)\)/gi, 
                               "<span class=\"rainbow\">$1</span>")
-                     .replace(/\(#([\dabcdef]+)([^)]+)\)/gi, 
+                     .replace(/\(#((?:[\da-f]{3})+)([^)]+)\)/gi, 
                               "<span style=\"color:#$1\">$2</span>")
                      .replace(/\(:([a-z0-9]+)\)/gi,
                               "<span onclick=\"idJump('$1')\" class=\"postLink\">$1</span>")
@@ -168,7 +168,7 @@ socket.on('listRefresh', function(newList){
     $("#menuButton").html("Users - " + newList.length);
     $("#userList").html("");
     for (var i = 0; i < newList.length; i++) {
-        $("#userList").append(newList[i] + "<br>");
+        $("#userList").append(parser.htmlEscape(newList[i]) + "<br>");
     }
 });
 
