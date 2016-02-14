@@ -88,13 +88,13 @@ io.on('connection', function(socket){
             }
             if (! usableVar(flair) ) flair = 0;
 
-            io.emit('message', clients[socket.id], msg, postCount.toString(36), flair);
+            io.emit('message', clients[socket.id], msg.substr(0,6000), postCount.toString(36), flair);
         }
     });
 
     socket.on('me', function(msg){
         if (usableVar(msg)) {
-            io.emit('me', clients[socket.id]+" "+msg);
+            io.emit('me', clients[socket.id]+" "+msg.substr(0,2048));
         }
     });
 
