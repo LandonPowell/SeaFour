@@ -7,6 +7,7 @@ var parser = {
                      .replace(/</g,"&lt;")
                      .replace(/>/g,"&gt;")
                      .replace(/'/g,"&apos;")
+                     .replace(/`/g,"&#96;")
                      .replace(/\"/g,"&quot;")
                      .replace(/\\/g,"&bsol;")
                      .replace(/  /g," &nbsp;")
