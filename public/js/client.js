@@ -95,6 +95,14 @@ $(function(){ /* On load */
     });
 });
 
+function embedURL(link) {
+    $("#embed").remove();
+    $("#messages").append("<div id=\"embed\">" +
+                              "<div id=\"urlHandlebar\"></div>" +
+                              "<iframe src=\"" + link + "\"></iframe>" +
+                          "</div>");
+}
+
 function keyPressed(event) {
     if(event.keyCode == 13 && !event.shiftKey) { /* Enter is pressed. */
         var text = $("#inputbox").val();
