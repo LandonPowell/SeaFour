@@ -11,8 +11,7 @@ var parser = {
                      .replace(/\"/g,"&quot;")
                      .replace(/\\/g,"&bsol;")
                      .replace(/  /g," &nbsp;")
-                     .replace(/\n/g,"<br>")
-        ;
+                     .replace(/\n/g,"<br>");
     },
     quote : function(string) { /* THIS CREATES THE QUOTES/GREENTEXT */
         return string.replace(/&gt;([^<]+)/gi,
