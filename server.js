@@ -26,6 +26,7 @@ function nameSanitize(nick) {
 
 var users;
 var clients = [];
+var ipLog = [];
 var topic = "Welcome to SeaFour.club";
 var postCount = 0; 
 
@@ -60,18 +61,17 @@ function generateSalt() { /* ! THIS IS NOT CRYPTO-HEALTHY CODE ! */
     \*/
 }
 
+
+
 app.use(express.static(__dirname + '/public/'));
 
 io.on('connection', function(socket){
-    //IP Address
-    console.log(socket.handshake.address);
-    console.log(socket.request.connection.remoteAddress);
-
     //Start Up.
     socket.emit('topic', topic);
     socket.emit('data-request');
 
     clients[socket.id] = Math.random().toString(16).substr(2,6);
+    ipLog[clients[socket.id]] = socket.request.connection.remoteAddress;
 
     console.log("JOIN: " + socket.id);
     io.emit('system-message', clients[socket.id] + ' has joined.');
@@ -83,11 +83,10 @@ io.on('connection', function(socket){
             postCount++;
             var flair;
 
-            if (users[nameSanitize(clients[socket.id])] !== undefined ) {
+            if (users[nameSanitize(clients[socket.id])] !== undefined )
                 flair = users[nameSanitize(clients[socket.id])].flair;
-            }
-            if (! usableVar(flair) ) flair = 0;
-
+            if (! usableVar(flair) )
+                flair = 0;
             io.emit('message', clients[socket.id], msg.substr(0,6000), postCount.toString(36), flair);
         }
     });
@@ -106,6 +105,7 @@ io.on('connection', function(socket){
                                       nick);
             clients[socket.id] = nick;
             io.emit('listRefresh', toArray(clients));
+            ipLog[nick] = socket.request.connection.remoteAddress;
         }
         else {
             socket.emit('system-message', "That user is already registered.");
@@ -134,13 +134,14 @@ io.on('connection', function(socket){
 
     socket.on('login', function(nick, password) {
         if (usableVar(nick) && usableVar(password) &&
-            users[nick.toLowerCase()] !== undefined) {
-            password = hash.sha512(password + users[nick.toLowerCase()].salt);
-            if (users[nick.toLowerCase()].password == password) {
+            users[nameSanitize(nick)] !== undefined) {
+            password = hash.sha512(password + users[nameSanitize()].salt);
+            if (users[nameSanitize(nick)].password == password) {
                 io.emit('system-message', clients[socket.id] + " is now known as " + nick);
                 clients[socket.id] = nick;
                 socket.to(socket.id).emit('auth', true);
                 io.emit('listRefresh', toArray(clients));
+                ipLog[nick] = socket.request.connection.remoteAddress;
             }
             else {
                 socket.emit('system-message', 
@@ -214,9 +215,9 @@ io.on('connection', function(socket){
     });
 
     userCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
-        if ( users[removedUser] !== undefined &&
-             users[ clients[socket.id].toLowerCase() ].role > users[ removedUser.toLowerCase() ].role ||
-             users[removedUser] === undefined ) {
+        if ( users[nameSanitize(removedUser)] !== undefined &&
+             users[nameSanitize(clients[socket.id])].role > users[nameSanitize(removedUser)].role ||
+             users[nameSanitize(removedUser)] === undefined ) {
 
             var removedUserID = Object.keys(clients).find(key => clients[key] == removedUser); 
             if (removedUserID !== undefined) {
@@ -248,3 +249,4 @@ io.on('connection', function(socket){
 http.listen(process.env.PORT || 80, function(){
     console.log('listening on *:' + (process.env.PORT || 80));
 });
+
