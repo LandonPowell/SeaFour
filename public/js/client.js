@@ -57,8 +57,10 @@ var parser = {
                               "<span style=\"color:#$1\">$2</span>")
                      .replace(/\(:([a-z0-9]+)\)/gi,
                               "<span onclick=\"idJump('$1')\" class=\"postLink\">$1</span>")
-                     .replace(/([a-z]*:\/+[a-z0-9\-]*.[^<>\s]+)/gi, /* URL links */
-                              "<a class=\"link\" href=\"$1\">$1</a>")
+                     .replace(/(?:http)?s?(?:\:\/\/)?(?:www.)?(?:youtu\.be\/|youtube\.com\/watch\?v=)([a-z\d_-]+)/gi, /* Youtube links */
+                              "<a class=\"link\" href=\"#\" onclick=\"embedURL('http://youtube.com/embed/$1')\"> Embed YouTube </a>")
+                     /*.replace(/([a-z]*:\/+[a-z0-9\-]*.[^<>\s]+)/gi,     URLs 
+                              "<a class=\"link\" href=\"$1\">$1</a>") */
                      .replace(/([a-z]*:\/*[a-z0-9\-]*.[^<>\s]*(?:\.jpg|\.png|\.svg|\.gif))/gi, /* Image links */
                               "<img class=\"inlineimage\" src=\"$1\"");
         return string;
@@ -101,6 +103,14 @@ function embedURL(link) {
                               "<div id=\"urlHandlebar\"></div>" +
                               "<iframe src=\"" + link + "\"></iframe>" +
                           "</div>");
+    $("#embed")
+        .draggable({ containment: "#messages" })
+        .resizable({
+            minHeight: 51,
+            minWidth: 177,
+            handles: "se"
+        });
+    if (link == "kill") $("#embed").remove();
 }
 
 function keyPressed(event) {
@@ -130,11 +140,14 @@ function keyPressed(event) {
                 case ".who":
                     socket.emit('who', text.substring(5));
                     break;
-                
+                case ".embedURL":
+                    embedURL(text.substring(10));
+                    break;
+
                 case ".flair":
                     socket.emit('flair', text.substring(7));
                     break;
-                    
+
                 case ".topic":
                     socket.emit('topic', text.substring(7));
                     break;

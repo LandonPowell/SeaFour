@@ -135,7 +135,7 @@ io.on('connection', function(socket){
     socket.on('login', function(nick, password) {
         if (usableVar(nick) && usableVar(password) &&
             users[nameSanitize(nick)] !== undefined) {
-            password = hash.sha512(password + users[nameSanitize()].salt);
+            password = hash.sha512(password + users[nameSanitize(nick)].salt);
             if (users[nameSanitize(nick)].password == password) {
                 io.emit('system-message', clients[socket.id] + " is now known as " + nick);
                 clients[socket.id] = nick;
