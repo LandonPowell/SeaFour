@@ -100,12 +100,13 @@ io.on('connection', function(socket){
     // Commands related to Registration and User Accounts.
     socket.on('changeNick', function(nick) {
         if ( usableVar(nick) && users[nameSanitize(nick)] === undefined ) {
-            io.emit('system-message', clients[socket.id] +
-                                      " is now known as " +
-                                      nick);
-            clients[socket.id] = nick;
+            io.emit('system-message', clients[socket.id]+" is now known as "+nick);
             io.emit('listRefresh', toArray(clients));
+            socket.emit('nickRefresh', nick);
+
+            clients[socket.id] = nick;
             ipLog[nick] = socket.request.connection.remoteAddress;
+
         }
         else {
             socket.emit('system-message', "That user is already registered.");
@@ -138,10 +139,12 @@ io.on('connection', function(socket){
             password = hash.sha512(password + users[nameSanitize(nick)].salt);
             if (users[nameSanitize(nick)].password == password) {
                 io.emit('system-message', clients[socket.id] + " is now known as " + nick);
-                clients[socket.id] = nick;
-                socket.to(socket.id).emit('auth', true);
                 io.emit('listRefresh', toArray(clients));
+                socket.emit('nickRefresh', nick);
+
+                clients[socket.id] = nick;
                 ipLog[nick] = socket.request.connection.remoteAddress;
+
             }
             else {
                 socket.emit('system-message', 

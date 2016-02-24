@@ -1,5 +1,10 @@
 var socket = io(); 
-
+var attributes = {
+    nick: "",
+    title: "",
+    unread: 0,
+    focus: true,
+};
 //Parser.
 var parser = {
     htmlEscape : function(string) { /* THIS ESCAPES HTML SPECIAL CHARACTERS */
@@ -97,6 +102,15 @@ $(function(){ /* On load */
     });
 });
 
+window.onfocus = function() { 
+    attributes.focus = true;
+    attributes.unread = 0; 
+    $("title").html(parser.htmlEscape( attributes.title ));
+};
+window.onblur = function() {
+    attributes.focus = false;
+}
+
 function embedURL(link) {
     $("#embed").remove();
     $("#messages").append("<div id=\"embed\">" +
@@ -183,8 +197,14 @@ function autoscroll(appendTo, appendstring) {
             scrollTop: maxScroll
         }, 100);
     }
+    
+    if (!attributes.focus) { 
+        attributes.unread += 1;
+        $("title").html(parser.htmlEscape( attributes.unread + " : " + attributes.title ));
+    }
 }
 
+//User Management
 socket.on('listRefresh', function(newList){
     $("#menuButton").html("Users - " + newList.length);
     $("#userList").html("");
@@ -193,6 +213,9 @@ socket.on('listRefresh', function(newList){
     }
 });
 
+socket.on('nickRefresh', function(newNick){
+    attributes.nick = newNick;
+});
 
 function flairify(nick, flair) {
     var parsedNick = parser.htmlEscape(nick);
@@ -257,18 +280,13 @@ socket.on('system-message', function(post){
     }
 });
 
+socket.on('topic', function(newTitle){
+    $("#title").html(parser.htmlEscape( newTitle ));
+    $("title").html(parser.htmlEscape( newTitle ));
+    attributes.title = newTitle;
+});
+
 socket.on('disconnect', function(){
     autoscroll("#notifications", 
                 "<div class=\"system-message\">Your socket has been disconnected.</div>");
-});
-
-socket.on('global', function(global){
-    autoscroll("<h1 class=\"global\">" + 
-                parser.htmlEscape( global )+ 
-               "</h1>");
-});
-
-socket.on('topic', function(title){
-    $("#title").html(parser.htmlEscape( title ));
-    $("title").html(parser.htmlEscape( title ));
 });
