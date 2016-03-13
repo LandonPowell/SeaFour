@@ -8,15 +8,15 @@ var attributes = {
 //Parser.
 var parser = {
     htmlEscape : function(string) { /* THIS ESCAPES HTML SPECIAL CHARACTERS */
-        return string.replace(/&/g,"&amp;")
-                     .replace(/</g,"&lt;")
-                     .replace(/>/g,"&gt;")
-                     .replace(/'/g,"&apos;")
-                     .replace(/`/g,"&#96;")
-                     .replace(/\"/g,"&quot;")
-                     .replace(/\\/g,"&bsol;")
-                     .replace(/  /g," &nbsp;")
-                     .replace(/\n/g,"<br>");
+        return string.replace(/&/g,  "&amp;"    )
+                     .replace(/</g,  "&lt;"     )
+                     .replace(/>/g,  "&gt;"     )
+                     .replace(/'/g,  "&apos;"   )
+                     .replace(/`/g,  "&#96;"    )
+                     .replace(/\"/g, "&quot;"   )
+                     .replace(/\\/g, "&bsol;"   )
+                     .replace(/  /g, " &nbsp;"  )
+                     .replace(/\n/g, "<br>"     );
     },
     quote : function(string) { /* THIS CREATES THE QUOTES/GREENTEXT */
         return string.replace(/&gt;([^<]+)/gi,
@@ -62,12 +62,12 @@ var parser = {
                               "<span style=\"color:#$1\">$2</span>")
                      .replace(/\(:([a-z0-9]+)\)/gi,
                               "<span onclick=\"idJump('$1')\" class=\"postLink\">$1</span>")
-                     .replace(/(?:http)?s?(?:\:\/\/)?(?:www.)?(?:youtu\.be\/|youtube\.com\/watch\?v=)([a-z\d_-]+)/gi, /* Youtube links */
+                     .replace(/(?:http)?s?(?:\:\/\/)?(?:www.)?(?:youtu\.be\/|youtube\.com\/watch\?v=)([a-z\d_-]+)/gi,
                               "<a class=\"link\" href=\"#\" onclick=\"embedURL('http://youtube.com/embed/$1')\"> Embed YouTube </a>")
-                     /*.replace(/([a-z]*:\/+[a-z0-9\-]*.[^<>\s]+)/gi,     URLs 
-                              "<a class=\"link\" href=\"$1\">$1</a>") */
-                     .replace(/([a-z]*:\/*[a-z0-9\-]*.[^<>\s]*(?:\.jpg|\.png|\.svg|\.gif))/gi, /* Image links */
+                     .replace(/([a-z]*:\/*[a-z0-9\-]+\.[^<>\s]+(?:\.jpg|\.png|\.svg|\.gif))/gi,
                               "<img class=\"inlineimage\" src=\"$1\"");
+                     /*.replace(/([a-z]*:\/+[a-z0-9\-]+\.[^<>\s]+)/gi,
+                              "<a class=\"link\" href=\"$1\">$1</a>");*/
         return string;
     }
 };
@@ -114,7 +114,7 @@ window.onblur = function() {
 function embedURL(link) {
     $("#embed").remove();
     $("#messages").append("<div id=\"embed\">" +
-                              "<div id=\"urlHandlebar\"></div>" +
+                              "<div id=\"urlHandlebar\"> Embeded URL </div>" +
                               "<iframe src=\"" + link + "\"></iframe>" +
                           "</div>");
     $("#embed")
