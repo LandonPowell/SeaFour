@@ -23,24 +23,40 @@ var parser = {
                               "<span class=\"quote\">$1</span>");
     },
     style : function(string) { /* THE MIGHTY LISP STYLE SYNTAX PARSER. */ 
-        //Tokenizer.
-        var tokens = string.replace(/\(LP\)/g,"&#40;") //Escape codes.
-                           .replace(/\(RP\)/g,"&#41;")
-                           .replace(/\(/g," ( ")
-                           .replace(/\)/g," ) ").split(" ");
 
-        //Nester.
-        function nest(array) {
+        //Tokenizer.
+        function tokenizer(s){ // This is a massive bitch in javascript. 
+            s = '(' + s + ')';
+            var tokens = s.replace(/\(LP\)/g,"&#40;") //Escape codes.
+                          .replace(/\(RP\)/g,"&#41;")
+                          .replace(/\(/g," ( ")
+                          .replace(/\)/g," ) ").split(" ");
+            tokens.splice(0,1);
+            return tokens;
+        }
+
+        //S-Expression Nester.
+        function nest(array) { // This is rather easy in JS. 
             var item = array.shift();
             if (item == '(') {
                 var newList = [];
-                while (array[0] != ')') newList.append(nest(array));
+                while (array[0] != ')') newList.push(nest(array));
                 array.shift();
                 return newList;
             }
             else {
                 return item;
             }
+        }
+        
+        function evaluate(tree){ 
+            var parsed = "";
+            var operator = tree[0];
+            for (var i = 0; i < tree.length; i++) {
+                if     (typeof tree[i] == "object") parsed+=evaluate(tree[i]);
+                else if(typeof tree[i] == "string") parsed+=tree[i];
+            }
+            return parsed + "</span>";
         }
         
         /* THE FOLLOWING IS PLACEHOLDER CODE BECAUSE I'M A LAZY SHAZBOT */
@@ -102,14 +118,14 @@ $(function(){ /* On load */
     });
 });
 
-window.onfocus = function() { 
+window.onfocus = function() {
     attributes.focus = true;
-    attributes.unread = 0; 
+    attributes.unread = 0;
     $("title").html(parser.htmlEscape( attributes.title ));
 };
 window.onblur = function() {
     attributes.focus = false;
-}
+};
 
 function embedURL(link) {
     $("#embed").remove();
