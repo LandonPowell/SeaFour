@@ -23,11 +23,27 @@ var parser = {
                               "<span class=\"quote\">$1</span>");
     },
     style : function(string) { /* THE MIGHTY LISP STYLE SYNTAX PARSER. */ 
+        //Operators
+        var operators = {
+            basic: {
+                "*" : "bold"    ,
+                "%" : "italic"  ,
+                "$" : "spoiler" ,
+                "^" : "big"     ,
+                "~" : "rainbow" ,
+                ":" : "postLink",
+                "meme" : "quote",
+            },
+            complex: {
+                "#" : "color"   ,
+                "@" : "ghost"   ,
+            },
+        };
 
         //Tokenizer.
-        function tokenizer(s){ // This is a massive bitch in javascript. 
+        function tokenize(s){ /* This is a massive bitch in javascript. */
             s = '(' + s + ')';
-            var tokens = s.replace(/\(LP\)/g,"&#40;") //Escape codes.
+            var tokens = s.replace(/\(LP\)/g,"&#40;") /* Escape codes. */
                           .replace(/\(RP\)/g,"&#41;")
                           .replace(/\(/g," ( ")
                           .replace(/\)/g," ) ").split(" ");
@@ -36,11 +52,13 @@ var parser = {
         }
 
         //S-Expression Nester.
-        function nest(array) { // This is rather easy in JS. 
+        function nest(array) { /* This is rather easy in JS. */
             var item = array.shift();
             if (item == '(') {
                 var newList = [];
-                while (array[0] != ')') newList.push(nest(array));
+                while (array[0] != ')' && array.length != 0) {
+                    newList.push(nest(array));
+                }
                 array.shift();
                 return newList;
             }
@@ -49,12 +67,28 @@ var parser = {
             }
         }
         
+        //S-Expression Evaluator.
         function evaluate(tree){ 
-            var parsed = "";
             var operator = tree[0];
+            var parsed;
+            
+            if (operator in operators.basic) {
+                parsed = "<span class=\""+ operators.basic[operator] +"\">";
+            }
+            else if (operator in operators.complex) {
+                parsed = "";
+            }
+            else {
+                parsed = "<span>";
+            }
+            
             for (var i = 0; i < tree.length; i++) {
-                if     (typeof tree[i] == "object") parsed+=evaluate(tree[i]);
-                else if(typeof tree[i] == "string") parsed+=tree[i];
+                if (typeof tree[i] == "object") { 
+                    parsed+=evaluate(tree[i]);
+                }
+                else if (typeof tree[i] == "string") {
+                    parsed+=" "+tree[i]+" ";
+                }
             }
             return parsed + "</span>";
         }
