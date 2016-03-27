@@ -1,6 +1,6 @@
 var socket = io(); 
 var attributes = {
-    nick: "",
+    nick: "unnamed",
     title: "",
     unread: 0,
     focus: true,
@@ -247,8 +247,12 @@ function flairify(nick, flair) {
 
 //Event handlers. 
 socket.on('message', function(nick, post, id, flair){
+    var postType = "message";
+
+    if (post.indexOf(attributes.nick) + 1) postType += " alertMe";
+
     autoscroll("#messages", 
-               "<div class=\"message\"> \
+               "<div class=\""+postType+"\"> \
                    <span class=\"postId\" id=\""+id+"\">"+id+"</span>" +
                 flairify(nick, flair) + ": " +
                 parser.style(parser.quote(parser.htmlEscape( post ))) + 

@@ -47,14 +47,10 @@ function generateSalt() { /* ! THIS IS NOT CRYPTO-HEALTHY CODE ! */
     return salt;
     /*\
      *  Later idea for higher sec - Allow the users to seed using input
-     *  from their mouse. This would be way less prediction-prone than
+     *  from their mouse.  This would be way less prediction-prone than
      *  using a pseudorandom number generator. Kind of inspired by that
-     *  one thing I can't remember right now that made you shake your
-     *  mouse around when you installed it.
-     *
-     *  You're thinking of a bitcoin wallet program, I think.
-     *  This shouldn't be hard to do. DON'T DO IT THOUGH. IT'S NOT
-     *  SAFE. MORE THOUGHT NEEDS TO BE DONE.
+     *  one thing I can't remember right now, that makes you shake your
+     *  mouse around when you fist install it in to get a random number.
     \*/
 }
 
