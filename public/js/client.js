@@ -131,10 +131,12 @@ window.onblur = function() {
 
 function embedURL(link) {
     $("#embed").remove();
+
     $("#messages").append("<div id=\"embed\">" +
                               "<div id=\"urlHandlebar\"> Embeded URL </div>" +
                               "<iframe src=\"" + link + "\"></iframe>" +
                           "</div>");
+
     $("#embed")
         .draggable({ containment: "#messages" })
         .resizable({
@@ -142,6 +144,7 @@ function embedURL(link) {
             minWidth: 177,
             handles: "se"
         });
+
     if (link == "kill") $("#embed").remove();
 }
 
@@ -261,7 +264,9 @@ socket.on('message', function(nick, post, id, flair){
 
 socket.on('me', function(post){
     autoscroll("#messages", 
-               "<div class=\"me message\">"+parser.htmlEscape(post)+"</div>");
+               "<div class=\"me message\">"+
+                    parser.htmlEscape(post)+
+               "</div>");
 });
 
 socket.on('system-message', function(post){
@@ -274,13 +279,21 @@ socket.on('system-message', function(post){
     if ($("#notifications .system-message").length > 5) {
         $("#notifications").html("");
     } 
+
     else {
+
         setTimeout(function(){
-            $(".system-message:first").animate({height: 0, margin: 0, padding: 0}, 500);
+            $(".system-message:first").animate({
+                height: 0, 
+                margin: 0, 
+                padding: 0}, 
+                500);
         }, 3000);
+
         setTimeout(function(){
             $(".system-message:first").remove();
         }, 4000);
+
     }
 });
 
