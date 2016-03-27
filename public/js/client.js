@@ -31,12 +31,12 @@ var parser = {
                 "$" : "spoiler" ,
                 "^" : "big"     ,
                 "~" : "rainbow" ,
-                ":" : "postLink",
                 "meme" : "quote",
             },
             complex: {
                 "#" : "color"   ,
                 "@" : "ghost"   ,
+                ":" : "postLink",
             },
         };
 
@@ -56,7 +56,7 @@ var parser = {
             var item = array.shift();
             if (item == '(') {
                 var newList = [];
-                while (array[0] != ')' && array.length != 0) {
+                while (array[0] != ')' && array.length) {
                     newList.push(nest(array));
                 }
                 array.shift();
@@ -66,59 +66,35 @@ var parser = {
                 return item;
             }
         }
-        
+
         //S-Expression Evaluator.
         function evaluate(tree){ 
-            var operator = tree[0];
+            var operator = tree.shift();
             var parsed;
-            
+
+            //Handles the simple operators, like (^ big text )
             if (operator in operators.basic) {
                 parsed = "<span class=\""+ operators.basic[operator] +"\">";
             }
-            else if (operator in operators.complex) {
-                parsed = "";
+            //Handles the complex operators, like (#fff colors )
+            else if (operator in operators.complex) { 
+                parsed = "<span class=\""+ operators.complex[operator] +"\">";
             }
+            //Handles empty expressions, such as ( this )
             else {
-                parsed = "<span>";
+                parsed = "<span>"+operator+" "; 
             }
-            
+
             for (var i = 0; i < tree.length; i++) {
-                if (typeof tree[i] == "object") { 
-                    parsed+=evaluate(tree[i]);
-                }
-                else if (typeof tree[i] == "string") {
-                    parsed+=" "+tree[i]+" ";
-                }
+                if (typeof tree[i] == "object")      parsed+=evaluate(tree[i]);
+                else if (typeof tree[i] == "string") parsed+=" "+tree[i]+" ";
             }
+
             return parsed + "</span>";
         }
-        
-        /* THE FOLLOWING IS PLACEHOLDER CODE BECAUSE I'M A LAZY SHAZBOT */
-        string=string.replace(/\(\*([^)]+)\)/gi, 
-                              "<b>$1</b>")
-                     .replace(/\(%([^)]+)\)/gi, 
-                              "<i>$1</i>")
-                     .replace(/\(meme([^)]+)\)/gi, 
-                              "<span class=\"quote\">$1</span>")
-                     .replace(/\(\$([^)]+)\)/gi, 
-                              "<span class=\"spoiler\">$1</span>")
-                     .replace(/\(@([^)]+)\)/gi, 
-                              "<span class=\"ghost\">$1</span>")
-                     .replace(/\(\^([^)]+)\)/gi, 
-                              "<span class=\"big\">$1</span>")
-                     .replace(/\(~([^)]+)\)/gi, 
-                              "<span class=\"rainbow\">$1</span>")
-                     .replace(/\(#((?:[\da-f]{3})+)([^)]+)\)/gi, 
-                              "<span style=\"color:#$1\">$2</span>")
-                     .replace(/\(:([a-z0-9]+)\)/gi,
-                              "<span onclick=\"idJump('$1')\" class=\"postLink\">$1</span>")
-                     .replace(/(?:http)?s?(?:\:\/\/)?(?:www.)?(?:youtu\.be\/|youtube\.com\/watch\?v=)([a-z\d_-]+)/gi,
-                              "<a class=\"link\" href=\"#\" onclick=\"embedURL('http://youtube.com/embed/$1')\"> Embed YouTube </a>")
-                     .replace(/([a-z]*:\/*[a-z0-9\-]+\.[^<>\s]+(?:\.jpg|\.png|\.svg|\.gif))/gi,
-                              "<img class=\"inlineimage\" src=\"$1\"");
-                     /*.replace(/([a-z]*:\/+[a-z0-9\-]+\.[^<>\s]+)/gi,
-                              "<a class=\"link\" href=\"$1\">$1</a>");*/
-        return string;
+
+        //This returns the result of a parsing. 
+        return evaluate( nest( tokenize( string ) ) );
     }
 };
 
@@ -300,7 +276,7 @@ socket.on('message', function(nick, post, id, flair){
     $("#"+id).click(function(event) {
         $("#inputbox").val(
             $("#inputbox").val() + 
-            "(:"+id+")" 
+            "(: "+id+" )" 
         );
     });
 });
