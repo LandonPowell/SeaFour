@@ -163,43 +163,24 @@ function keyPressed(event) {
             send(text);
         }
         else {
-            var command = text.split(" ");
+            var command  = text.split(" ");
             switch(command[0]){
                 case ".login":
                     login(command[1], command[2]);
                     break;
-                case ".me":
-                    socket.emit('me', text.substring(4));
-                    break;
                 case ".nick":
                     socket.emit('changeNick', text.substring(6));
-                    break;
-                case ".register":
-                    socket.emit('register', text.substring(10));
-                    break;
-                case ".who":
-                    socket.emit('who', text.substring(5));
                     break;
                 case ".embedURL":
                     embedURL(text.substring(10));
                     break;
 
-                case ".flair":
-                    socket.emit('flair', text.substring(7));
-                    break;
-
-                case ".topic":
-                    socket.emit('topic', text.substring(7));
-                    break;
-                case ".fistOfRemoval":
-                    socket.emit('fistOfRemoval', text.substring(15));
-                    break;
                 case ".roleChange": 
                     socket.emit('roleChange', command[1], command[2]);
                     break;
                 default:
-                    socket.emit(command[0].substr(1), 
-                        text.substring(command[0].length + 1));
+                    socket.emit(command[0].substr(1),
+                                text.substring(command[0].length + 1));
             }
         }
     }
