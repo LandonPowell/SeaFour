@@ -188,11 +188,8 @@ function keyPressed(event) {
         $("#inputbox").val("");
         event.preventDefault();
 
-        if(text[0] != ".") { /* Because commands start with a period. */
-            send(text);
-        }
-        else {
-            var command  = text.split(" ");
+        if(text[0] == ".") { /* Commands start with a period. */
+            var command = text.split(" ");
 
             switch(command[0]){
                 case ".login":
@@ -211,6 +208,9 @@ function keyPressed(event) {
                     socket.emit(command[0].substr(1),
                                 text.substring(command[0].length + 1));
             }
+        }
+        else { /* Send a non-command message. */
+            send(text);
         }
     }
 }
@@ -279,7 +279,6 @@ socket.on('system-message', function(post){
     if ($("#notifications .system-message").length > 5) {
         $("#notifications").html("");
     } 
-
     else {
 
         setTimeout(function(){
