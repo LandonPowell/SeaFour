@@ -98,14 +98,6 @@ var parser = {
     }
 };
 
-//Sockit Emitance Functions.
-function send(msg) { /* Setting a function allows the end-user to modify it. */
-    socket.emit('message', msg);
-}
-function login(nick, password) {
-    socket.emit('login', nick, password);
-}
-
 //User Interface.
 $(function(){ /* On load */
     $('#handle')
@@ -153,38 +145,6 @@ function embedURL(link) {
     if (link == "kill") $("#embed").remove();
 }
 
-function keyPressed(event) {
-    if(event.keyCode == 13 && !event.shiftKey) { /* Enter is pressed. */
-        var text = $("#inputbox").val();
-        $("#inputbox").val("");
-        event.preventDefault();
-
-        if(text[0] != ".") { /* Commands start with a period. */ 
-            send(text);
-        }
-        else {
-            var command  = text.split(" ");
-            switch(command[0]){
-                case ".login":
-                    login(command[1], command[2]);
-                    break;
-                case ".nick":
-                    socket.emit('changeNick', text.substring(6));
-                    break;
-                case ".embedURL":
-                    embedURL(text.substring(10));
-                    break;
-
-                case ".roleChange": 
-                    socket.emit('roleChange', command[1], command[2]);
-                    break;
-                default:
-                    socket.emit(command[0].substr(1),
-                                text.substring(command[0].length + 1));
-            }
-        }
-    }
-}
 
 function idJump(postId) {
     window.location.hash = "";
@@ -211,7 +171,48 @@ function autoscroll(appendTo, appendstring) {
     }
 }
 
-//User Management
+// Command Handling.
+function send(msg) { /* Setting a function allows the end-user to modify it. */
+    socket.emit('message', msg);
+}
+function login(nick, password) {
+    socket.emit('login', nick, password);
+}
+
+function keyPressed(event) {
+    if(event.keyCode == 13 && !event.shiftKey) { /* Enter is pressed. */
+        var text = $("#inputbox").val();
+        $("#inputbox").val("");
+        event.preventDefault();
+
+        if(text[0] != ".") { /* Because commands start with a period. */
+            send(text);
+        }
+        else {
+            var command  = text.split(" ");
+
+            switch(command[0]){
+                case ".login":
+                    login(command[1], command[2]);
+                    break;
+                case ".nick":
+                    socket.emit('changeNick', text.substring(6));
+                    break;
+                case ".embedURL":
+                    embedURL(text.substring(10));
+                    break;
+                case ".roleChange": 
+                    socket.emit('roleChange', command[1], command[2]);
+                    break;
+                default:
+                    socket.emit(command[0].substr(1),
+                                text.substring(command[0].length + 1));
+            }
+        }
+    }
+}
+
+//User List Management
 socket.on('listRefresh', function(newList){
     $("#menuButton").html("Users - " + newList.length);
     $("#userList").html("");
@@ -233,12 +234,8 @@ function flairify(nick, flair) {
                             flair
                           ));
 
-        if (parsedNick == parsedFlair.replace(/<[^>]+>/g, "")) {
-            return parsedFlair; 
-        }
-        else {
-            return parsedNick;
-        }
+        if (parsedNick == parsedFlair.replace(/<[^>]+>/g, "")) return parsedFlair; 
+        else return parsedNick;
     }
     else {
         return parsedNick;
