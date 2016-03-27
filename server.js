@@ -5,9 +5,6 @@ var io = require('socket.io')(http);
 var hash = require('./lib/hash');
 var jsonfile = require('jsonfile');
 
-//We don't really need this, but I'll leave it as a comment.
-//String.prototype.contains = function(it) { return this.indexOf(it)+1; };
-
 function toArray(object) {
     var newArray = [];
     for (var key in object) {
