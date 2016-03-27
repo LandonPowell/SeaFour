@@ -132,9 +132,9 @@ window.onblur = function() {
 function embedURL(link) {
     $("#embed").remove();
 
-    $("#messages").append("<div id=\"embed\">" +
-                              "<div id=\"urlHandlebar\"> Embeded URL </div>" +
-                              "<iframe src=\"" + link + "\"></iframe>" +
+    $("#messages").append("<div id=\"embed\">                               " +
+                              "<div id=\"urlHandlebar\"> Embeded URL </div> " +
+                              "<iframe src=\"" + link + "\"></iframe>       " +
                           "</div>");
 
     $("#embed")
@@ -249,7 +249,13 @@ function flairify(nick, flair) {
 socket.on('message', function(nick, post, id, flair){
     var postType = "message";
 
-    if (post.indexOf(attributes.nick) + 1) postType += " alertMe";
+    if (post.indexOf(attributes.nick) + 1) { /* If post contains nick. */
+        postType += " alertMe";
+        $("#audio").html(
+            "<embed src=\"js/alertNoise.ogg\"   \
+            style=\"display:none\"              \
+            autostart=true loop=false>         ");
+    }
 
     autoscroll("#messages", 
                "<div class=\""+postType+"\"> \
@@ -275,8 +281,8 @@ socket.on('me', function(post){
 
 socket.on('system-message', function(post){
     $("#notifications").append(
-       "<div class=\"system-message\">" + 
-       "<div class=\"notificationIcon\"></div>"+
+       "<div class=\"system-message\">          " + 
+       "<div class=\"notificationIcon\"></div>  " +
           parser.htmlEscape( post ) + 
        "</div>");
 
