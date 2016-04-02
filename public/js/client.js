@@ -280,7 +280,7 @@ function flairify(nick, flair) {
 
 //Event handlers. 
 socket.on('message', function(nick, post, id, flair){
-    var postType = "message;"
+    var postType = "message";
 
     if (post.indexOf(attributes.nick) + 1) { /* If post contains nick. */
         postType += " alertMe";
