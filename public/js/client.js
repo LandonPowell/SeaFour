@@ -23,7 +23,9 @@ var parser = {
                               "<span class=\"quote\">$1</span>");
     },
     style : function(string) { /* THE MIGHTY LISP STYLE SYNTAX PARSER. */ 
-    /* Can you believe that all this was once done with a metric fuckton of regex replaces? */
+    /*  Can you believe that all this was once done with a 
+     *  metric fuckton of regex replaces? 
+     */
         //Operators
         var operators = {
             basic: {
@@ -45,10 +47,10 @@ var parser = {
             'color'     : /([a-f\d]{3}){1,2}/gi,
             'ghost'     : /([a-f\d]{3}){1,2}/gi,
             'postLink'  : /\w/gi,
-        }
+        };
         
         //Tokenizer.
-        function tokenize(s){ /* This is a massive bitch in javascript. */
+        function tokenize(s) { /* This is a massive bitch in javascript. */
             s = '(' + s + ')';
             var tokens = s.replace(/\(LP\)/g,"&#40;") /* Escape codes. */
                           .replace(/\(RP\)/g,"&#41;")
@@ -75,7 +77,7 @@ var parser = {
         }
 
         //S-Expression Evaluator.
-        function evaluate(tree){ 
+        function evaluate(tree) { 
             var operator = tree.shift();
             var parsed;
 
@@ -93,13 +95,16 @@ var parser = {
                 if ( regexChecks[operation].test(argument) ) {
                     switch (operation) {
                         case "color":
-                            parsed += "style=\" color: #" + argument + "\">";
+                            parsed += "style=\" color: #" + 
+                                       argument + "\">";
                             break;
                         case "ghost":
-                            parsed += "style=\" text-shadow: 0px 0px 2px #" + argument + "\">";
+                            parsed += "style=\" text-shadow: 0px 0px 2px #" +
+                                       argument + "\">";
                             break;
                         case "postLink":
-                            parsed += "onclick=\"idJump('" + argument + "')\">" + argument;
+                            parsed += "onclick=\"idJump('" + 
+                                       argument + "')\">" + argument;
                             break;
                     }
                 }
@@ -109,25 +114,25 @@ var parser = {
             }
             //Handles empty expressions, such as ( this )
             else {
-                parsed = "<span class='invalid'>"+operator+" "; 
+                parsed = "<span>"+operator+" "; 
             }
 
             for (var i = 0; i < tree.length; i++) {
                 if (typeof tree[i] == "object")      parsed+=evaluate(tree[i]);
-                else if (typeof tree[i] == "string") parsed+=" "+tree[i]+" ";
+                else if (typeof tree[i] == "string") parsed+=tree[i]+" ";
             }
 
             return parsed + "</span>";
         }
 
-        //This returns the result of a parsing. 
+        //This returns the result of the evaluation. 
         return evaluate( nest( tokenize( string ) ) );
     }
 };
 
 //User Interface.
 /* global $ from Jquery library */
-$(function(){ /* On load */
+$(function() { /* On load */
     $('#handle')
         .draggable({ containment: "#messages" })
         .resizable({
@@ -265,7 +270,7 @@ function flairify(nick, flair) {
                             flair
                           ));
 
-        if (parsedNick == parsedFlair.replace(/<[^>]+>/g, "")) return parsedFlair; 
+        if (parsedNick == parsedFlair.replace(/<[^>]+>| /g, "")) return parsedFlair;
         else return parsedNick;
     }
     else {
@@ -275,7 +280,7 @@ function flairify(nick, flair) {
 
 //Event handlers. 
 socket.on('message', function(nick, post, id, flair){
-    var postType = "message";
+    var postType = "message;"
 
     if (post.indexOf(attributes.nick) + 1) { /* If post contains nick. */
         postType += " alertMe";
