@@ -23,6 +23,7 @@ var parser = {
                               "<span class=\"quote\">$1</span>");
     },
     style : function(string) { /* THE MIGHTY LISP STYLE SYNTAX PARSER. */ 
+    /* Can you believe that all this was once done with a metric fuckton of regex replaces? */
         //Operators
         var operators = {
             basic: {
@@ -39,7 +40,13 @@ var parser = {
                 ":" : "postLink",
             },
         };
-
+        //Regexes for checking validity of operator args.
+        var regexChecks = {
+            'color'     : /([a-f\d]{3}){1,2}/gi,
+            'ghost'     : /([a-f\d]{3}){1,2}/gi,
+            'postLink'  : /\w/gi,
+        }
+        
         //Tokenizer.
         function tokenize(s){ /* This is a massive bitch in javascript. */
             s = '(' + s + ')';
@@ -77,12 +84,32 @@ var parser = {
                 parsed = "<span class=\""+ operators.basic[operator] +"\">";
             }
             //Handles the complex operators, like (#fff colors )
-            else if (operator in operators.complex) { 
-                parsed = "<span class=\""+ operators.complex[operator] +"\">";
+            else if (operator[0] in operators.complex) { 
+                parsed = "<span class=\""+ operators.complex[operator[0]] +"\" ";
+
+                var operation = operators.complex[operator[0]];
+                var argument  = operator.substr(1);
+
+                if ( regexChecks[operation].test(argument) ) {
+                    switch (operation) {
+                        case "color":
+                            parsed += "style=\" color: #" + argument + "\">";
+                            break;
+                        case "ghost":
+                            parsed += "style=\" text-shadow: 0px 0px 2px #" + argument + "\">";
+                            break;
+                        case "postLink":
+                            parsed += "onclick=\"idJump('" + argument + "')\">" + argument;
+                            break;
+                    }
+                }
+                else { 
+                    parsed += ">";
+                }
             }
             //Handles empty expressions, such as ( this )
             else {
-                parsed = "<span>"+operator+" "; 
+                parsed = "<span class='invalid'>"+operator+" "; 
             }
 
             for (var i = 0; i < tree.length; i++) {
@@ -99,6 +126,7 @@ var parser = {
 };
 
 //User Interface.
+/* global $ from Jquery library */
 $(function(){ /* On load */
     $('#handle')
         .draggable({ containment: "#messages" })
@@ -266,8 +294,7 @@ socket.on('message', function(nick, post, id, flair){
 
     $("#"+id).click(function(event) {
         $("#inputbox").val(
-            $("#inputbox").val() + 
-            "(: "+id+" )" 
+            $("#inputbox").val() +  "(:"+id+")"
         );
     });
 });
