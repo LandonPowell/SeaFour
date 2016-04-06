@@ -40,13 +40,15 @@ var parser = {
                 "#" : "color"   ,
                 "@" : "ghost"   ,
                 ":" : "postLink",
+                "_" : "font"    ,
             },
         };
         //Regexes for checking validity of operator args.
         var regexChecks = {
             'color'     : /([a-f\d]{3}){1,2}/gi,
             'ghost'     : /([a-f\d]{3}){1,2}/gi,
-            'postLink'  : /[\w]/g,
+            'postLink'  : /[\w]+/g,
+            'font'      : /[\w]+/g,
         };
         
         //Tokenizer.
@@ -92,7 +94,10 @@ var parser = {
                 var operation = operators.complex[operator[0]];
                 var argument  = operator.substr(1);
 
-                if ( regexChecks[operation].test(argument) ) {
+                /* Long line conditional for 'an argument is exactly equal to regex'. */
+                if ( regexChecks[operation].test(argument) && 
+                     argument.match( regexChecks[operation] )[0]==argument) {
+
                     switch (operation) {
                         case "color":
                             parsed += "style=\" color: #" + 
@@ -106,6 +111,11 @@ var parser = {
                             parsed += "onclick=\"idJump('" + 
                                        argument + "')\">" + argument;
                             break;
+                        case "font":
+                            parsed += "style=\" font-family:" + 
+                                       argument + "\">";
+                            break;
+
                     }
                 }
                 else { 
