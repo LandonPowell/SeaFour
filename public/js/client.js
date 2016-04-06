@@ -46,12 +46,12 @@ var parser = {
         var regexChecks = {
             'color'     : /([a-f\d]{3}){1,2}/gi,
             'ghost'     : /([a-f\d]{3}){1,2}/gi,
-            'postLink'  : /\w/gi,
+            'postLink'  : /[\w]/g,
         };
         
         //Tokenizer.
         function tokenize(s) { /* This is a massive bitch in javascript. */
-            s = '(' + s + ')';
+            s = '( ' + s + ' )';
             var tokens = s.replace(/\(LP\)/g,"&#40;") /* Escape codes. */
                           .replace(/\(RP\)/g,"&#41;")
                           .replace(/\(/g," ( ")
