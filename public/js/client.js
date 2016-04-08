@@ -84,10 +84,14 @@ var parser = {
         
         function linkHandler(string) {
             if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+\/[^\s<]+\.(jpg|gif|svg|png|jpeg)/gi) ) {
-                return string;
+                return "<img class=\"inlineimage\" src=\""+string+"\">"+"</img>";
             }
-            else if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+\/[^\s<]+/g) ) {
-                return string;
+            else if ( regexEquals(string, /(https:\/\/)?(www\.)?((youtube\.com\/watch\?v=)|(youtu\.be\/))[\w_\-]+/gi)) {
+                return string.replace(/(?:https:\/\/)?(?:www\.)?(?:(?:youtube\.com\/watch\?v=)|(?:youtu\.be\/))([\w_\-]+)/gi, 
+                                      "<a class=\"link\" href=\"javascript:embedURL('https://www.youtube.com/embed/$1');\"> Youtube Embeded </a>");
+            }
+            else if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+(\/)?[^\s<]+/g) ) {
+                return "<a class=\"link\" href=\""+string+"\">"+string+"</a>";
             }
             else {
                 return string;
@@ -141,7 +145,7 @@ var parser = {
 
             for (var i = 0; i < tree.length; i++) {
                 if (typeof tree[i] == "object")      parsed+=evaluate(tree[i]);
-                else if (typeof tree[i] == "string") parsed+=tree[i]+" ";
+                else if (typeof tree[i] == "string") parsed+=linkHandler(tree[i])+" ";
             }
 
             return parsed + "</span>";
