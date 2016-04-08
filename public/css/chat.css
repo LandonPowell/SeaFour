@@ -316,10 +316,18 @@ iframe {
     text-shadow: 0px 0px 10px rgba(255, 185, 70, 0.5);
 }
 
+.bold {
+    font-weight: bold;
+}
+.italic {
+    text-decoration: italic;
+}
+
 .ghost {
     color: rgba(0,0,0,0);
     text-shadow: 0px 0px 2px #666;
 }
+
 .big {
     font-size: 40px;
 }

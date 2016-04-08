@@ -22,7 +22,7 @@ var parser = {
         return string.replace(/&gt;([^<]+)/gi,
                               "<span class=\"quote\">$1</span>");
     },
-    style : function(string) { /* THE MIGHTY LISP STYLE SYNTAX PARSER. */ 
+    style : function(string) { /* S-EXPRESSION STYLE SYNTAX PARSER. */ 
     /*  Can you believe that all this was once done with a 
      *  metric fuckton of regex replaces? 
      */
@@ -51,11 +51,15 @@ var parser = {
             'font'      : /[\w]+/g,
         };
         
+        function regexEquals(string, regex) {
+            return regex.test(string) &&  string.match( regex )[0] == string;
+        }
+        
         //Tokenizer.
         function tokenize(s) { /* This is a massive bitch in javascript. */
             s = '( ' + s + ' )';
-            var tokens = s.replace(/\(LP\)/g,"&#40;") /* Escape codes. */
-                          .replace(/\(RP\)/g,"&#41;")
+            var tokens = s.replace(/\(LP\)|&bsol;\(/g,"&#40;") /* Escape codes. */
+                          .replace(/\(RP\)|&bsol;\)/g,"&#41;")
                           .replace(/\(/g," ( ")
                           .replace(/\)/g," ) ").split(" ");
             tokens.splice(0,1);
@@ -77,6 +81,18 @@ var parser = {
                 return item;
             }
         }
+        
+        function linkHandler(string) {
+            if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+\/[^\s<]+\.(jpg|gif|svg|png|jpeg)/gi) ) {
+                return string;
+            }
+            else if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+\/[^\s<]+/g) ) {
+                return string;
+            }
+            else {
+                return string;
+            }
+        }
 
         //S-Expression Evaluator.
         function evaluate(tree) { 
@@ -94,10 +110,7 @@ var parser = {
                 var operation = operators.complex[operator[0]];
                 var argument  = operator.substr(1);
 
-                /* Long line conditional for 'an argument is exactly equal to regex'. */
-                if ( regexChecks[operation].test(argument) && 
-                     argument.match( regexChecks[operation] )[0]==argument) {
-
+                if ( regexEquals(argument, regexChecks[operation]) ) {
                     switch (operation) {
                         case "color":
                             parsed += "style=\" color: #" + 
@@ -115,7 +128,6 @@ var parser = {
                             parsed += "style=\" font-family:" + 
                                        argument + "\">";
                             break;
-
                     }
                 }
                 else { 
@@ -124,7 +136,7 @@ var parser = {
             }
             //Handles empty expressions, such as ( this )
             else {
-                parsed = "<span>"+operator+" "; 
+                parsed = "<span>"+linkHandler(operator)+" "; 
             }
 
             for (var i = 0; i < tree.length; i++) {
