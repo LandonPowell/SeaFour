@@ -20,6 +20,9 @@ function usableVar(variable) {
 function nameSanitize(nick) {
     return nick.toLowerCase().replace(/[^a-z0-9]/gi, "-");
 }
+function checkValidName(nick) {
+    return nick.replace(/[^\u0020-\u007e]/gi, "") == nick;
+}
 
 var users;
 var clients = [];
