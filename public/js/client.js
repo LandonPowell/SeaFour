@@ -30,7 +30,7 @@ var parser = {
         var operators = {
             basic: {
                 "*" : "bold"    ,
-                "%" : "italic"  ,
+                "%" : "italics"  ,
                 "$" : "spoiler" ,
                 "^" : "big"     ,
                 "~" : "rainbow" ,
@@ -61,7 +61,8 @@ var parser = {
             var tokens = s.replace(/\(LP\)|&bsol;\(/g,"&#40;") /* Escape codes. */
                           .replace(/\(RP\)|&bsol;\)/g,"&#41;")
                           .replace(/\(/g," ( ")
-                          .replace(/\)/g," ) ").split(" ");
+                          .replace(/\)/g," ) ")    .split(" ");
+
             tokens.splice(0,1);
             return tokens;
         }
@@ -82,7 +83,7 @@ var parser = {
             }
         }
         
-        function linkHandler(string) {
+        function linkHandler(string) { // Fucking regex.
             if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+\/[^\s<]+\.(jpg|gif|svg|png|jpeg)/gi) ) {
                 return "<img class=\"inlineimage\" src=\""+string+"\">"+"</img>";
             }
@@ -152,7 +153,7 @@ var parser = {
         }
 
         //This returns the result of the evaluation. 
-        return evaluate( nest( tokenize( string ) ) );
+        return evaluate( nest( tokenize( string ) ) ).replace(/(>) | (<)/g, "$1$2");
     }
 };
 
@@ -320,7 +321,7 @@ socket.on('message', function(nick, post, id, flair){
                "<div class=\""+postType+"\"> \
                    <span class=\"postId\" id=\""+id+"\">"+id+"</span>" +
                 flairify(nick, flair) + ": " +
-                parser.style(parser.quote(parser.htmlEscape( post ))) + 
+                parser.style(parser.quote(parser.htmlEscape( post ))) +
                "</div>");
 
     $("#"+id).click(function(event) {
