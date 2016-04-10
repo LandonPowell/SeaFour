@@ -10,12 +10,24 @@
     src: url('fonts/Aileron-Thin.otf');
 }
 @font-face {
+    font-family: BarCodes;
+    src: url('fonts/BarCodes.ttf')
+}
+@font-face {
+    font-family: ComicRelief;
+    src: url('fonts/ComicRelief.ttf');
+}
+@font-face {
     font-family: Crusoe;
     src: url('fonts/CrusoeText-Regular.ttf');
 }
 @font-face {
     font-family: Megrim;
     src: url('fonts/Megrim.ttf');
+}
+@font-face {
+    font-family: Metrophobic;
+    src: url('fonts/Metrophobic.otf');
 }
 @font-face {
     font-family: Quicksand;
@@ -32,4 +44,8 @@
 @font-face {
     font-family: Slabo;
     src: url('fonts/Slabo.ttf');
+}
+@font-face {
+    font-family: WebSymbols;
+    src: url('fonts/WebSymbols.otf');
 }
