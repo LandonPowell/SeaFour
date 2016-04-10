@@ -1,0 +1,10 @@
+@font-face {
+    font-family: Aileron;
+    font-weight: 500;
+    src: url('fonts/Aileron-Thin.ttf');
+}
+@font-face {
+    font-family: Crusoe;
+    font-weight: 500;
+    src: url('fonts/CrusoeText-Regular.ttf');
+}
