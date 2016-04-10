@@ -1,9 +1,9 @@
 /* 
-    "What the hell is this?" you might ask.
+    "What the hell is this?" you might ask. 
     Well, you doofus, it's the font.css file. 
-    Adding a font to this adds allows users 
-    to use this font as a (_FontName when they're )
-    creating styles, flairs, or using the parser. 
+    Adding a font to this allows users to use
+    a font as a (_FontName when they're creating 
+    styles, flairs, or using the parser. 
 */
 @font-face {
     font-family: Aileron;

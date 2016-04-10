@@ -30,7 +30,7 @@ var parser = {
         var operators = {
             basic: {
                 "*" : "bold"    ,
-                "%" : "italics"  ,
+                "%" : "italics" ,
                 "$" : "spoiler" ,
                 "^" : "big"     ,
                 "~" : "rainbow" ,
@@ -57,11 +57,11 @@ var parser = {
         
         //Tokenizer.
         function tokenize(s) { /* This is a massive bitch in javascript. */
-            s = '( ' + s + ' )';
-            var tokens = s.replace(/\(LP\)|&bsol;\(/g,"&#40;") /* Escape codes. */
-                          .replace(/\(RP\)|&bsol;\)/g,"&#41;")
-                          .replace(/\(/g," ( ")
-                          .replace(/\)/g," ) ")    .split(" ");
+            s = '{ ' + s + ' }';
+            var tokens = s.replace(/&bsol;{/g,"&#123;") /* Escape codes. */
+                          .replace(/&bsol;}/g,"&#125;")
+                          .replace(/{/g," { ")
+                          .replace(/}/g," } ")  .split(" ");
 
             tokens.splice(0,1);
             return tokens;
@@ -70,9 +70,9 @@ var parser = {
         //S-Expression Nester.
         function nest(array) { /* This is rather easy in JS. */
             var item = array.shift();
-            if (item == '(') {
+            if (item == '{') {
                 var newList = [];
-                while (array[0] != ')' && array.length) {
+                while (array[0] != '}' && array.length) {
                     newList.push(nest(array));
                 }
                 array.shift();
@@ -326,7 +326,7 @@ socket.on('message', function(nick, post, id, flair){
 
     $("#"+id).click(function(event) {
         $("#inputbox").val(
-            $("#inputbox").val() +  "(:"+id+")"
+            $("#inputbox").val() +  "{:"+id+"}"
         );
     });
 });
