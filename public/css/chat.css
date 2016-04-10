@@ -364,5 +364,7 @@ iframe {
     animation-duration: 1s;
     animation-iteration-count: infinite;
 }
-
+.italics {
+    font-style: italic;
+}
 /* End of Style Classes */
