@@ -199,6 +199,8 @@ body {
 }
 #embed {
     position: fixed !important;
+    top: 60px;
+    right: 40px;
     border-radius: 5px;
     background-color: rgba(0,0,10, 0.25);
     box-shadow: -1px 3px 10px rgba(0, 0, 10, 0.15) inset,
