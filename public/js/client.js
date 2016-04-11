@@ -153,7 +153,7 @@ var parser = {
         }
 
         //This returns the result of the evaluation. 
-        return evaluate( nest( tokenize( string ) ) ).replace(/(>) | (<)/g, "$1$2");
+        return evaluate( nest( tokenize( string ) ) );
     }
 };
 
