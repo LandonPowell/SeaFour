@@ -69,7 +69,7 @@ function addEmit(ipAddress, socketID) {
     else ipEmits[ipAddress] = 0;
     console.log( ipEmits[ipAddress] );
     if (ipEmits[ipAddress] > 10) {
-        banList.push(ipAddress);
+        banList.push(ipAddress.substr(0,17)); // Bans the first 17 chars for anon's sake. 
         console.log(ipAddress + " has been banned.");
         io.sockets.connected[ socketID ].disconnect();
     }
@@ -82,7 +82,8 @@ io.on('connection', function(socket){
     socket.emit('topic', topic);
     clients[socket.id] = Math.random().toString(16).substr(2,6);
 
-    if( banList.indexOf( ipLog[nameSanitize(clients[socket.id])] ) > 0 ) {
+    if( ipLog[ nameSanitize(clients[socket.id]) ] !== undefined &&
+        banList.indexOf( ipLog[nameSanitize(clients[socket.id])].substr(0,17) ) > 0 ) {
         io.sockets.connected[ socket.id ].disconnect();
     }
     else {
@@ -94,7 +95,7 @@ io.on('connection', function(socket){
 
     //Core Listeners.
     socket.on('message', function(msg){
-        if (usableVar(msg) && banList.indexOf( socket.request.connection.remoteAddress )<0 ) {
+        if (usableVar(msg) && banList.indexOf( socket.request.connection.remoteAddress.substr(0,17) )<0 ) {
             postCount++;
             var flair;
 
@@ -124,7 +125,7 @@ io.on('connection', function(socket){
             socket.emit('nickRefresh', nick);
 
             clients[socket.id] = nick;
-            ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
+            ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress.substr((0, 17));
 
         }
         else {
