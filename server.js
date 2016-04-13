@@ -24,11 +24,15 @@ function checkValidName(nick) {
     return nick.replace(/[^\u0020-\u007e]/gi, "") == nick;
 }
 
-var users;
-var clients = [];
-var ipLog = [];
-var topic = "Welcome to SeaFour.club";
-var postCount = 0; 
+var users;              // User database. 
+var clients = [];       // List of currently connected nicks by socketID.
+
+var ipLog = {}          // Stores IP based on username. Isn't in the DB because muhfreedom.
+var ipInfo = {};        // Stores admin information about users based on IP. 
+var banList = [];       // List of banned IPs. 
+
+var topic = "Welcome to SeaFour.club";  // The current topic. 
+var postCount = 0;      // Amount of posts made so far. Used for Post IDs.
 
 jsonfile.readFile('database.json', function(err, obj) {
     users = obj;
@@ -54,6 +58,8 @@ function generateSalt() { /* ! THIS IS NOT CRYPTO-HEALTHY CODE ! */
      *  using a pseudorandom number generator. Kind of inspired by that
      *  one thing I can't remember right now, that makes you shake your
      *  mouse around when you fist install it in to get a random number.
+     *  That'll probably lag a lot though, so I don't really have plans
+     *  to implement it. 
     \*/
 }
 
@@ -67,7 +73,7 @@ io.on('connection', function(socket){
     socket.emit('data-request');
 
     clients[socket.id] = Math.random().toString(16).substr(2,6);
-    ipLog[clients[socket.id]] = socket.request.connection.remoteAddress;
+    ipLog[nameSanitize(clients[socket.id])] = socket.request.connection.remoteAddress;
 
     console.log("JOIN: " + socket.id);
     io.emit('system-message', clients[socket.id] + ' has joined.');
@@ -101,7 +107,7 @@ io.on('connection', function(socket){
             socket.emit('nickRefresh', nick);
 
             clients[socket.id] = nick;
-            ipLog[nick] = socket.request.connection.remoteAddress;
+            ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
 
         }
         else {
@@ -139,7 +145,7 @@ io.on('connection', function(socket){
                 socket.emit('nickRefresh', nick);
 
                 clients[socket.id] = nick;
-                ipLog[nick] = socket.request.connection.remoteAddress;
+                ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
 
             }
             else {
@@ -235,6 +241,11 @@ io.on('connection', function(socket){
         }
     });
     
+    userCommand('getIP', 2, function(searchedUser) {
+        var userIP = ipLog[ nameSanitize(searchedUser) ] || "no-ip-available";
+        socket.emit('system-message', userIP);
+    });
+
     //Listener for Disconnects.
     socket.on('disconnect', function(){
         io.emit('system-message', clients[socket.id] + ' has left.');
