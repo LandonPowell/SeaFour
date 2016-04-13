@@ -28,7 +28,6 @@ var users;              // User database.
 var clients = [];       // List of currently connected nicks by socketID.
 
 var ipLog = {}          // Stores IP based on username. Isn't in the DB because muhfreedom.
-var ipInfo = {};        // Stores admin information about users based on IP. 
 var banList = [];       // List of banned IPs. 
 
 var topic = "Welcome to SeaFour.club";  // The current topic. 
@@ -63,21 +62,36 @@ function generateSalt() { /* ! THIS IS NOT CRYPTO-HEALTHY CODE ! */
     \*/
 }
 
-
+var ipEmits = {};        // Stores the number of emits made by any IP. 
+setInterval(function(){ ipEmits = {}; }, 30000);   // Every 30 seconds, clear.
+function addEmit(ipAddress, socketID) {
+    if ( ipEmits[ipAddress] != undefined ) ipEmits[ipAddress] += 1;
+    else ipEmits[ipAddress] = 0;
+    console.log( ipEmits[ipAddress] );
+    if (ipEmits[ipAddress] > 10) {
+        banList.push(ipAddress);
+        console.log(ipAddress + " has been banned.");
+        io.sockets.connected[ socketID ].disconnect();
+    }
+}
 
 app.use(express.static(__dirname + '/public/'));
 
 io.on('connection', function(socket){
     //Start Up.
     socket.emit('topic', topic);
-    socket.emit('data-request');
 
     clients[socket.id] = Math.random().toString(16).substr(2,6);
     ipLog[nameSanitize(clients[socket.id])] = socket.request.connection.remoteAddress;
 
-    console.log("JOIN: " + socket.id);
-    io.emit('system-message', clients[socket.id] + ' has joined.');
-    io.emit('listRefresh', toArray(clients));
+    if( banList.indexOf( ipLog[nameSanitize(clients[socket.id])] ) > 0 ) {
+        io.sockets.connected[ socket.id ].disconnect();
+    }
+    else {
+        console.log("JOIN: " + socket.id);
+        io.emit('system-message', clients[socket.id] + ' has joined.');
+        io.emit('listRefresh', toArray(clients));
+    }
 
     //Core Listeners.
     socket.on('message', function(msg){
@@ -91,12 +105,16 @@ io.on('connection', function(socket){
                 flair = 0;
             io.emit('message', clients[socket.id], msg.substr(0,6000), postCount.toString(36), flair);
         }
+
+        addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
     });
 
     socket.on('me', function(msg){
         if (usableVar(msg)) {
             io.emit('me', clients[socket.id]+" "+msg.substr(0,2048));
         }
+
+        addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
     });
 
     // Commands related to Registration and User Accounts.
