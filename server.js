@@ -80,14 +80,13 @@ app.use(express.static(__dirname + '/public/'));
 io.on('connection', function(socket){
     //Start Up.
     socket.emit('topic', topic);
-
     clients[socket.id] = Math.random().toString(16).substr(2,6);
-    ipLog[nameSanitize(clients[socket.id])] = socket.request.connection.remoteAddress;
 
     if( banList.indexOf( ipLog[nameSanitize(clients[socket.id])] ) > 0 ) {
         io.sockets.connected[ socket.id ].disconnect();
     }
     else {
+        ipLog[nameSanitize(clients[socket.id])] = socket.request.connection.remoteAddress;
         console.log("JOIN: " + socket.id);
         io.emit('system-message', clients[socket.id] + ' has joined.');
         io.emit('listRefresh', toArray(clients));
@@ -95,7 +94,7 @@ io.on('connection', function(socket){
 
     //Core Listeners.
     socket.on('message', function(msg){
-        if (usableVar(msg)) {
+        if (usableVar(msg) && banList.indexOf( socket.request.connection.remoteAddress )<0 ) {
             postCount++;
             var flair;
 
