@@ -14,7 +14,7 @@ function toArray(object) {
 }
 
 function usableVar(variable) {
-    return typeof( variable ) === "string" && variable !== "";
+    return typeof( variable ) === "string" && variable.trim() !== "";
 }
 
 function nameSanitize(nick) {
@@ -37,7 +37,7 @@ jsonfile.readFile('database.json', function(err, obj) {
 });
 
 function updateDatabase(socket, successMessage) {
-    jsonfile.writeFile('database.json', JSON.stringify(users, null, 3), function(err) {
+    jsonfile.writeFile('database.json', users, function(err) {
         if (err) socket.emit('system-message', 'ERROR: '+err);
         else socket.emit('system-message', successMessage);
     });
