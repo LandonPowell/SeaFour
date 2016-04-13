@@ -92,7 +92,7 @@ var parser = {
                                       "<a class=\"link\" href=\"javascript:embedURL('https://www.youtube.com/embed/$1');\"> Youtube Embed </a>");
             }
             else if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+(\/)?[^\s<]+/g) ) {
-                return "<a class=\"link\" href=\""+string+"\">"+string+"</a>";
+                return "<a class=\"link\" target=\"_blank\" href=\""+string+"\">"+string+"</a>";
             }
             else {
                 return string;
