@@ -264,6 +264,12 @@ io.on('connection', function(socket){
         socket.emit('system-message', userIP);
     });
 
+    userCommand('ban', 2, function(maliciousUser) {
+        var userIP = ipLog[ nameSanitize(maliciousUser) ] || "no-ip-available";
+        banList.push( userIP );
+        socket.emit('system-message', userIP.substr(0,17) + " has been banned.");
+    });
+
     //Listener for Disconnects.
     socket.on('disconnect', function(){
         io.emit('system-message', clients[socket.id] + ' has left.');
