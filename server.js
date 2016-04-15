@@ -102,7 +102,7 @@ io.on('connection', function(socket){
     socket.emit('topic', topic);
     clients[socket.id] = Math.random().toString(16).substr(2,6);
 
-    if( ipLog[ nameSanitize(clients[socket.id]) ] !== undefined &&
+    if( ipLog[ nameSanitize(clients[socket.id]) ] &&
         banList.indexOf( ipLog[nameSanitize(clients[socket.id])].substr(0,17) ) > 0 ) {
         io.sockets.connected[ socket.id ].disconnect();
     }
@@ -122,7 +122,7 @@ io.on('connection', function(socket){
             postCount++;
             var flair;
 
-            if (users[nameSanitize(clients[socket.id])] !== undefined )
+            if (users[nameSanitize(clients[socket.id])] )
                 flair = users[nameSanitize(clients[socket.id])].flair;
             if (! usableVar(flair) )
                 flair = 0;
@@ -177,8 +177,7 @@ io.on('connection', function(socket){
     });
 
     socket.on('login', function(nick, password) {
-        if (usableVar(nick) && usableVar(password) &&
-            users[nameSanitize(nick)] !== undefined) {
+        if (usableVar(nick) && usableVar(password) && users[nameSanitize(nick)] ) {
             password = hash.sha512(password + users[nameSanitize(nick)].salt);
             if (users[nameSanitize(nick)].password == password) {
                 io.emit('system-message', clients[socket.id] + " is now known as " + nick);
@@ -243,7 +242,7 @@ io.on('connection', function(socket){
     //Mod-Exclusive Listeners.
     userCommand('roleChange', 2, function(userName, role) {
         if ( usableVar(userName) && usableVar(role) && 
-             nameSanitize(clients[socket.id]) !== undefined &&
+             nameSanitize(clients[socket.id]) &&
              nameSanitize(clients[socket.id]).role > nameSanitize(clients[socket.id]).role &&
              nameSanitize(clients[socket.id]).role > parseInt(role, 10) ) {
 
@@ -261,12 +260,12 @@ io.on('connection', function(socket){
     });
 
     userCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
-        if ( users[nameSanitize(removedUser)] !== undefined &&
+        if ( users[nameSanitize(removedUser)] &&
              users[nameSanitize(clients[socket.id])].role > users[nameSanitize(removedUser)].role ||
              users[nameSanitize(removedUser)] === undefined ) {
 
             var removedUserID = Object.keys(clients).find(key => clients[key] == removedUser); 
-            if (removedUserID !== undefined) {
+            if ( removedUserID ) {
                 io.emit('system-message', removedUser + 
                                           " has been dismissed by " + 
                                           clients[socket.id]);
@@ -291,6 +290,20 @@ io.on('connection', function(socket){
         var userIP = ipLog[ nameSanitize(maliciousUser) ] || "no-ip-available";
         banList.push( userIP.substr(0,17) );
         socket.emit('system-message', userIP + " has been banned.");
+    });
+
+    userCommand('mute', 2, function(userCategory) {
+        if      ( userCategory == "nonicks" ) {
+            moderatorSettings.muteUnnamed = true;
+        }
+        else if ( userCategory == "unregistered" ) {
+            moderatorSettings.muteUnregistered = true;
+        }
+        else if ( userCategory == "nobody" ) {
+            moderatorSettings.muteUnnamed = false;
+            moderatorSettings.muteUnregistered = false;
+        }
+        io.emit('system-message', "A website admin has muted messages from " + userCategory);
     });
 
     //Listener for Disconnects.
