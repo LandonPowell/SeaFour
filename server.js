@@ -21,8 +21,7 @@ function nameSanitize(nick) {   // Changes unimportant chars to dashes.
     return nick.toLowerCase().replace(/[^\w]/gi, "-");
 }
 function checkValidName(nick) { // Checks if a name contains no strange chars or is taken.
-    return users[nameSanitize(nick)] == undefined && 
-           nick.replace(/[^\u0020-\u007e]/gi, "") == nick;
+    return ! users[nameSanitize(nick)] && nick.replace(/[^\u0020-\u007e]/gi, "") == nick;
 }
 
 var clients = [];       // List of currently connected nicks by socketID.
@@ -66,13 +65,13 @@ var ipLog = {};         // Stores IP based on username. Isn't in the DB because 
 var banList = [];       // List of banned IPs. 
 
 var ipEmits = {};       // Stores the number of emits made by any IP. 
-setInterval(function(){ ipEmits = {}; }, 9000);    // Every 9 seconds, clear.
+setInterval(function(){ ipEmits = {}; }, 3000);    // Every 3 seconds, clear.
 function addEmit(ipAddress, socketID) {
 
-    if ( ipEmits[ipAddress] != undefined ) ipEmits[ipAddress] += 1;
+    if ( ipEmits[ipAddress] ) ipEmits[ipAddress] += 1;
     else ipEmits[ipAddress] = 0;
 
-    if (ipEmits[ipAddress] > 3) {               // Limits posts to 3. 
+    if (ipEmits[ipAddress] > 2) {               // Limits posts to 2. 
         banList.push(ipAddress.substr(0,17));   // Bans the first 17 chars 'cuz muhfreedom. 
         console.log(ipAddress + " has been banned.");
         io.sockets.connected[ socketID ].disconnect();
@@ -84,15 +83,8 @@ var moderatorSettings = {
     "muteUnregistered": false,
 };
 function isMuted(nick) {
-    if ( moderatorSettings.muteUnnamed && nick.match(/[\da-f]{6}/g) ) {
-        return true;
-    }
-    else if ( moderatorSettings.muteUnregistered && users[nameSanitize(nick)]) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    return ( moderatorSettings.muteUnnamed && nick.match(/[\da-f]{6}/g) ) ||
+           ( moderatorSettings.muteUnregistered && !users[nameSanitize(nick)] );
 }
 
 app.use(express.static(__dirname + '/public/'));
@@ -202,7 +194,7 @@ io.on('connection', function(socket){
     });
     
     socket.on('who', function(userName) {
-        if (users[nameSanitize(userName)] != undefined) {
+        if ( users[nameSanitize(userName)] ) {
             var user = users[nameSanitize(userName)];
             var message = nameSanitize(userName) + 
                           " is role " + user.role + 
@@ -223,7 +215,7 @@ io.on('connection', function(socket){
     //Function for commands that require registering. 
     function userCommand(command, role, func) {
         socket.on(command, function(arg1, arg2){ 
-            if (users[ nameSanitize(clients[socket.id]) ] != undefined && 
+            if (users[ nameSanitize(clients[socket.id]) ] && 
                 users[ nameSanitize(clients[socket.id]) ].role >= role) {
                 func(arg1, arg2); //This calms the Disco Pirates
             }
@@ -262,7 +254,7 @@ io.on('connection', function(socket){
     userCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
         if ( users[nameSanitize(removedUser)] &&
              users[nameSanitize(clients[socket.id])].role > users[nameSanitize(removedUser)].role ||
-             users[nameSanitize(removedUser)] === undefined ) {
+             ! users[nameSanitize(removedUser)] ) {
 
             var removedUserID = Object.keys(clients).find(key => clients[key] == removedUser); 
             if ( removedUserID ) {
