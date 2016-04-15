@@ -13,25 +13,24 @@ function toArray(object) {
     return newArray;
 }
 
-function usableVar(variable) {
+// Functions used to wrap long statements in a more readable form. 
+function usableVar(variable) {  // Checks if a variable won't crash the server.
     return typeof( variable ) === "string" && variable.trim() !== "";
 }
-
-function nameSanitize(nick) {
-    return nick.toLowerCase().replace(/[^a-z0-9]/gi, "-");
+function nameSanitize(nick) {   // Changes unimportant chars to dashes. 
+    return nick.toLowerCase().replace(/[^\w]/gi, "-");
 }
-function checkValidName(nick) {
-    return nick.replace(/[^\u0020-\u007e]/gi, "") == nick;
+function checkValidName(nick) { // Checks if a name contains no strange chars or is taken.
+    return users[nameSanitize(nick)] == undefined && 
+           nick.replace(/[^\u0020-\u007e]/gi, "") == nick;
 }
 
-var users;              // User database. 
 var clients = [];       // List of currently connected nicks by socketID.
-
-var ipLog = {}          // Stores IP based on username. Isn't in the DB because muhfreedom.
-var banList = [];       // List of banned IPs. 
-
-var topic = "Welcome to SeaFour.club";  // The current topic. 
 var postCount = 0;      // Amount of posts made so far. Used for Post IDs.
+var topic = "Welcome to SeaFour.club";  // The current topic. 
+
+// User Database
+var users;
 
 jsonfile.readFile('database.json', function(err, obj) {
     users = obj;
@@ -62,16 +61,37 @@ function generateSalt() { /* ! THIS IS NOT CRYPTO-HEALTHY CODE ! */
     \*/
 }
 
-var ipEmits = {};        // Stores the number of emits made by any IP. 
-setInterval(function(){ ipEmits = {}; }, 30000);   // Every 30 seconds, clear.
+// Moderation and antispam related variables, functions, and calls. 
+var ipLog = {};         // Stores IP based on username. Isn't in the DB because muhfreedom.
+var banList = [];       // List of banned IPs. 
+
+var ipEmits = {};       // Stores the number of emits made by any IP. 
+setInterval(function(){ ipEmits = {}; }, 9000);    // Every 9 seconds, clear.
 function addEmit(ipAddress, socketID) {
+
     if ( ipEmits[ipAddress] != undefined ) ipEmits[ipAddress] += 1;
     else ipEmits[ipAddress] = 0;
-    console.log( ipEmits[ipAddress] );
-    if (ipEmits[ipAddress] > 10) {
-        banList.push(ipAddress.substr(0,17)); // Bans the first 17 chars for anon's sake. 
+
+    if (ipEmits[ipAddress] > 3) {               // Limits posts to 3. 
+        banList.push(ipAddress.substr(0,17));   // Bans the first 17 chars 'cuz muhfreedom. 
         console.log(ipAddress + " has been banned.");
         io.sockets.connected[ socketID ].disconnect();
+    }
+}
+
+var moderatorSettings = {
+    "muteUnnamed": false,
+    "muteUnregistered": false,
+};
+function isMuted(nick) {
+    if ( moderatorSettings.muteUnnamed && nick.match(/[\da-f]{6}/g) ) {
+        return true;
+    }
+    else if ( moderatorSettings.muteUnregistered && users[nameSanitize(nick)]) {
+        return true;
+    }
+    else {
+        return false;
     }
 }
 
@@ -95,7 +115,10 @@ io.on('connection', function(socket){
 
     //Core Listeners.
     socket.on('message', function(msg){
-        if (usableVar(msg) && banList.indexOf( socket.request.connection.remoteAddress.substr(0,17) )<0 ) {
+        if (    usableVar(msg) && 
+                banList.indexOf( socket.request.connection.remoteAddress.substr(0,17) )<0 &&
+                !isMuted(clients[socket.id]) ) {
+
             postCount++;
             var flair;
 
@@ -119,7 +142,7 @@ io.on('connection', function(socket){
 
     // Commands related to Registration and User Accounts.
     socket.on('changeNick', function(nick) {
-        if ( usableVar(nick) && users[nameSanitize(nick)] === undefined ) {
+        if ( usableVar(nick) && checkValidName(nick) ) {
             io.emit('system-message', clients[socket.id]+" is now known as "+nick);
             io.emit('listRefresh', toArray(clients));
             socket.emit('nickRefresh', nick);
@@ -266,8 +289,8 @@ io.on('connection', function(socket){
 
     userCommand('ban', 2, function(maliciousUser) {
         var userIP = ipLog[ nameSanitize(maliciousUser) ] || "no-ip-available";
-        banList.push( userIP );
-        socket.emit('system-message', userIP.substr(0,17) + " has been banned.");
+        banList.push( userIP.substr(0,17) );
+        socket.emit('system-message', userIP + " has been banned.");
     });
 
     //Listener for Disconnects.
@@ -281,6 +304,5 @@ io.on('connection', function(socket){
 }); 
 
 http.listen(process.env.PORT || 80, function(){
-    console.log('listening on *:' + (process.env.PORT || 80));
+    console.log('Listening on port ' + (process.env.PORT || 80));
 });
-
