@@ -71,7 +71,7 @@ function addEmit(ipAddress, socketID) {
     else ipEmits[ipAddress] = 0;
 
     if (ipEmits[ipAddress] > 2) {               // Limits posts to 2. 
-        banList.push(ipAddress.substr(0,17));   // Bans the first 17 chars 'cuz muhfreedom. 
+        banList.push(ipAddress.substr(0,19));   // Bans the first 17 chars 'cuz muhfreedom. 
         console.log(ipAddress + " has been banned.");
         io.sockets.connected[ socketID ].disconnect();
     }
@@ -90,7 +90,7 @@ io.on('connection', function(socket){
     clients[socket.id] = Math.random().toString(16).substr(2,6);
 
     if( ipLog[ nameSanitize(clients[socket.id]) ] &&
-        banList.indexOf( ipLog[nameSanitize(clients[socket.id])].substr(0,17) ) > 0 ) {
+        banList.indexOf( ipLog[nameSanitize(clients[socket.id])].substr(0,19) ) > 0 ) {
         io.sockets.connected[ socket.id ].disconnect();
     }
     else {
@@ -132,7 +132,7 @@ io.on('connection', function(socket){
             if ((!moderatorSettings.quiet ||                    // These two bools check 
                  users[ nameSanitize(clients[socket.id]) ]) &&  // if the mute applies. 
                  usableVar(arg1) &&
-                 banList.indexOf( ipLog[nameSanitize(clients[socket.id])].substr(0,17) )<0 ) {  // This checks if the user is banned. 
+                 banList.indexOf( ipLog[nameSanitize(clients[socket.id])].substr(0,19) )<0 ) {  // This checks if the user is banned. 
                 func(arg1); //This calms the Disco Pirates
             }
             else {
@@ -266,7 +266,6 @@ io.on('connection', function(socket){
             else {
                 socket.emit('system-message', "They don't seem to be online.");
             }
-
         }
         else {
             socket.emit('system-message', "That doesn't look quite right.");
@@ -280,7 +279,7 @@ io.on('connection', function(socket){
 
     userCommand('ban', 2, function(maliciousUser) {
         var userIP = ipLog[ nameSanitize(maliciousUser) ] || "no-ip-available";
-        banList.push( userIP.substr(0,17) );
+        banList.push( userIP.substr(0,19) );
         socket.emit('system-message', userIP + " has been banned.");
     });
 
