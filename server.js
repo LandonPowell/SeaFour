@@ -26,7 +26,6 @@ function checkValidName(nick) { // Checks if a name contains no strange chars or
 
 var clients = [];       // List of currently connected nicks by socketID.
 var postCount = 0;      // Amount of posts made so far. Used for Post IDs.
-var topic = "Welcome to SeaFour.club";  // The current topic. 
 
 // User Database
 var users;
@@ -68,7 +67,7 @@ var ipEmits = {};       // Stores the number of emits made by any IP.
 setInterval(function(){ ipEmits = {}; }, 3000);    // Every 3 seconds, clear.
 function addEmit(ipAddress, socketID) {
 
-    if ( ipEmits[ipAddress] ) ipEmits[ipAddress] += 1;
+    if ( ipEmits[ipAddress] !== undefined ) ipEmits[ipAddress] += 1;
     else ipEmits[ipAddress] = 0;
 
     if (ipEmits[ipAddress] > 2) {               // Limits posts to 2. 
@@ -79,19 +78,15 @@ function addEmit(ipAddress, socketID) {
 }
 
 var moderatorSettings = {
-    "muteUnnamed": false,
-    "muteUnregistered": false,
+    quiet   : false, // Disallows unregistered from posting; they can watch.
+    topic   : "Welcome to SeaFour.club" // The current topic. 
 };
-function isMuted(nick) {
-    return ( moderatorSettings.muteUnnamed && nick.match(/[\da-f]{6}/g) ) ||
-           ( moderatorSettings.muteUnregistered && !users[nameSanitize(nick)] );
-}
 
 app.use(express.static(__dirname + '/public/'));
 
 io.on('connection', function(socket){
     //Start Up.
-    socket.emit('topic', topic);
+    socket.emit('topic', moderatorSettings.topic);
     clients[socket.id] = Math.random().toString(16).substr(2,6);
 
     if( ipLog[ nameSanitize(clients[socket.id]) ] &&
@@ -106,41 +101,72 @@ io.on('connection', function(socket){
     }
 
     //Core Listeners.
-    socket.on('message', function(msg){
-        if (    usableVar(msg) && 
-                banList.indexOf( socket.request.connection.remoteAddress.substr(0,17) )<0 &&
-                !isMuted(clients[socket.id]) ) {
+    socket.on('login', function(nick, password) {
+        if (usableVar(nick) && usableVar(password) && users[nameSanitize(nick)] ) {
+            password = hash.sha512(password + users[nameSanitize(nick)].salt);
+            if (users[nameSanitize(nick)].password == password) {
+                io.emit('system-message', clients[socket.id] + " is now known as " + nick);
+                io.emit('listRefresh', toArray(clients));
+                socket.emit('nickRefresh', nick);
 
-            postCount++;
-            var flair;
+                clients[socket.id] = nick;
+                ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
 
-            if (users[nameSanitize(clients[socket.id])] )
-                flair = users[nameSanitize(clients[socket.id])].flair;
-            if (! usableVar(flair) )
-                flair = 0;
-            io.emit('message', clients[socket.id], msg.substr(0,6000), postCount.toString(36), flair);
+            }
+            else {
+                socket.emit('system-message', 
+                            "That doesn't seem to be a registered combination. " +
+                            "Please make sure you type '.login User Password'.");
+            }
         }
-
+        else {
+            socket.emit('system-message', 
+                        "That doesn't seem to be a registered combination. " +
+                        "Please make sure you type '.login User Password'.");
+        }
         addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
     });
+    
+    function socketEmit(command, func) { // Disallows spammers.
+        socket.on(command, function(arg1){ 
+            if ((!moderatorSettings.quiet ||                    // These two bools check 
+                 users[ nameSanitize(clients[socket.id]) ]) &&  // if the mute applies. 
+                 usableVar(arg1) &&
+                 banList.indexOf( ipLog[nameSanitize(clients[socket.id])].substr(0,17) )<0 ) {  // This checks if the user is banned. 
+                func(arg1); //This calms the Disco Pirates
+            }
+            else {
+                socket.emit('system-message', "Either only logged in users are "+
+                                              "allowed to post, or you've been "+
+                                              "disallowed from posting. "+
+                                              "Maybe you'd just like to watch?");
+            }
+            addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
+        });
+    }
 
-    socket.on('me', function(msg){
-        if (usableVar(msg)) {
-            io.emit('me', clients[socket.id]+" "+msg.substr(0,2048));
-        }
+    socketEmit('message', function(msg){
+        postCount++;
+        var flair;
 
-        addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
+        if (users[nameSanitize(clients[socket.id])] )  flair = users[nameSanitize(clients[socket.id])].flair;
+        if (! usableVar(flair) )  flair = false;
+        io.emit('message', clients[socket.id], msg.substr(0,6000), postCount.toString(36), flair);
+    });
+
+    socketEmit('me', function(msg){
+        io.emit('me', clients[socket.id]+" "+msg.substr(0,2048));
     });
 
     // Commands related to Registration and User Accounts.
-    socket.on('changeNick', function(nick) {
-        if ( usableVar(nick) && checkValidName(nick) ) {
+    socketEmit('changeNick', function(nick) {
+        if ( checkValidName(nick) ) {
             io.emit('system-message', clients[socket.id]+" is now known as "+nick);
             io.emit('listRefresh', toArray(clients));
             socket.emit('nickRefresh', nick);
 
             clients[socket.id] = nick;
-            ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress.substr((0, 17));
+            ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
 
         }
         else {
@@ -148,10 +174,9 @@ io.on('connection', function(socket){
         }
     });
 
-    socket.on('register', function(password) {
+    socketEmit('register', function(password) {
         var salt = generateSalt();
-
-        if ( usableVar(password) && !clients[socket.id].match(/[\da-f]{6}/gi) ) {
+        if ( !clients[socket.id].match(/[\da-f]{6}/gi) ) {
             users[nameSanitize(clients[socket.id])] = {
                 "password": hash.sha512(password + salt),
                 "salt": salt,
@@ -168,32 +193,7 @@ io.on('connection', function(socket){
 
     });
 
-    socket.on('login', function(nick, password) {
-        if (usableVar(nick) && usableVar(password) && users[nameSanitize(nick)] ) {
-            password = hash.sha512(password + users[nameSanitize(nick)].salt);
-            if (users[nameSanitize(nick)].password == password) {
-                io.emit('system-message', clients[socket.id] + " is now known as " + nick);
-                io.emit('listRefresh', toArray(clients));
-                socket.emit('nickRefresh', nick);
-
-                clients[socket.id] = nick;
-                ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
-
-            }
-            else {
-                socket.emit('system-message', 
-                            "That doesn't seem to be a registered combination. "+
-                            "Please make sure you type '.login User Password'.");
-            }
-        }
-        else {
-            socket.emit('system-message', 
-                        "That doesn't seem to be a registered combination. "+
-                        "Please make sure you type '.login User Password'.");
-        }
-    });
-    
-    socket.on('who', function(userName) {
+    socketEmit('who', function(userName) {
         if ( users[nameSanitize(userName)] ) {
             var user = users[nameSanitize(userName)];
             var message = nameSanitize(userName) + 
@@ -248,7 +248,7 @@ io.on('connection', function(socket){
 
     userCommand('topic', 1, function(newTopic) {
         io.emit('topic', newTopic);
-        topic = newTopic;
+        moderatorSettings.topic = newTopic;
     });
 
     userCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
@@ -284,18 +284,9 @@ io.on('connection', function(socket){
         socket.emit('system-message', userIP + " has been banned.");
     });
 
-    userCommand('mute', 2, function(userCategory) {
-        if      ( userCategory == "nonicks" ) {
-            moderatorSettings.muteUnnamed = true;
-        }
-        else if ( userCategory == "unregistered" ) {
-            moderatorSettings.muteUnregistered = true;
-        }
-        else if ( userCategory == "nobody" ) {
-            moderatorSettings.muteUnnamed = false;
-            moderatorSettings.muteUnregistered = false;
-        }
-        io.emit('system-message', "A website admin has muted messages from " + userCategory);
+    userCommand('quiet', 2, function() {
+        moderatorSettings.quiet = ! moderatorSettings.quiet;
+        io.emit('system-message', "Quiet mode set to " + moderatorSettings.quiet);
     });
 
     //Listener for Disconnects.
