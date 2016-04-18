@@ -89,7 +89,7 @@ var parser = {
             }
             else if ( regexEquals(string, /(https:\/\/)?(www\.)?((youtube\.com\/watch\?v=)|(youtu\.be\/))[\w_\-]+/gi)) {
                 return string.replace(/(?:https:\/\/)?(?:www\.)?(?:(?:youtube\.com\/watch\?v=)|(?:youtu\.be\/))([\w_\-]+)/gi, 
-                                      "<a class=\"link\" href=\"javascript:embedURL('https://www.youtube.com/embed/$1');\"> Youtube Embed </a>");
+                                      "<a class=\"youtube link\" href=\"javascript:embedURL('https://www.youtube.com/embed/$1');\"> y </a>");
             }
             else if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+(\/)?[^\s<]+/g) ) {
                 return "<a class=\"link\" target=\"_blank\" href=\""+string+"\">"+string+"</a>";
@@ -311,10 +311,7 @@ socket.on('message', function(nick, post, id, flair){
 
     if (post.indexOf(attributes.nick) + 1) { /* If post contains nick. */
         postType += " alertMe";
-        $("#audio").html(
-            "<embed src=\"js/alertNoise.ogg\"   \
-            style=\"display:none\"              \
-            autostart=true loop=false>         ");
+        $("#notificationClick")[0].play();
     }
 
     autoscroll("#messages", 
