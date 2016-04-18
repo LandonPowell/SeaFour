@@ -141,7 +141,7 @@ body {
     75% { opacity: 1; }
     100% { opacity: 0; }
 }
-.system-message {
+.systemMessage {
     animation-name: systemMessage;
     animation-duration: 3s;
     opacity: 0;

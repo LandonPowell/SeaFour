@@ -38,8 +38,8 @@ jsonfile.readFile('database.json', function(err, obj) {
 
 function updateDatabase(socket, successMessage) {
     jsonfile.writeFile('database.json', users, function(err) {
-        if (err) socket.emit('system-message', 'ERROR: '+err);
-        else socket.emit('system-message', successMessage);
+        if (err) socket.emit('systemMessage', 'ERROR: '+err);
+        else socket.emit('systemMessage', successMessage);
     });
 }
 
@@ -96,7 +96,7 @@ io.on('connection', function(socket){
     else {
         ipLog[nameSanitize(clients[socket.id])] = socket.request.connection.remoteAddress;
         console.log("JOIN: " + socket.id);
-        io.emit('system-message', clients[socket.id] + ' has joined.');
+        io.emit('systemMessage', clients[socket.id] + ' has joined.');
         io.emit('listRefresh', toArray(clients));
     }
 
@@ -105,7 +105,7 @@ io.on('connection', function(socket){
         if (usableVar(nick) && usableVar(password) && users[nameSanitize(nick)] ) {
             password = hash.sha512(password + users[nameSanitize(nick)].salt);
             if (users[nameSanitize(nick)].password == password) {
-                io.emit('system-message', clients[socket.id] + " is now known as " + nick);
+                io.emit('systemMessage', clients[socket.id] + " is now known as " + nick);
                 io.emit('listRefresh', toArray(clients));
                 socket.emit('nickRefresh', nick);
 
@@ -114,13 +114,13 @@ io.on('connection', function(socket){
 
             }
             else {
-                socket.emit('system-message', 
+                socket.emit('systemMessage', 
                             "That doesn't seem to be a registered combination. " +
                             "Please make sure you type '.login User Password'.");
             }
         }
         else {
-            socket.emit('system-message', 
+            socket.emit('systemMessage', 
                         "That doesn't seem to be a registered combination. " +
                         "Please make sure you type '.login User Password'.");
         }
@@ -136,7 +136,7 @@ io.on('connection', function(socket){
                 func(arg1); //This calms the Disco Pirates
             }
             else {
-                socket.emit('system-message', "Either only logged in users are "+
+                socket.emit('systemMessage', "Either only logged in users are "+
                                               "allowed to post, or you've been "+
                                               "disallowed from posting. "+
                                               "Maybe you'd just like to watch?");
@@ -145,13 +145,13 @@ io.on('connection', function(socket){
         });
     }
 
-    socketEmit('message', function(msg){
+    socketEmit('userMessage', function(msg){
         postCount++;
         var flair;
 
         if (users[nameSanitize(clients[socket.id])] )  flair = users[nameSanitize(clients[socket.id])].flair;
         if (! usableVar(flair) )  flair = false;
-        io.emit('message', clients[socket.id], msg.substr(0,6000), postCount.toString(36), flair);
+        io.emit('userMessage', clients[socket.id], msg.substr(0,6000), postCount.toString(36), flair);
     });
 
     socketEmit('me', function(msg){
@@ -161,7 +161,7 @@ io.on('connection', function(socket){
     // Commands related to Registration and User Accounts.
     socketEmit('changeNick', function(nick) {
         if ( checkValidName(nick) ) {
-            io.emit('system-message', clients[socket.id]+" is now known as "+nick);
+            io.emit('systemMessage', clients[socket.id]+" is now known as "+nick);
             io.emit('listRefresh', toArray(clients));
             socket.emit('nickRefresh', nick);
 
@@ -170,7 +170,7 @@ io.on('connection', function(socket){
 
         }
         else {
-            socket.emit('system-message', "That user is already registered.");
+            socket.emit('systemMessage', "That user is already registered.");
         }
     });
 
@@ -188,7 +188,7 @@ io.on('connection', function(socket){
             updateDatabase(socket, "You are now registered.");
         }
         else {
-            socket.emit('system-message', "That doesn't look right. Try again.");
+            socket.emit('systemMessage', "That doesn't look right. Try again.");
         }
 
     });
@@ -203,10 +203,10 @@ io.on('connection', function(socket){
             if (user.corp) message += ", and is incorporated.";
             else           message += ", and isn't incorporated.";
 
-            socket.emit('system-message', message);
+            socket.emit('systemMessage', message);
         }
         else {
-            socket.emit('system-message', 
+            socket.emit('systemMessage', 
                 nameSanitize(userName) + " is not registered."
             );
         }
@@ -220,7 +220,7 @@ io.on('connection', function(socket){
                 func(arg1, arg2); //This calms the Disco Pirates
             }
             else {
-                socket.emit('system-message', "Your role must be "+role+" or higher.");
+                socket.emit('systemMessage', "Your role must be "+role+" or higher.");
             }
         });
     }
@@ -242,7 +242,7 @@ io.on('connection', function(socket){
                 updateDatabase(socket, userName + " is now role: " + role);
         }
         else {
-            socket.emit('system-message', "That doesn't seem quite right. Try .roleChange userName role");
+            socket.emit('systemMessage', "That doesn't seem quite right. Try .roleChange userName role");
         }
     });
 
@@ -258,39 +258,39 @@ io.on('connection', function(socket){
 
             var removedUserID = Object.keys(clients).find(key => clients[key] == removedUser); 
             if ( removedUserID ) {
-                io.emit('system-message', removedUser + 
+                io.emit('systemMessage', removedUser + 
                                           " has been dismissed by " + 
                                           clients[socket.id]);
                 io.sockets.connected[ removedUserID ].disconnect();
             } 
             else {
-                socket.emit('system-message', "They don't seem to be online.");
+                socket.emit('systemMessage', "They don't seem to be online.");
             }
         }
         else {
-            socket.emit('system-message', "That doesn't look quite right.");
+            socket.emit('systemMessage', "That doesn't look quite right.");
         }
     });
     
     userCommand('getIP', 2, function(searchedUser) {
         var userIP = ipLog[ nameSanitize(searchedUser) ] || "no-ip-available";
-        socket.emit('system-message', userIP);
+        socket.emit('systemMessage', userIP);
     });
 
     userCommand('ban', 2, function(maliciousUser) {
         var userIP = ipLog[ nameSanitize(maliciousUser) ] || "no-ip-available";
         banList.push( userIP.substr(0,19) );
-        socket.emit('system-message', userIP + " has been banned.");
+        socket.emit('systemMessage', userIP + " has been banned.");
     });
 
     userCommand('quiet', 2, function() {
         moderatorSettings.quiet = ! moderatorSettings.quiet;
-        io.emit('system-message', "Quiet mode set to " + moderatorSettings.quiet);
+        io.emit('systemMessage', "Quiet mode set to " + moderatorSettings.quiet);
     });
 
     //Listener for Disconnects.
     socket.on('disconnect', function(){
-        io.emit('system-message', clients[socket.id] + ' has left.');
+        io.emit('systemMessage', clients[socket.id] + ' has left.');
         console.log("LEAVE: " + socket.id);
         delete clients[socket.id];
         io.emit('listRefresh', toArray(clients));

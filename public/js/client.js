@@ -236,7 +236,7 @@ function autoscroll(appendTo, appendstring) {
 
 // Command Handling.
 function send(msg) { /* Setting a function allows the end-user to modify it. */
-    socket.emit('message', msg);
+    socket.emit('userMessage', msg);
 }
 function login(nick, password) {
     socket.emit('login', nick, password);
@@ -306,7 +306,7 @@ function flairify(nick, flair) {
 }
 
 //Event handlers. 
-socket.on('message', function(nick, post, id, flair){
+socket.on('userMessage', function(nick, post, id, flair){
     var postType = "message";
 
     if (post.indexOf(attributes.nick) + 1) { /* If post contains nick. */
@@ -335,20 +335,20 @@ socket.on('me', function(post){
                "</div>");
 });
 
-socket.on('system-message', function(post){
+socket.on('systemMessage', function(post){
     $("#notifications").append(
-       "<div class=\"system-message\">          " + 
+       "<div class=\"systemMessage\">          " + 
        "<div class=\"notificationIcon\"></div>  " +
           parser.htmlEscape( post ) + 
        "</div>");
 
-    if ($("#notifications .system-message").length > 5) {
+    if ($("#notifications .systemMessage").length > 5) {
         $("#notifications").html("");
     } 
     else {
 
         setTimeout(function(){
-            $(".system-message:first").animate({
+            $(".systemMessage:first").animate({
                 height: 0, 
                 margin: 0, 
                 padding: 0}, 
@@ -356,7 +356,7 @@ socket.on('system-message', function(post){
         }, 3000);
 
         setTimeout(function(){
-            $(".system-message:first").remove();
+            $(".systemMessage:first").remove();
         }, 4000);
 
     }
@@ -370,5 +370,5 @@ socket.on('topic', function(newTitle){
 
 socket.on('disconnect', function(){
     autoscroll("#notifications", 
-                "<div class=\"system-message\">Your socket has been disconnected.</div>");
+                "<div class=\"systemMessage\">Your socket has been disconnected.</div>");
 });
