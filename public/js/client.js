@@ -309,7 +309,7 @@ function flairify(nick, flair) {
 socket.on('userMessage', function(nick, post, id, flair){
     var postType = "message";
 
-    if (post.indexOf(attributes.nick) + 1) { /* If post contains nick. */
+    if (post.toLowerCase().indexOf(attributes.nick.toLowerCase()) + 1) { /* If post contains nick. */
         postType += " alertMe";
         $("#notificationClick")[0].play();
     }
@@ -352,12 +352,12 @@ socket.on('systemMessage', function(post){
                 height: 0, 
                 margin: 0, 
                 padding: 0}, 
-                500);
+                100);
         }, 3000);
 
         setTimeout(function(){
             $(".systemMessage:first").remove();
-        }, 4000);
+        }, 3100);
 
     }
 });
