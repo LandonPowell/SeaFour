@@ -42,7 +42,7 @@ function funcName(args) {
 * Next, npm install the dependencies in `package.json`.
 
 
-  `npm install`
+  `npm install package.json`
   
 
 * Finally, run node's server.js file.  
