@@ -15,7 +15,7 @@ function toArray(object) {
 
 // Functions used to wrap long statements in a more readable form. 
 function usableVar(variable) {  // Checks if a variable won't crash the server.
-    return typeof( variable ) === "string" && variable.trim() !== "";
+    return typeof( variable ) === "string";
 }
 function nameSanitize(nick) {   // Changes unimportant chars to dashes. 
     return nick.toLowerCase().replace(/[^\w]/gi, "-");
