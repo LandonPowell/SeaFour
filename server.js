@@ -85,10 +85,11 @@ var moderatorSettings = {
 app.use(express.static(__dirname + '/public/'));
 
 io.on('connection', function(socket){
-    //Start Up.
+    // Start Up.
     socket.emit('topic', moderatorSettings.topic);
     clients[socket.id] = Math.random().toString(16).substr(2,6);
 
+    // Handles banned users.
     if( ipLog[ nameSanitize(clients[socket.id]) ] &&
         banList.indexOf( ipLog[nameSanitize(clients[socket.id])] ) > 0 ) {
         io.sockets.connected[ socket.id ].disconnect();
@@ -99,8 +100,9 @@ io.on('connection', function(socket){
         io.emit('systemMessage', clients[socket.id] + ' has joined.');
         io.emit('listRefresh', toArray(clients));
     }
+    addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
 
-    //Core Listeners.
+    // Core Listeners.
     socket.on('login', function(nick, password) {
         if (usableVar(nick) && usableVar(password) && users[nameSanitize(nick)] ) {
             password = hash.sha512(password + users[nameSanitize(nick)].salt);
@@ -278,8 +280,14 @@ io.on('connection', function(socket){
     });
 
     userCommand('ban', 2, function(maliciousUser) {
-        var userIP = ipLog[ nameSanitize(maliciousUser) ] || "no-ip-available";
+        var userIP = ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
         banList.push( userIP );
+        socket.emit('systemMessage', userIP + " has been banned.");
+    });
+
+    userCommand('banRange', 2, function(maliciousUser) {
+        var userIP = ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
+        banList.push( userIP.substr(0, 14) );
         socket.emit('systemMessage', userIP + " has been banned.");
     });
 
