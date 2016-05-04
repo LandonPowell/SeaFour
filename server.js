@@ -32,14 +32,14 @@ var users;
 
 jsonfile.readFile('database.json', function(err, obj) {
     users = obj;
-    if (err != null)  console.log('Database Errors: '+err);
-    else console.log('Database loaded.');
+    if (err)    console.log('Database Errors: ' + err);
+    else        console.log('Database loaded. ');
 });
 
 function updateDatabase(socket, successMessage) {
     jsonfile.writeFile('database.json', users, function(err) {
-        if (err) socket.emit('systemMessage', 'ERROR: '+err);
-        else socket.emit('systemMessage', successMessage);
+        if (err)    socket.emit('systemMessage', 'ERROR: ' + err);
+        else        socket.emit('systemMessage', successMessage);
     });
 }
 
@@ -89,7 +89,7 @@ io.on('connection', function(socket){
     socket.emit('topic', moderatorSettings.topic);
     clients[socket.id] = Math.random().toString(16).substr(2,6);
 
-    // Handles banned users.
+    // Handles banned users. Basically the asshole bouncer of SeaFour.
     if( ipLog[ nameSanitize(clients[socket.id]) ] &&
         banList.indexOf( ipLog[nameSanitize(clients[socket.id])] ) > 0 ) {
         io.sockets.connected[ socket.id ].disconnect();
@@ -108,12 +108,12 @@ io.on('connection', function(socket){
             password = hash.sha512(password + users[nameSanitize(nick)].salt);
             if (users[nameSanitize(nick)].password == password) {
                 io.emit('systemMessage', clients[socket.id] + " is now known as " + nick);
-                io.emit('listRefresh', toArray(clients));
                 socket.emit('nickRefresh', nick);
 
                 clients[socket.id] = nick;
                 ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
 
+                io.emit('listRefresh', toArray(clients));
             }
             else {
                 socket.emit('systemMessage', 
@@ -164,12 +164,12 @@ io.on('connection', function(socket){
     socketEmit('changeNick', function(nick) {
         if ( checkValidName(nick) ) {
             io.emit('systemMessage', clients[socket.id]+" is now known as "+nick);
-            io.emit('listRefresh', toArray(clients));
             socket.emit('nickRefresh', nick);
 
             clients[socket.id] = nick;
             ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
 
+            io.emit('listRefresh', toArray(clients));
         }
         else {
             socket.emit('systemMessage', "That user is already registered.");
@@ -233,25 +233,12 @@ io.on('connection', function(socket){
         updateDatabase(socket, "Your flair is now " + newFlair);
     });
 
-    //Mod-Exclusive Listeners.
-    userCommand('roleChange', 2, function(userName, role) {
-        if ( usableVar(userName) && usableVar(role) && 
-             nameSanitize(clients[socket.id]) &&
-             nameSanitize(clients[socket.id]).role > nameSanitize(clients[socket.id]).role &&
-             nameSanitize(clients[socket.id]).role > parseInt(role, 10) ) {
-
-                users[nameSanitize(userName)].role = parseInt(role, 10);
-                updateDatabase(socket, userName + " is now role: " + role);
-        }
-        else {
-            socket.emit('systemMessage', "That doesn't seem quite right. Try .roleChange userName role");
-        }
-    });
-
-    userCommand('topic', 1, function(newTopic) {
+    userCommand('topic', 0, function(newTopic) {
         io.emit('topic', newTopic);
         moderatorSettings.topic = newTopic;
     });
+
+    //Mod-Exclusive Listeners.
 
     userCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
         if ( users[nameSanitize(removedUser)] &&
@@ -277,6 +264,20 @@ io.on('connection', function(socket){
     userCommand('getIP', 2, function(searchedUser) {
         var userIP = ipLog[ nameSanitize(searchedUser) ] || "no-ip-available";
         socket.emit('systemMessage', userIP);
+    });
+
+    userCommand('roleChange', 2, function(userName, role) {
+        if ( usableVar(userName) && usableVar(role) && 
+             nameSanitize(clients[socket.id]) &&
+             nameSanitize(clients[socket.id]).role > nameSanitize(clients[socket.id]).role &&
+             nameSanitize(clients[socket.id]).role > parseInt(role, 10) ) {
+
+                users[nameSanitize(userName)].role = parseInt(role, 10);
+                updateDatabase(socket, userName + " is now role: " + role);
+        }
+        else {
+            socket.emit('systemMessage', "That doesn't seem quite right. Try .roleChange userName role");
+        }
     });
 
     userCommand('ban', 2, function(maliciousUser) {
