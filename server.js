@@ -60,8 +60,13 @@ function generateSalt() { /* ! THIS IS NOT CRYPTO-HEALTHY CODE ! */
 }
 
 // Moderation and antispam related variables, functions, and calls. 
-var ipLog = {};         // Stores IP based on username. Isn't in the DB because muhfreedom.
+var ipLog   = {};       // Stores IP based on username. Isn't in the DB because muhfreedom.
 var banList = [];       // List of banned IPs. 
+
+var moderatorSettings = {
+    quiet   : false, // Disallows unregistered from posting; they can watch.
+    topic   : "Welcome to SeaFour.club" // The current topic. 
+};
 
 var ipEmits = {};       // Stores the number of emits made by any IP. 
 setInterval(function(){ ipEmits = {}; }, 3000);    // Every 3 seconds, clear.
@@ -77,10 +82,6 @@ function addEmit(ipAddress, socketID) {
     }
 }
 
-var moderatorSettings = {
-    quiet   : false, // Disallows unregistered from posting; they can watch.
-    topic   : "Welcome to SeaFour.club" // The current topic. 
-};
 
 app.use(express.static(__dirname + '/public/'));
 
@@ -130,12 +131,12 @@ io.on('connection', function(socket){
     });
     
     function socketEmit(command, func) { // Disallows spammers.
-        socket.on(command, function(arg1){ 
+        socket.on(command, function(arg1, arg2){ 
             if ((!moderatorSettings.quiet ||                    // These two bools check 
                  users[ nameSanitize(clients[socket.id]) ]) &&  // if the mute applies. 
                  usableVar(arg1) &&
                  banList.indexOf( ipLog[nameSanitize(clients[socket.id])] )<0 ) {  // This checks if the user is banned. 
-                func(arg1); //This calms the Disco Pirates
+                func(arg1, arg2); //This calms the Disco Pirates
             }
             else {
                 socket.emit('systemMessage', "Either only logged in users are "+
@@ -180,12 +181,12 @@ io.on('connection', function(socket){
         var salt = generateSalt();
         if ( !clients[socket.id].match(/[\da-f]{6}/gi) ) {
             users[nameSanitize(clients[socket.id])] = {
-                "password": hash.sha512(password + salt),
-                "salt": salt,
-                "flair": null,
-                "prefix": null,
-                "corp": 0, /* Becomes an object upon incorporation */
-                "role" : 0 /* Default role is 0 */
+                "password"  : hash.sha512(password + salt),
+                "salt"      : salt,
+                "flair"     : null,
+                "prefix"    : null,
+                "corp"      : 0, /* Becomes an object upon incorporation */
+                "role"      : 0  /* Default role is 0 */
             };
             updateDatabase(socket, "You are now registered.");
         }
@@ -214,9 +215,9 @@ io.on('connection', function(socket){
         }
     });
 
-    //Function for commands that require registering. 
+    //Function for commands that require registering or a specific role.
     function userCommand(command, role, func) {
-        socket.on(command, function(arg1, arg2){ 
+        socketEmit(command, function(arg1, arg2){ 
             if (users[ nameSanitize(clients[socket.id]) ] && 
                 users[ nameSanitize(clients[socket.id]) ].role >= role) {
                 func(arg1, arg2); //This calms the Disco Pirates
@@ -240,7 +241,7 @@ io.on('connection', function(socket){
 
     //Mod-Exclusive Listeners.
 
-    userCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
+    userCommand('fistOfRemoval', 2, function(removedUser) { /* Kick Command */ 
         if ( users[nameSanitize(removedUser)] &&
              users[nameSanitize(clients[socket.id])].role > users[nameSanitize(removedUser)].role ||
              ! users[nameSanitize(removedUser)] ) {
@@ -268,15 +269,16 @@ io.on('connection', function(socket){
 
     userCommand('roleChange', 2, function(userName, role) {
         if ( usableVar(userName) && usableVar(role) && 
-             nameSanitize(clients[socket.id]) &&
-             nameSanitize(clients[socket.id]).role > nameSanitize(clients[socket.id]).role &&
-             nameSanitize(clients[socket.id]).role > parseInt(role, 10) ) {
+             users[nameSanitize(userName)] &&
+             users[nameSanitize(clients[socket.id])].role > users[nameSanitize(userName)].role &&
+             users[nameSanitize(clients[socket.id])].role > parseInt(role, 10) ) {
 
                 users[nameSanitize(userName)].role = parseInt(role, 10);
                 updateDatabase(socket, userName + " is now role: " + role);
         }
         else {
-            socket.emit('systemMessage', "That doesn't seem quite right. Try .roleChange userName role");
+            socket.emit('systemMessage', "That doesn't seem quite right. " + 
+                                         "Try .roleChange userName role ");
         }
     });
 
@@ -295,6 +297,11 @@ io.on('connection', function(socket){
     userCommand('quiet', 2, function() {
         moderatorSettings.quiet = ! moderatorSettings.quiet;
         io.emit('systemMessage', "Quiet mode set to " + moderatorSettings.quiet);
+    });
+
+    userCommand('clearBans', 3, function(){
+        banList = [];
+        socket.emit('systemMessage', "The banList has been cleared.");
     });
 
     //Listener for Disconnects.
