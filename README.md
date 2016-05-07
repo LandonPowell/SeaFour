@@ -1,5 +1,5 @@
 # SeaFour
-SeaFour is the Ch4t.io community's chat engine. 
+SeaFour is the SeaFour.club community's chat engine. 
 Powered by Node.js and Socket.io.
 
 ### Depends Upon
