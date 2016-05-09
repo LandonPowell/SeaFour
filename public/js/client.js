@@ -34,6 +34,7 @@ var parser = {
                 "$" : "spoiler" ,
                 "^" : "big"     ,
                 "~" : "rainbow" ,
+                "!" : "fascists",
                 "meme" : "quote",
             },
             complex: {

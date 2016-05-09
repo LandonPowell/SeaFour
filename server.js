@@ -38,7 +38,7 @@ jsonfile.readFile('database.json', function(err, obj) {
 
 function updateDatabase(socket, successMessage) {
     jsonfile.writeFile('database.json', users, function(err) {
-        if (err)    socket.emit('systemMessage', 'ERROR: ' + err);
+        if  (err)   socket.emit('systemMessage', 'ERROR: ' + err);
         else        socket.emit('systemMessage', successMessage);
     });
 }
@@ -69,11 +69,11 @@ var moderatorSettings = {
 };
 
 var ipEmits = {};       // Stores the number of emits made by any IP. 
-setInterval(function(){ ipEmits = {}; }, 3000);    // Every 3 seconds, clear.
+setInterval(function() { ipEmits = {}; }, 3000);    // Every 3 seconds, clear.
 function addEmit(ipAddress, socketID) {
 
-    if ( ipEmits[ipAddress] !== undefined ) ipEmits[ipAddress] += 1;
-    else ipEmits[ipAddress] = 0;
+    if (ipEmits[ipAddress]) ipEmits[ipAddress] += 1;
+    else                    ipEmits[ipAddress]  = 0;
 
     if (ipEmits[ipAddress] > 2) {               // Limits posts to 2. 
         banList.push(ipAddress);   // Bans the first 17 chars 'cuz muhfreedom. 
@@ -85,7 +85,7 @@ function addEmit(ipAddress, socketID) {
 
 app.use(express.static(__dirname + '/public/'));
 
-io.on('connection', function(socket){
+io.on('connection', function(socket) {
     // Start Up.
     socket.emit('topic', moderatorSettings.topic);
     clients[socket.id] = Math.random().toString(16).substr(2,6);
@@ -148,16 +148,19 @@ io.on('connection', function(socket){
         });
     }
 
-    socketEmit('userMessage', function(msg){
+    socketEmit('userMessage', function(msg) {
         postCount++;
         var flair;
 
-        if (users[nameSanitize(clients[socket.id])] )  flair = users[nameSanitize(clients[socket.id])].flair;
-        if (! usableVar(flair) )  flair = false;
+        if ( users[nameSanitize(clients[socket.id])] )
+            flair = users[nameSanitize(clients[socket.id])].flair;
+        if (! usableVar(flair) )
+            flair = false;
+
         io.emit('userMessage', clients[socket.id], msg.substr(0,6000), postCount.toString(36), flair);
     });
 
-    socketEmit('me', function(msg){
+    socketEmit('me', function(msg) {
         io.emit('me', clients[socket.id]+" "+msg.substr(0,2048));
     });
 
@@ -261,7 +264,7 @@ io.on('connection', function(socket){
             socket.emit('systemMessage', "That doesn't look quite right.");
         }
     });
-    
+
     userCommand('getIP', 2, function(searchedUser) {
         var userIP = ipLog[ nameSanitize(searchedUser) ] || "no-ip-available";
         socket.emit('systemMessage', userIP);
@@ -299,13 +302,24 @@ io.on('connection', function(socket){
         io.emit('systemMessage', "Quiet mode set to " + moderatorSettings.quiet);
     });
 
-    userCommand('clearBans', 3, function(){
+    userCommand('genocide', 3, function(){
+        io.emit('systemMessage', "There is much talk, and I have " +
+                                 "listened, through rock and metal " +
+                                 "and time. Now I shall talk, and you " +
+                                 "shall listen.");
+
+        for ( var endUser in clients ) {
+            io.sockets.connected[ endUser ].disconnect();
+        }
+    });
+
+    userCommand('clearBans', 3, function() {
         banList = [];
-        socket.emit('systemMessage', "The banList has been cleared.");
+        io.emit('systemMessage', "The ban list has been cleared.");
     });
 
     //Listener for Disconnects.
-    socket.on('disconnect', function(){
+    socket.on('disconnect', function() {
         io.emit('systemMessage', clients[socket.id] + ' has left.');
         console.log("LEAVE: " + socket.id);
         delete clients[socket.id];
@@ -314,6 +328,6 @@ io.on('connection', function(socket){
 
 }); 
 
-http.listen(process.env.PORT || 80, function(){
+http.listen(process.env.PORT || 80, function() {
     console.log('Listening on port ' + (process.env.PORT || 80));
 });
