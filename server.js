@@ -244,7 +244,7 @@ io.on('connection', function(socket) {
 
     //Mod-Exclusive Listeners.
 
-    userCommand('fistOfRemoval', 2, function(removedUser) { /* Kick Command */ 
+    userCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
         if ( users[nameSanitize(removedUser)] &&
              users[nameSanitize(clients[socket.id])].role > users[nameSanitize(removedUser)].role ||
              ! users[nameSanitize(removedUser)] ) {
@@ -291,15 +291,15 @@ io.on('connection', function(socket) {
         socket.emit('systemMessage', userIP + " has been banned.");
     });
 
-    userCommand('banRange', 2, function(maliciousUser) {
-        var userIP = ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
-        banList.push( userIP.substr(0, 14) );
-        socket.emit('systemMessage', userIP + " has been banned.");
-    });
-
     userCommand('quiet', 2, function() {
         moderatorSettings.quiet = ! moderatorSettings.quiet;
         io.emit('systemMessage', "Quiet mode set to " + moderatorSettings.quiet);
+    });
+
+    userCommand('banRange', 3, function(maliciousUser) {
+        var userIP = ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
+        banList.push( userIP.substr(0, 14) );
+        socket.emit('systemMessage', userIP + " has been banned.");
     });
 
     userCommand('genocide', 3, function(){
