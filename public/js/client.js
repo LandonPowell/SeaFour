@@ -246,31 +246,38 @@ function login(nick, password) {
 function keyPressed(event) {
     if(event.keyCode == 13 && !event.shiftKey) { /* Enter is pressed. */
         var text = $("#inputbox").val();
+        var command = text.split(" ");
         $("#inputbox").val("");
         event.preventDefault();
 
-        if(text[0] == ".") { /* Commands start with a period. */
-            var command = text.split(" ");
-
+        /* Commands start with a period and don't end with '!'. */
+        if(text[0] == "." && command[0][command[0].length - 1] != "!") { 
             switch(command[0]){
                 case ".login":
                     login(command[1], command[2]);
                     break;
                 case ".nick":
-                    socket.emit('changeNick', text.substring(6));
+                    socket.emit('changeNick', text.substr(6));
                     break;
                 case ".embedURL":
-                    embedURL(text.substring(10));
+                    embedURL(text.substr(10));
                     break;
                 case ".roleChange": 
                     socket.emit('roleChange', command[1], command[2]);
                     break;
                 default:
                     socket.emit(command[0].substr(1),
-                                text.substring(command[0].length + 1));
+                                text.substr(command[0].length + 1));
             }
         }
-        else { /* Send a non-command message. */
+        /* Special messages start with a '.' but do end with '!'. */
+        else if (text[0] == ".") {
+            socket.emit('specialMessage', 
+                        command[0].substring(1, command[0].length - 1),
+                        text.substr(command[0].length + 1));
+        }
+        /* All other messages get sent. */
+        else { 
             send(text);
         }
     }
@@ -331,14 +338,21 @@ socket.on('userMessage', function(nick, post, id, flair){
 
 socket.on('me', function(post){
     autoscroll("#messages", 
-               "<div class=\"me message\">"+
-                    parser.htmlEscape(post)+
+               "<div class=\"me message\">" +
+                    parser.htmlEscape(post) +
+               "</div>");
+});
+
+socket.on('specialMessage', function(type, name, message) {
+    autoscroll("#messages", 
+               "<div class=\"message "+parser.htmlEscape(type)+"\">"+
+                    parser.htmlEscape(name + ": " + message) +
                "</div>");
 });
 
 socket.on('systemMessage', function(post){
     $("#notifications").append(
-       "<div class=\"systemMessage\">          " + 
+       "<div class=\"systemMessage\">           " + 
        "<div class=\"notificationIcon\"></div>  " +
           parser.htmlEscape( post ) + 
        "</div>");

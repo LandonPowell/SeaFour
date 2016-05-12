@@ -32,7 +32,7 @@ var users;
 
 jsonfile.readFile('database.json', function(err, obj) {
     users = obj;
-    if (err)    console.log('Database Errors: ' + err);
+    if  (err)   console.log('Database Errors: ' + err);
     else        console.log('Database loaded. ');
 });
 
@@ -162,6 +162,16 @@ io.on('connection', function(socket) {
 
     socketEmit('me', function(msg) {
         io.emit('me', clients[socket.id]+" "+msg.substr(0,2048));
+    });
+    
+    socketEmit('specialMessage', function(type, msg) {
+        var approvedTypes = ["term", "carbonite", "badOS"];
+        if ( approvedTypes.indexOf(type) + 1 ) {
+            io.emit('specialMessage', type, clients[socket.id], msg.substr(0,2048)); 
+        }
+        else {
+            socket.emit('systemMessage', "I can't let you do that, Dave.")
+        }
     });
 
     // Commands related to Registration and User Accounts.

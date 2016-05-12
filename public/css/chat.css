@@ -336,9 +336,6 @@ iframe {
 .bold {
     font-weight: bold;
 }
-.italic {
-    text-decoration: italic;
-}
 
 .ghost {
     color: rgba(0,0,0,0);
@@ -412,4 +409,50 @@ iframe {
 .italics {
     font-style: italic;
 }
+
 /* End of Style Classes */
+
+/*\
+|*| Everything below this line is a specialMessage class.
+|*| - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\*/
+
+.carbonite {
+    text-shadow: 0px 1px 1px rgba(0,0,0, 0.5), 0px -1px 0px rgba(255,255,255,0.1);
+    color: #333;
+    background-color: #333;
+    box-shadow:  0px 1px 3px rgba(0,0,0, 0.6),
+                 0px 1px 1px rgba(255,255,255,0.1) inset;
+}
+
+@keyframes term {
+  from {
+    text-shadow: 0px 0px 4px rgba(255,200,0,.5);
+    background:  repeating-linear-gradient(#110e00, #210 3px);
+  }
+  to   {
+    text-shadow: 0px 0px 0px rgba(255,200,0,.5);
+    background:  repeating-linear-gradient(#210, #110e00 3px);
+  }
+}
+.term {
+  color:       #fa0;
+  font-size:   15px;
+  font-family: monospace;
+  box-shadow:  0px 0px 9px rgba(255,200,0,0.1), 
+               0px 0px 9px rgba(0,0,0,1) inset;
+  animation:   term .1s infinite;
+}
+
+.badOS {
+  border: 2px outset #ccc;
+  background: linear-gradient(to right, #0a256a, #a4c8ee);
+  border-radius: 0px;
+  padding: 8px 18px;
+  color: white;
+  text-shadow: 0px 0px 0px #fff;
+  font-family: Arial, sans-serif;
+  box-shadow: none;
+}
+
+/* End of specialMessage classes. */
