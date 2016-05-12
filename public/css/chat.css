@@ -426,22 +426,18 @@ iframe {
 }
 
 @keyframes term {
-  from {
-    text-shadow: 0px 0px 4px rgba(255,200,0,.5);
-    background:  repeating-linear-gradient(#110e00, #210 3px);
-  }
-  to   {
-    text-shadow: 0px 0px 0px rgba(255,200,0,.5);
-    background:  repeating-linear-gradient(#210, #110e00 3px);
-  }
+  from {text-shadow: 0px 0px 4px rgba(255,200,0,.5);}
+  to   {text-shadow: 0px 0px 0px rgba(255,200,0,.5);}
 }
 .term {
-  color:       #fa0;
-  font-size:   15px;
-  font-family: monospace;
-  box-shadow:  0px 0px 9px rgba(255,200,0,0.1), 
-               0px 0px 9px rgba(0,0,0,1) inset;
-  animation:   term .1s infinite;
+    color:       #fa0;
+    font-size:   15px;
+    font-family: monospace;
+    background:  url("images/CRTScanlines.gif") repeat;
+    box-shadow:  0px 0px 9px rgba(255,200,0,0.1), 
+                 0px 0px 9px rgba(0,0,0,1) inset;
+    animation:   term .1s infinite;
+
 }
 @keyframes afterm {
     from { content: "_"; }
@@ -454,14 +450,14 @@ iframe {
 }
 
 .badOS {
-  border: 2px outset #ccc;
-  background: linear-gradient(to right, #0a256a, #a4c8ee);
-  border-radius: 0px;
-  padding: 8px 18px;
-  color: white;
-  text-shadow: 0px 0px 0px #fff;
-  font-family: Arial, sans-serif;
-  box-shadow: none;
+    border: 2px outset #ccc;
+    background: linear-gradient(to right, #0a256a, #a4c8ee);
+    border-radius: 0px;
+    padding: 8px 18px;
+    color: white;
+    text-shadow: 0px 0px 0px #fff;
+    font-family: Arial, sans-serif;
+    box-shadow: none;
 }
 
 /* End of specialMessage classes. */
