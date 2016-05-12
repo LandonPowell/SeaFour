@@ -443,6 +443,15 @@ iframe {
                0px 0px 9px rgba(0,0,0,1) inset;
   animation:   term .1s infinite;
 }
+@keyframes afterm {
+    from { content: "_"; }
+    to { content: " "; }
+}
+.term:after {
+    content: "_";
+    animation: afterm 1s infinite;
+    animation-direction: alternate;
+}
 
 .badOS {
   border: 2px outset #ccc;
