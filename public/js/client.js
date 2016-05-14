@@ -194,7 +194,9 @@ function embedURL(link) {
     $("#embed").remove();
 
     $("#messages").append("<div id=\"embed\">                               " +
-                              "<div id=\"urlHandlebar\"> Embeded URL </div> " +
+                              "<div id=\"urlHandlebar\"> Embeded URL </div> " + 
+                              "<span id=\"urlClose\" onclick=\"embedURL('kill')\"> ' "+ 
+                              "</span> " +
                               "<iframe src=\"" + link + "\"></iframe>       " +
                           "</div>");
 
@@ -206,7 +208,7 @@ function embedURL(link) {
             handles: "se"
         });
 
-    if (link == "kill") $("#embed").remove();
+    if (link == "kill")   $("#embed").remove();
 }
 
 
@@ -331,7 +333,7 @@ socket.on('userMessage', function(nick, post, id, flair){
 
     $("#"+id).click(function(event) {
         $("#inputbox").val(
-            $("#inputbox").val() +  "{:"+id+"}"
+            $("#inputbox").val() +  "{:"+id+"} "
         );
     });
 });

@@ -203,6 +203,21 @@ body {
     color: #8AFFD3;
     text-align: center;
     font-size: 15px;
+    cursor: all-scroll;
+}
+#urlClose {
+    font-family: WebSymbols;
+    font-size: 17px;
+    color: #FFB946;
+    cursor: pointer;
+    transition: text-shadow .5s, color .5s;
+    position: absolute;
+    right: 5px;
+    top: 1px;
+}
+#urlClose:hover {
+    color: #fff;
+    text-shadow: 0px 0px 5px #FFB946;
 }
 #embed {
     position: fixed !important;
@@ -418,7 +433,8 @@ iframe {
 \*/
 
 .carbonite {
-    text-shadow: 0px 1px 1px rgba(0,0,0, 0.5), 0px -1px 0px rgba(255,255,255,0.1);
+    text-shadow: 0px 1px 1px rgba(0,0,0, 0.5), 
+                 0px -1px 0px rgba(255,255,255,0.1);
     color: #333;
     background-color: #333;
     box-shadow:  0px 1px 3px rgba(0,0,0, 0.6),
@@ -426,8 +442,8 @@ iframe {
 }
 
 @keyframes term {
-  from {text-shadow: 0px 0px 4px rgba(255,200,0,.5);}
-  to   {text-shadow: 0px 0px 0px rgba(255,200,0,.5);}
+    from { text-shadow: 0px 0px 4px rgba(255,200,0,.5) ;}
+    to   { text-shadow: 0px 0px 0px rgba(255,200,0,.5) ;}
 }
 .term {
     color:       #fa0;
@@ -437,11 +453,10 @@ iframe {
     box-shadow:  0px 0px 9px rgba(255,200,0,0.1), 
                  0px 0px 9px rgba(0,0,0,1) inset;
     animation:   term .1s infinite;
-
 }
 @keyframes afterm {
-    from { content: "_"; }
-    to { content: " "; }
+    from { content: "_" ;}
+    to   { content: " " ;}
 }
 .term:after {
     content: "_";
