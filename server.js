@@ -15,7 +15,7 @@ function toArray(object) {
 
 // Functions used to wrap long statements in a more readable form. 
 function usableVar(variable) {  // Checks if a variable won't crash the server.
-    return typeof( variable ) === "string";
+    return typeof( variable ) === "string" && variable;
 }
 function nameSanitize(nick) {   // Changes unimportant chars to dashes. 
     return nick.toLowerCase().replace(/[^\w]/gi, "-");
@@ -71,12 +71,11 @@ var moderatorSettings = {
 var ipEmits = {};       // Stores the number of emits made by any IP. 
 setInterval(function() { ipEmits = {}; }, 3000);    // Every 3 seconds, clear.
 function addEmit(ipAddress, socketID) {
-
-    if (ipEmits[ipAddress]) ipEmits[ipAddress] += 1;
-    else                    ipEmits[ipAddress]  = 0;
+    if (ipEmits[ipAddress] !== undefined) ipEmits[ipAddress] += 1;
+    else                                  ipEmits[ipAddress]  = 0;
 
     if (ipEmits[ipAddress] > 2) {               // Limits posts to 2. 
-        banList.push(ipAddress);   // Bans the first 17 chars 'cuz muhfreedom. 
+        banList.push(ipAddress);
         console.log(ipAddress + " has been banned.");
         io.sockets.connected[ socketID ].disconnect();
     }
@@ -301,6 +300,11 @@ io.on('connection', function(socket) {
         socket.emit('systemMessage', userIP + " has been banned.");
     });
 
+    userCommand('clearBans', 2, function() {
+        banList = [];
+        io.emit('systemMessage', "The ban list has been cleared.");
+    });
+
     userCommand('quiet', 2, function() {
         moderatorSettings.quiet = ! moderatorSettings.quiet;
         io.emit('systemMessage', "Quiet mode set to " + moderatorSettings.quiet);
@@ -321,11 +325,6 @@ io.on('connection', function(socket) {
         for ( var endUser in clients ) {
             io.sockets.connected[ endUser ].disconnect();
         }
-    });
-
-    userCommand('clearBans', 3, function() {
-        banList = [];
-        io.emit('systemMessage', "The ban list has been cleared.");
     });
 
     //Listener for Disconnects.
