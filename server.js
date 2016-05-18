@@ -71,8 +71,8 @@ var moderatorSettings = {
 var ipEmits = {};       // Stores the number of emits made by any IP. 
 setInterval(function() { ipEmits = {}; }, 3000);    // Every 3 seconds, clear.
 function addEmit(ipAddress, socketID) {
-    if (ipEmits[ipAddress] !== undefined) ipEmits[ipAddress] += 1;
-    else                                  ipEmits[ipAddress]  = 0;
+    if (ipEmits[ipAddress]) ipEmits[ipAddress] += 1;
+    else                    ipEmits[ipAddress]  = 1;
 
     if (ipEmits[ipAddress] > 2) {               // Limits posts to 2. 
         banList.push(ipAddress);
