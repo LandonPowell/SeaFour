@@ -74,7 +74,7 @@ function addEmit(ipAddress, socketID) {
     if (ipEmits[ipAddress]) ipEmits[ipAddress] += 1;
     else                    ipEmits[ipAddress]  = 1;
 
-    if (ipEmits[ipAddress] > 2) {               // Limits posts to 2. 
+    if (ipEmits[ipAddress] > 2) {   // Limits posts to 2. 
         banList.push(ipAddress);
         console.log(ipAddress + " has been banned.");
         io.sockets.connected[ socketID ].disconnect();
@@ -138,9 +138,9 @@ io.on('connection', function(socket) {
                 func(arg1, arg2); //This calms the Disco Pirates
             }
             else {
-                socket.emit('systemMessage', "Either only logged in users are "+
-                                              "allowed to post, or you've been "+
-                                              "disallowed from posting. "+
+                socket.emit('systemMessage', "Either only logged in users are " +
+                                              "allowed to post, or you've been " +
+                                              "disallowed from posting. " +
                                               "Maybe you'd just like to watch?");
             }
             addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
@@ -156,7 +156,10 @@ io.on('connection', function(socket) {
         if (! usableVar(flair) )
             flair = false;
 
-        io.emit('userMessage', clients[socket.id], msg.substr(0,6000), postCount.toString(36), flair);
+        io.emit('userMessage',  clients[socket.id], 
+                                msg.substr(0,6000), 
+                                postCount.toString(36), 
+                                flair);
     });
 
     socketEmit('me', function(msg) {
@@ -169,7 +172,7 @@ io.on('connection', function(socket) {
             io.emit('specialMessage', type, clients[socket.id], msg.substr(0,2048)); 
         }
         else {
-            socket.emit('systemMessage', "I can't let you do that, Dave.")
+            socket.emit('systemMessage', "I can't let you do that, Dave.");
         }
     });
 
