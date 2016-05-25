@@ -239,7 +239,7 @@ function autoscroll(appendTo, appendstring) {
 
 // Command Handling.
 function send(msg) { /* Setting a function allows the end-user to modify it. */
-    socket.emit('userMessage', msg);
+    if (msg) socket.emit('userMessage', msg);
 }
 function login(nick, password) {
     socket.emit('login', nick, password);
