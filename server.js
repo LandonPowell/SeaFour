@@ -133,8 +133,8 @@ io.on('connection', function(socket) {
                  users[ nameSanitize(clients[socket.id]) ]) &&  // if the mute applies. 
                  banList.indexOf( ipLog[nameSanitize(clients[socket.id])] )<0 ) {  // This checks if the user is banned. 
 
-                if (! usableVar(arg1)) arg1 = "Stupid Idiot";   // This solution is a
-                if (! usableVar(arg2)) arg2 = "Stupid Idiot";   // thousand times funnier.
+                if (! usableVar(arg1)) arg1 = "I'm a stupid Idiot";   // This solution is a
+                if (! usableVar(arg2)) arg2 = "I'm a stupid Idiot";   // thousand times funnier.
 
                 func(arg1, arg2); // This calms the Disco Pirates
             }
