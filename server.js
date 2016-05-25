@@ -14,7 +14,7 @@ function toArray(object) {
 }
 
 // Functions used to wrap long statements in a more readable form. 
-function usableVar(variable) {  // Checks if a variable won't crash the server.
+function usableVar(variable) {  // Checks if a variable won't fuck something up.
     return typeof( variable ) === "string" && variable;
 }
 function nameSanitize(nick) {   // Changes unimportant chars to dashes. 
@@ -103,25 +103,23 @@ io.on('connection', function(socket) {
     addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
 
     // Core Listeners.
-    socket.on('login', function(nick, password) {
-        if (usableVar(nick) && usableVar(password) && users[nameSanitize(nick)] ) {
-            password = hash.sha512(password + users[nameSanitize(nick)].salt);
-            if (users[nameSanitize(nick)].password == password) {
-                io.emit('systemMessage', clients[socket.id] + " is now known as " + nick);
-                socket.emit('nickRefresh', nick);
+    socket.on('login', function(nick, password) { 
 
-                clients[socket.id] = nick;
-                ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
+        /* LOTS OF SECURITY-SPAGHETTI AHEAD. */
+        /* Simplicity leads to storing passwords in plaintext, I guess. */
 
-                io.emit('listRefresh', toArray(clients));
-            }
-            else {
-                socket.emit('systemMessage', 
-                            "That doesn't seem to be a registered combination. " +
-                            "Please make sure you type '.login User Password'.");
-            }
+        if ( usableVar(nick) && usableVar(password) && users[nameSanitize(nick)] &&
+             users[nameSanitize(nick)].password == hash.sha512(password + users[nameSanitize(nick)].salt) ) {
+            
+            io.emit('systemMessage', clients[socket.id] + " is now known as " + nick);
+            socket.emit('nickRefresh', nick);
+
+            clients[socket.id] = nick;
+            ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
+
+            io.emit('listRefresh', toArray(clients));
         }
-        else {
+        else { 
             socket.emit('systemMessage', 
                         "That doesn't seem to be a registered combination. " +
                         "Please make sure you type '.login User Password'.");
@@ -133,9 +131,12 @@ io.on('connection', function(socket) {
         socket.on(command, function(arg1, arg2){ 
             if ((!moderatorSettings.quiet ||                    // These two bools check 
                  users[ nameSanitize(clients[socket.id]) ]) &&  // if the mute applies. 
-                 usableVar(arg1) &&
                  banList.indexOf( ipLog[nameSanitize(clients[socket.id])] )<0 ) {  // This checks if the user is banned. 
-                func(arg1, arg2); //This calms the Disco Pirates
+
+                if (! usableVar(arg1)) arg1 = "Stupid Idiot";   // This solution is a
+                if (! usableVar(arg2)) arg2 = "Stupid Idiot";   // thousand times funnier.
+
+                func(arg1, arg2); // This calms the Disco Pirates
             }
             else {
                 socket.emit('systemMessage', "Either only logged in users are " +

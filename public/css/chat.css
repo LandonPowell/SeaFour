@@ -285,12 +285,9 @@ iframe {
     padding-right: 5px;
 }
 
-.me {
-    color: #b53fff;
-}
-.me:before {
-    content: "- ";
-}
+.me        { color: #b53fff; }
+.me:before { content: "- " ; }
+.me:after  { content: " -" ; }
 
 .inlineimage {
     max-width: 120px;
