@@ -251,8 +251,8 @@ io.on('connection', function(socket) {
     });
 
     userCommand('topic', 0, function(newTopic) {
-        io.emit('topic', newTopic);
-        moderatorSettings.topic = newTopic;
+        io.emit('topic', newTopic.substr(0, 27));
+        moderatorSettings.topic = newTopic.substr(0, 27);
     });
 
     //Mod-Exclusive Listeners.
