@@ -5,7 +5,7 @@ var attributes = {
     unread: 0,
     focus: true,
 };
-//Parser.
+// Parser.
 var parser = {
     htmlEscape : function(string) { /* THIS ESCAPES HTML SPECIAL CHARACTERS */
         return string.replace(/&/g,  "&amp;"    )
@@ -16,7 +16,8 @@ var parser = {
                      .replace(/\"/g, "&quot;"   )
                      .replace(/\\/g, "&bsol;"   )
                      .replace(/  /g, " &nbsp;"  )
-                     .replace(/\n/g, " <br> "   );
+                     .replace(/\n/g, " <br> "   )
+                     .replace(/\t/g, " &nbsp; &nbsp;");
     },
     quote : function(string) { /* THIS CREATES THE QUOTES/GREENTEXT */
         return string.replace(/&gt;([^<]+)/gi,
@@ -26,7 +27,7 @@ var parser = {
     /*  Can you believe that all this was once done with a 
      *  metric fuckton of regex replaces? 
      */
-        //Operators
+        // Operators
         var operators = {
             basic: {
                 "*" : "bold"    ,
@@ -44,7 +45,7 @@ var parser = {
                 "_" : "font"    ,
             },
         };
-        //Regexes for checking validity of operator args.
+        // Regexes for checking validity of operator args.
         var regexChecks = {
             'color'     : /([a-f\d]{3}){1,2}/gi,
             'ghost'     : /([a-f\d]{3}){1,2}/gi,
@@ -56,7 +57,7 @@ var parser = {
             return regex.test(string) &&  string.match( regex )[0] == string;
         }
         
-        //Tokenizer.
+        // Tokenizer.
         function tokenize(s) { /* This is a massive bitch in javascript. */
             s = '{ ' + s + ' }';
             var tokens = s.replace(/&bsol;{/g,"&#123;") /* Escape codes. */
@@ -68,7 +69,7 @@ var parser = {
             return tokens;
         }
 
-        //S-Expression Nester.
+        // S-Expression Nester.
         function nest(array) { /* This is rather easy in JS. */
             var item = array.shift();
             if (item == '{') {
@@ -90,7 +91,7 @@ var parser = {
             }
             else if ( regexEquals(string, /(https:\/\/)?(www\.)?((youtube\.com\/watch\?v=)|(youtu\.be\/))[\w_\-]+/gi)) {
                 return string.replace(/(?:https:\/\/)?(?:www\.)?(?:(?:youtube\.com\/watch\?v=)|(?:youtu\.be\/))([\w_\-]+)/gi, 
-                                      "<a class=\"youtube link\" href=\"javascript:embedURL('https://www.youtube.com/embed/$1');\"> y </a>");
+                                      "<a class=\"youtube link\" href=\"javascript:embedURL('https:// www.youtube.com/embed/$1');\"> y </a>");
             }
             else if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+(\/)?[^\s<]+/g) ) {
                 return "<a class=\"link\" target=\"_blank\" href=\""+string+"\">"+string+"</a>";
@@ -100,16 +101,16 @@ var parser = {
             }
         }
 
-        //S-Expression Evaluator.
+        // S-Expression Evaluator.
         function evaluate(tree) { 
             var operator = tree.shift();
             var parsed;
 
-            //Handles the simple operators, like (^ big text )
+            // Handles the simple operators, like (^ big text )
             if (operator in operators.basic) {
                 parsed = "<span class=\""+ operators.basic[operator] +"\">";
             }
-            //Handles the complex operators, like (#fff colors )
+            // Handles the complex operators, like (#fff colors )
             else if (operator[0] in operators.complex) { 
                 parsed = "<span class=\""+ operators.complex[operator[0]] +"\" ";
 
@@ -140,7 +141,7 @@ var parser = {
                     parsed += ">";
                 }
             }
-            //Handles empty expressions, such as ( this )
+            // Handles empty expressions, such as ( this )
             else {
                 parsed = "<span>"+linkHandler(operator)+" "; 
             }
@@ -153,12 +154,12 @@ var parser = {
             return parsed + "</span>";
         }
 
-        //This returns the result of the evaluation. 
+        // This returns the result of the evaluation. 
         return evaluate( nest( tokenize( string ) ) ).replace(/(>) | (<)/g, "$1$2");
     }
 };
 
-//User Interface.
+// User Interface.
 /* global $ from Jquery library */
 $(function() { /* On load */
     $('#handle')
@@ -211,32 +212,6 @@ function embedURL(link) {
     if (link == "kill")   $("#embed").remove();
 }
 
-
-function idJump(postId) {
-    window.location.hash = "";
-    window.location.hash = "#" + postId;
-}
-
-function autoscroll(appendTo, appendstring) {
-    var height = $("#messages").prop('scrollHeight') - 
-                 $("#messages").prop('clientHeight');
-
-    $(appendTo).append(appendstring);
-    
-    var maxScroll = $("#messages").prop('scrollHeight') -
-                    $("#messages").prop('clientHeight');
-    if ($("#messages").scrollTop() > height - 400) {
-        $("#messages").animate({
-            scrollTop: maxScroll
-        }, 100);
-    }
-    
-    if (!attributes.focus) { 
-        attributes.unread += 1;
-        $("title").html(parser.htmlEscape( attributes.unread + " : " + attributes.title ));
-    }
-}
-
 // Command Handling.
 function send(msg) { /* Setting a function allows the end-user to modify it. */
     if (msg) socket.emit('userMessage', msg);
@@ -253,7 +228,7 @@ function keyPressed(event) {
         event.preventDefault();
 
         /* Commands start with a period and don't end with '!'. */
-        if(text[0] == "." && command[0][command[0].length - 1] != "!") { 
+        if(text[0] == "." && command[0][command[0].length - 1] != "!") {
             switch(command[0]){
                 case ".login":
                     login(command[1], command[2]);
@@ -279,13 +254,13 @@ function keyPressed(event) {
                         text.substr(command[0].length + 1));
         }
         /* All other messages get sent. */
-        else { 
+        else {
             send(text);
         }
     }
 }
 
-//User List Management
+// User List Management
 socket.on('listRefresh', function(newList){
     $("#menuButton").html("Users - " + newList.length);
     $("#userList").html("");
@@ -315,7 +290,36 @@ function flairify(nick, flair) {
     }
 }
 
-//Event handlers. 
+function idJump(postId) {
+    window.location.hash = "";
+    window.location.hash = "#" + postId;
+}
+
+function append(appendTo, appendstring) {                         // This function handles the appending
+    var beforeHeight = $("#messages").prop('scrollHeight') -      // of messages to divs in a way that
+                       $("#messages").prop('clientHeight');       // automatically autoscrolls.
+
+    $(appendTo).append(appendstring);
+
+    var afterHeight = $("#messages").prop('scrollHeight') -
+                      $("#messages").prop('clientHeight');
+
+    if ($("#messages").scrollTop() > beforeHeight - 400) {          // If the user is scrolled near the bottom,
+        $("#messages").animate({ scrollTop: afterHeight }, 100);    // scroll him down. 
+    }
+    
+    // This changes the title of the window to show how many messages they haven't read.
+    if (!attributes.focus) { 
+        attributes.unread += 1;
+        $("title").html(parser.htmlEscape( attributes.unread + " : " + attributes.title ));
+    }
+
+    // This limits the amount of messages in history to 1024, and removes them when they become too much.
+    if ( $(".message").length > 1024 ) $(".message:lt(128)").remove();
+    
+}
+
+// Event handlers. 
 socket.on('userMessage', function(nick, post, id, flair){
     var postType = "message";
 
@@ -324,29 +328,30 @@ socket.on('userMessage', function(nick, post, id, flair){
         $("#notificationClick")[0].play();
     }
 
-    autoscroll("#messages", 
-               "<div class=\""+postType+"\"> \
-                   <span class=\"postId\" id=\""+id+"\">"+id+"</span>" +
-                flairify(nick, flair) + ": " +
-                parser.style(parser.quote(parser.htmlEscape( post ))) +
+    append("#messages", 
+               "<div class=\"" + postType + "\"> \
+                   <span class=\"postId\" id=\" " + id + " \">" + id + "</span> \
+                   <span class=\"userName\">"+
+                    flairify(nick, flair) + "</span>: " +
+                    parser.style(parser.quote(parser.htmlEscape( post ))) +
                "</div>");
 
     $("#"+id).click(function(event) {
         $("#inputbox").val(
-            $("#inputbox").val() +  "{:"+id+"} "
+            $("#inputbox").val() + "{:"+id+"} "
         );
     });
 });
 
 socket.on('me', function(post){
-    autoscroll("#messages", 
+    append("#messages", 
                "<div class=\"me message\">" +
                     parser.htmlEscape(post) +
                "</div>");
 });
 
 socket.on('specialMessage', function(type, name, message) {
-    autoscroll("#messages", 
+    append("#messages", 
                "<div class=\"message "+parser.htmlEscape(type)+"\">"+
                     parser.htmlEscape(name + ": " + message) +
                "</div>");
@@ -386,6 +391,6 @@ socket.on('topic', function(newTitle){
 });
 
 socket.on('disconnect', function(){
-    autoscroll("#notifications", 
+    append("#notifications", 
                 "<div class=\"systemMessage\">Your socket has been disconnected.</div>");
 });
