@@ -91,7 +91,8 @@ var parser = {
             }
             else if ( regexEquals(string, /(https:\/\/)?(www\.)?((youtube\.com\/watch\?v=)|(youtu\.be\/))[\w_\-]+/gi)) {
                 return string.replace(/(?:https:\/\/)?(?:www\.)?(?:(?:youtube\.com\/watch\?v=)|(?:youtu\.be\/))([\w_\-]+)/gi, 
-                                      "<a class=\"youtube link\" href=\"javascript:embedURL('https://www.youtube.com/embed/$1');\"> y </a>");
+                                      "<a class=\"youtube link\" \
+                                      href=\"javascript:embedURL('https://www.youtube.com/embed/$1');\"> y </a>");
             }
             else if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+(\/)?[^\s<]+/g) ) {
                 return "<a class=\"link\" target=\"_blank\" href=\""+string+"\">"+string+"</a>";
@@ -330,7 +331,7 @@ socket.on('userMessage', function(nick, post, id, flair){
 
     append("#messages", 
                "<div class=\"" + postType + "\"> \
-                   <span class=\"postId\" id=\" " + id + " \">" + id + "</span> \
+                   <span class=\"postId\" id=\"" + id + "\">" + id + "</span> \
                    <span class=\"userName\">"+
                     flairify(nick, flair) + "</span>: " +
                     parser.style(parser.quote(parser.htmlEscape( post ))) +
