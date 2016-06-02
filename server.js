@@ -263,15 +263,18 @@ io.on('connection', function(socket) {
              ! users[nameSanitize(removedUser)] ) {
 
             var removedUserID = Object.keys(clients).find(key => clients[key] == removedUser); 
+
             if ( removedUserID ) {
                 io.emit('systemMessage', removedUser + 
                                           " has been dismissed by " + 
                                           clients[socket.id]);
                 io.sockets.connected[ removedUserID ].disconnect();
             } 
+
             else {
                 socket.emit('systemMessage', "They don't seem to be online.");
             }
+
         }
         else {
             socket.emit('systemMessage', "That doesn't look quite right.");
