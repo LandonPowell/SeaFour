@@ -263,7 +263,7 @@ function keyPressed(event) {
 
 // User List Management
 socket.on('listRefresh', function(newList){
-    $("#menuButton").html("Users - " + newList.length);
+    $("#usersButton").html("Users - " + newList.length);
     $("#userList").html("");
     for (var i = 0; i < newList.length; i++) {
         $("#userList").append(parser.htmlEscape(newList[i]) + "<br>");

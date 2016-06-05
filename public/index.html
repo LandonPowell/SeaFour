@@ -23,17 +23,23 @@
             <textarea id="inputbox" onKeydown="keyPressed(event);" placeholder="Type your message here."></textarea>
         </div>
     </div>
-    
-    <button onclick="$('#menu').slideToggle();" id="menuButton">Users - 0</button>
-    <div id="menu">
-        <div id="login">
-            <input type="text" id="userName" placeholder="Username"/>
-            <input type="password" id="passWord" placeholder="Password"/>
-            <button id="submitButton">
+
+    <div class="menuButtons">
+
+        <button onclick="$('#userMenu').slideToggle();" class="menuButton" id="usersButton">
+            Users - 0
+        </button>
+        <div id="userMenu">
+            <div id="login">
+                <input type="text" id="userName" placeholder="Username"/>
+                <input type="password" id="passWord" placeholder="Password"/>
+                <button id="submitButton">
+            </div>
+            <div id="userList">
+                <!-- Users display here. -->
+            </div>
         </div>
-        <div id="userList">
-            <!-- Users display here. -->
-        </div>
+
     </div>
     
     <div id="notifications">

@@ -18,7 +18,9 @@ function usableVar(variable) {  // Checks if a variable won't fuck something up.
     return typeof( variable ) === "string" && variable;
 }
 function nameSanitize(nick) {   // Changes unimportant chars to dashes. 
-    return nick.toLowerCase().replace(/[^\w]/gi, "-");
+    return nick.toLowerCase()
+               .replace(/[^\w]+/gi, "-")
+               .replace("", "$1");
 }
 function checkValidName(nick) { // Checks if a name contains no strange chars or is taken.
     return ! users[nameSanitize(nick)] && nick.replace(/[^\u0020-\u007e]/gi, "") == nick;
@@ -344,6 +346,5 @@ io.on('connection', function(socket) {
 
 }); 
 
-http.listen(process.env.PORT || 80, function() {
-    console.log('Listening on port ' + (process.env.PORT || 80));
-});
+var port = process.env.PORT || 80;
+http.listen(port, console.log('Listening on port ' + port));
