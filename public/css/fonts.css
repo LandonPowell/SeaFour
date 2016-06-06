@@ -22,6 +22,10 @@
     src: url('fonts/CrusoeText-Regular.ttf');
 }
 @font-face {
+    font-family: Eighty;
+    src: url('fonts/EffectsEighty.ttf');
+}
+@font-face {
     font-family: Megrim;
     src: url('fonts/Megrim.ttf');
 }
