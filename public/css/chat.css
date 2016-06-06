@@ -28,7 +28,9 @@ body {
 ::selection         { color: #fff; background-color: #b53fff; }
 ::-moz-selection    { color: #fff; background-color: #b53fff; }
 ::-webkit-selection { color: #fff; background-color: #b53fff; }
-
+/* scrollbar css, only works in chromium */
+::-webkit-scrollbar {box-shadow:1px 3px 10px rgba(0, 0, 10, 0.15) inset;}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.2);}
 
 #messages {
     height: 100%;
