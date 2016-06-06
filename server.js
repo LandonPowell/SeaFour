@@ -19,8 +19,8 @@ function usableVar(variable) {  // Checks if a variable won't fuck something up.
 }
 function nameSanitize(nick) {   // Changes unimportant chars to dashes. 
     return nick.toLowerCase()
-               .replace(/[^\w]+/gi, "-")
-               .replace("", "$1");
+               .replace(/[^\w]+/g, "-")
+               .replace(/-?([\w]+(?:-[\w]+)*)-?/g, "$1");
 }
 function checkValidName(nick) { // Checks if a name contains no strange chars or is taken.
     return ! users[nameSanitize(nick)] && nick.replace(/[^\u0020-\u007e]/gi, "") == nick;
