@@ -9,6 +9,8 @@ Powered by Node.js and Socket.io.
 * JsonFile
 * SHA512
 
+### Donate Bitcoin - `1Bmo74LBR6PFBtdsMnFms1rLqYFVDXCyvG`
+
 ### Developer Notes
 The key files responsible for the functionality of the site are server.js and 
 public/client.js. 
