@@ -1,9 +1,14 @@
 var express = require('express');
-var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-var hash = require('./lib/hash');
-var jsonfile = require('jsonfile');
+var app     = express();
+var http    = require('http').Server(app);
+var io      = require('socket.io')(http);
+var pug     = require('pug');
+
+var hash        = require('./lib/hash');
+var jsonfile    = require('jsonfile');
+
+app.use(express.static(__dirname + '/public/'));
+app.set('view engine', 'pug');
 
 function toArray(object) {
     var newArray = [];
@@ -83,9 +88,7 @@ function addEmit(ipAddress, socketID) {
     }
 }
 
-
-app.use(express.static(__dirname + '/public/'));
-
+// Real Time Chat using Sockets
 io.on('connection', function(socket) {
     // Start Up.
     socket.emit('topic', moderatorSettings.topic);
@@ -202,7 +205,7 @@ io.on('connection', function(socket) {
                 "password"  : hash.sha512(password + salt),
                 "salt"      : salt,
                 "flair"     : null,
-                "prefix"    : null,
+                "bio"       : "This user has not set a bio yet.",
                 "corp"      : 0, /* Becomes an object upon incorporation */
                 "role"      : 0  /* Default role is 0 */
             };
@@ -346,5 +349,36 @@ io.on('connection', function(socket) {
 
 }); 
 
+// User account pages. 
+app.get('/[\\w-]+', function (request, response) {
+    var userName = nameSanitize( request.url.substr(1) );
+
+    /* Temporary conversion code - */
+    
+    if (users[userName] && !users[userName].bio){
+        users[userName].bio = "This user has not set a bio yet.";
+        
+        jsonfile.writeFile('database.json', users, function(err) {
+            if  (err)   console.log('ERROR: ' + err);
+            else        console.log('An out of date user just had their page updated.');
+        });
+    }
+    
+    /* - Temporary conversion code */
+    
+
+    if ( users[userName] ) response.render('userPage', {
+
+        user:   userName.replace('-', ' '),
+
+        flair:  users[userName].flair,
+        role:   users[userName].role,
+        bio:    users[userName].bio,        
+
+    });
+    else response.send( "That user can't be found." );
+});
+
+// These lines run the webserver. 
 var port = process.env.PORT || 80;
 http.listen(port, console.log('Listening on port ' + port));
