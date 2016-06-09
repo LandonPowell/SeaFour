@@ -194,6 +194,7 @@ body {
 }
 #inputbox {
     font-family: "JosefinSans", sans-serif;
+    font-size: 18px;
     height: calc(100% - 23px);
     width: 100%;
     resize: none;
