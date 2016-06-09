@@ -1,10 +1,13 @@
 {
-  "name": "Chat",
-  "version": "0.8.0",
-  "description": "A chat.",
-  "dependencies": {
-    "express": "^4.10.2",
-    "jsonfile": "^2.2.2",
-    "socket.io": "^1.3.7"
-  }
+    "name"        : "SeaFour",
+    "version"     : "1.0.0",
+    "description" : "A simple webchat.",
+    "dependencies": {
+
+        "express"   : "^4.10.2",
+        "socket.io" : "^1.3.7",
+        "pug"       : "^0.1.0",
+        "jsonfile"  : "^2.2.2",
+
+    }
 }
