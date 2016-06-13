@@ -336,9 +336,8 @@ iframe {
 
 
 /*\
-|*| THE FOLLOWING CSS IS FOR STYLES.
-|*| PLEASE DO NOT PUT STYLES OUTSIDE
-|*| OF THIS PART OF THE CSS.
+|*| Everything below this line is a style class.
+|*| - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \*/
 
 .spoiler {
@@ -435,7 +434,7 @@ iframe {
 /* End of Style Classes */
 
 /*\
-|*| Everything below this line is a specialMessage class.
+|*| Everything below this line is a special message class.
 |*| - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \*/
 
@@ -482,4 +481,4 @@ iframe {
     box-shadow: none;
 }
 
-/* End of specialMessage classes. */
+/* End of special message classes. */
