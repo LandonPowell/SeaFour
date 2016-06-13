@@ -2,8 +2,15 @@ doctype html
 html
     head
         title= 'SeaFour : ' + user
-        link( rel="stylesheet"      href="css/userPage.css" )
+
+        script( src="js/parser.js" )
+        script( src="js/jquery.js" )
+
+        link( rel="stylesheet"      href="css/userPage.css"          )
+        link( rel="stylesheet"      href="css/chat.css"              )
+        link( rel="stylesheet"      href="css/fonts.css"             )
         link( rel="shortcut icon"   href="css/images/iconPurple.png" )
+
     body
         h1= user
         #details
@@ -15,6 +22,14 @@ html
                 .title= 'Role'
                 .value= role
 
+            #website.detail
+                .title= 'Website'
+                .value= website
+
             #bio.detail
                 .title= 'Bio'
                 .value= bio
+        script.
+            $("h1").html(  
+                flairify( $("h1").html(), $("#flair .value").html() )  
+            )
