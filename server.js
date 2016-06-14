@@ -206,8 +206,10 @@ io.on('connection', function(socket) {
                 "salt"      : salt,
                 "flair"     : null,
                 "bio"       : "This user has not set a bio yet.",
+                "website"   : "This user has not set a website yet.",
                 "corp"      : 0, /* Becomes an object upon incorporation */
-                "role"      : 0  /* Default role is 0 */
+                "role"      : 0, /* Default role is 0 */
+                
             };
             updateDatabase(socket, "You are now registered.");
         }
