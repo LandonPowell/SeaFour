@@ -355,7 +355,7 @@ app.get('/[\\w-]+', function (request, response) {
 
     if ( users[userName] ) response.render('userPage', {
 
-        user:   userName.replace('-', ' '),
+        user:   userName,
 
         flair:      users[userName].flair,
         role:       users[userName].role,
