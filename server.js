@@ -353,26 +353,6 @@ io.on('connection', function(socket) {
 app.get('/[\\w-]+', function (request, response) {
     var userName = nameSanitize( request.url.substr(1) );
 
-    /* Temporary conversion code - */
-    /* Temporary conversion code - */
-    /* Temporary conversion code - */
-    /* Temporary conversion code - */
-    for (var x in users) {
-        if (users[userName] && !users[userName].bio ){
-            users[userName].bio = "This user has not set a bio yet.";
-            users[userName].website = "This user has not set a website yet.";
-            
-            jsonfile.writeFile('database.json', users, function(err) {
-                if  (err)   console.log('ERROR: ' + err);
-                else        console.log('An out of date user just had their page updated.');
-            });
-        }
-    }
-    /* - Temporary conversion code */
-    /* - Temporary conversion code */
-    /* - Temporary conversion code */
-    /* - Temporary conversion code */
-
     if ( users[userName] ) response.render('userPage', {
 
         user:   userName.replace('-', ' '),
