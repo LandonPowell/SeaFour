@@ -256,10 +256,18 @@ io.on('connection', function(socket) {
         users[nameSanitize(clients[socket.id])].flair = newFlair;
         updateDatabase(socket, "Your flair is now " + newFlair);
     });
+    userCommand('bio', 0, function(newBio) {
+        users[nameSanitize(clients[socket.id])].bio = newBio;
+        updateDatabase(socket, "Your bio is now: " + newBio);
+    });
+    userCommand('website', 0, function(newWebsite) {
+        users[nameSanitize(clients[socket.id])].website = newWebsite;
+        updateDatabase(socket, "Your website is now " + newWebsite);
+    });
 
     userCommand('topic', 0, function(newTopic) {
-        io.emit('topic', newTopic.substr(0, 27));
         moderatorSettings.topic = newTopic.substr(0, 27);
+        io.emit('topic', newTopic.substr(0, 27));
     });
 
     //Mod-Exclusive Listeners.
