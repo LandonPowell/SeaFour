@@ -17,7 +17,7 @@
 body {
     margin: 0px;
     padding: 0px;
-    background-color: #f00; /* This is to make #messages fuck ups obvious. */
+    background-color: #48374c; /* This is to make #messages fuck ups obvious. */
     font-family: "JosefinSans", sans-serif;
     font-weight: 500;
     font-size: 20px;
