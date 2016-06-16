@@ -79,7 +79,9 @@ var parser = {
         
         function linkHandler(string) { // Fucking regex.
             if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+\/[^\s<]+\.(jpg|gif|svg|png|jpeg)/gi) ) {
-                return "<img class=\"inlineimage\" src=\""+string+"\">"+"</img>";
+                return "<a href=\""+string+"\" target=\"_blank\">               \
+                            <img class=\"inlineimage\" src=\""+string+"\"></img>\
+                        </a>";
             }
             else if ( regexEquals(string, /(https:\/\/)?(www\.)?((youtube\.com\/watch\?v=)|(youtu\.be\/))[\w_\-]+/gi)) {
                 return string.replace(/(?:https:\/\/)?(?:www\.)?(?:(?:youtube\.com\/watch\?v=)|(?:youtu\.be\/))([\w_\-]+)/gi, 
