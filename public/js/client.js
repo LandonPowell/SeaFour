@@ -135,9 +135,11 @@ function append(appendTo, appendstring) {                         // This functi
     var afterHeight = $("#messages").prop('scrollHeight') -
                       $("#messages").prop('clientHeight');
 
-    if ($("#messages").scrollTop() > beforeHeight - 400) {          // If the user is scrolled near the bottom,
-        $("#messages").animate({ scrollTop: afterHeight }, 200);    // scroll him down. 
-    }
+    setTimeout(function() {
+        if ($("#messages").scrollTop() > beforeHeight - 400) {          // If the user is scrolled near the bottom,
+            $("#messages").animate({ scrollTop: afterHeight + 300 }, 200);    // scroll him down. 
+        }
+    }, 50);
 
     // This changes the title of the window to show how many messages they haven't read.
     if (!attributes.focus) { 
