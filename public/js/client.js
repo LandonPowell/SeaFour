@@ -131,14 +131,14 @@ function append(appendTo, appendstring) {                         // This functi
                        $("#messages").prop('clientHeight');       // automatically autoscrolls.
 
     $(appendTo).append(appendstring);
-
+    
     var afterHeight = $("#messages").prop('scrollHeight') -
                       $("#messages").prop('clientHeight');
 
     if ($("#messages").scrollTop() > beforeHeight - 400) {          // If the user is scrolled near the bottom,
-        $("#messages").animate({ scrollTop: afterHeight }, 100);    // scroll him down. 
+        $("#messages").animate({ scrollTop: afterHeight }, 200);    // scroll him down. 
     }
-    
+
     // This changes the title of the window to show how many messages they haven't read.
     if (!attributes.focus) { 
         attributes.unread += 1;
