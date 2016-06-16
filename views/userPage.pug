@@ -32,6 +32,7 @@ html
                 .value= bio
         script.
             // This script sanitizes and stylizes the user's fields.
+
             $("h1").html(  
                 flairify( $("h1").html(), $("#flair .value").html() )  
             )
@@ -45,6 +46,7 @@ html
                     $("#website .value").html()
                 ))
             )
+
             $("#bio .value").html(
                 parser.style(parser.htmlEscape(
                     $("#bio .value").html()
