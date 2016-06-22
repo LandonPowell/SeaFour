@@ -122,8 +122,7 @@ socket.on('nickRefresh', function(newNick){
 });
 
 function idJump(postId) {
-    window.location.hash = "";
-    window.location.hash = "#" + postId;
+    window.location.hash = postId;
 }
 
 function append(appendTo, appendstring) {                         // This function handles the appending
@@ -131,7 +130,7 @@ function append(appendTo, appendstring) {                         // This functi
                        $("#messages").prop('clientHeight');       // automatically autoscrolls.
 
     $(appendTo).append(appendstring);
-    
+
     var afterHeight = $("#messages").prop('scrollHeight') -
                       $("#messages").prop('clientHeight');
 
@@ -147,7 +146,7 @@ function append(appendTo, appendstring) {                         // This functi
 
     // This limits the amount of messages in history to 1024, and removes them when they become too much.
     if ( $(".message").length > 1024 ) $(".message:lt(128)").remove();
-    
+
 }
 
 // Event handlers. 
