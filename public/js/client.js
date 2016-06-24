@@ -144,8 +144,8 @@ function append(appendTo, appendstring) {                         // This functi
         $("title").html(parser.htmlEscape( attributes.unread + " : " + attributes.title ));
     }
 
-    // This limits the amount of messages in history to 1024, and removes them when they become too much.
-    if ( $(".message").length > 1024 ) $(".message:lt(128)").remove();
+    // This limits the amount of messages in history to 512, and removes them when they become too much.
+    if ( $(".message").length > 512 ) $(".message:lt(128)").remove();
 
 }
 
