@@ -1,5 +1,5 @@
 var socket = io();
-/* global parser flairify io */
+/* global parser flairify io nameSanitize */
 var attributes = {
     nick: "unnamed",
     title: "",
@@ -153,7 +153,7 @@ function append(appendTo, appendstring) {                         // This functi
 socket.on('userMessage', function(nick, post, id, flair){
     var postType = "message";
 
-    if (post.toLowerCase().indexOf(attributes.nick.toLowerCase()) + 1) { /* If post contains your nick. */
+    if (post.toLowerCase().indexOf( nameSanitize(attributes.nick) ) + 1) { /* If post contains your nick. */
         postType += " alertMe";
         $("#notificationClick")[0].play();
     }
@@ -162,10 +162,10 @@ socket.on('userMessage', function(nick, post, id, flair){
     for (var i = 0; i < respondedTo.length; i++) {
 
         var number = respondedTo[0].replace(/{:(\w+)}/, "$1");
-        var referencedMessage = $(".message:has(#"+number+") .userName");
+        var referencedMessage = $(".message:has(#"+number+") .userName").html();
 
         if ( referencedMessage.length && /* If post contains your post number. */
-             referencedMessage.html().indexOf( attributes.nick.toLowerCase() ) + 1 ) { 
+             nameSanitize(referencedMessage).indexOf( nameSanitize(attributes.nick) ) + 1 ) { 
 
             postType += " alertMe";
             $("#notificationClick")[0].play();
