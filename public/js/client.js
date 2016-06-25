@@ -134,12 +134,12 @@ function append(appendTo, appendstring) {                         // This functi
     var afterHeight = $("#messages").prop('scrollHeight') -
                       $("#messages").prop('clientHeight');
 
-    if ($("#messages").scrollTop() > beforeHeight - 400) {          // If the user is scrolled near the bottom,
-        $("#messages").animate({ scrollTop: afterHeight + 300 }, 200);    // scroll him down. 
+    if ($("#messages").scrollTop() > beforeHeight - 400) {              // If the user is scrolled near the bottom,
+        $("#messages").animate({ scrollTop: afterHeight + 300 }, 200);  // scroll him down.
     }
 
     // This changes the title of the window to show how many messages they haven't read.
-    if (!attributes.focus) { 
+    if (!attributes.focus) {
         attributes.unread += 1;
         $("title").html(parser.htmlEscape( attributes.unread + " : " + attributes.title ));
     }
@@ -149,7 +149,7 @@ function append(appendTo, appendstring) {                         // This functi
 
 }
 
-// Event handlers. 
+// Event handlers.
 socket.on('userMessage', function(nick, post, id, flair){
     var postType = "message";
 
@@ -158,14 +158,14 @@ socket.on('userMessage', function(nick, post, id, flair){
         $("#notificationClick")[0].play();
     }
 
-    var respondedTo = post.match(/{:\w+}/g) || [];   
+    var respondedTo = post.match(/{:\w+}/g) || [];
     for (var i = 0; i < respondedTo.length; i++) {
 
         var number = respondedTo[0].replace(/{:(\w+)}/, "$1");
         var referencedMessage = $(".message:has(#"+number+") .userName").html();
 
         if ( referencedMessage.length && /* If post contains your post number. */
-             nameSanitize(referencedMessage).indexOf( nameSanitize(attributes.nick) ) + 1 ) { 
+             nameSanitize(referencedMessage).indexOf( nameSanitize(attributes.nick) ) + 1 ) {
 
             postType += " alertMe";
             $("#notificationClick")[0].play();
