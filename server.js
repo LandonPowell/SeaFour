@@ -258,8 +258,11 @@ io.on('connection', function(socket) {
                 users[ nameSanitize(clients[socket.id]) ].role >= role) {
                 func(arg1, arg2); //This calms the Disco Pirates
             }
-            else {
+            else if (role) {
                 socket.emit('systemMessage', "Your role must be "+role+" or higher.");
+            }
+            else {
+                socket.emit('systemMessage', "You must be registered to do that.");
             }
         });
     }
