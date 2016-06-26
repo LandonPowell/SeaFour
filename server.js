@@ -93,6 +93,7 @@ io.on('connection', function(socket) {
     // Start Up.
     socket.emit('topic', moderatorSettings.topic);
     clients[socket.id] = Math.random().toString(16).substr(2,6);
+    socket.emit('nickRefresh', clients[socket.id]);
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
     if( ipLog[ nameSanitize(clients[socket.id]) ] &&
@@ -171,14 +172,26 @@ io.on('connection', function(socket) {
     socketEmit('me', function(msg) {
         io.emit('me', clients[socket.id]+" "+msg.substr(0,2048));
     });
-    
+
     socketEmit('specialMessage', function(type, msg) {
         var approvedTypes = ["term", "carbonite", "badOS"];
         if ( approvedTypes.indexOf(type) + 1 ) {
-            io.emit('specialMessage', type, clients[socket.id], msg.substr(0,2048)); 
+            io.emit('specialMessage', type, clients[socket.id], msg.substr(0,2048));
         }
         else {
             socket.emit('systemMessage', "I can't let you do that, Dave.");
+        }
+    });
+
+    socketEmit('directMessage', function(userTo, message) {
+        if (clients[userTo]) {
+            var ToSocketID = Object.keys(clients).find(name => clients[name] == userTo);
+            io.sockets.connected[ ToSocketID ].emit('directMessage',
+                                                     clients[socket.id],
+                                                     message);
+        }
+        else {
+            socket.emit('systemMessage', "That user isn't online right now.");
         }
     });
 
@@ -277,7 +290,7 @@ io.on('connection', function(socket) {
              users[nameSanitize(clients[socket.id])].role > users[nameSanitize(removedUser)].role ||
              ! users[nameSanitize(removedUser)] ) {
 
-            var removedUserID = Object.keys(clients).find(key => clients[key] == removedUser); 
+            var removedUserID = Object.keys(clients).find(name => clients[name] == removedUser); 
 
             if ( removedUserID ) {
                 io.emit('systemMessage', removedUser + 
