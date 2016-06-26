@@ -75,8 +75,20 @@ function keyPressed(event) {
         $("#inputbox").val("");
         event.preventDefault();
 
-        /* Commands start with a period and don't end with '!'. */
-        if(text[0] == "." && command[0][command[0].length - 1] != "!") {
+        /* Special messages start with a '.' and end with '!'. */
+        if (text[0] == "." && command[0][command[0].length - 1] == "!") {
+            socket.emit('specialMessage', 
+                        command[0].substring(1, command[0].length - 1),
+                        text.substr(command[0].length + 1));
+        }
+        /* Direct messages start with a '.' and end with a '.'. */
+        else if (text[0] == "." && command[0][command[0].length - 1] == ".") {      // This is obviously very much the same as special messages.
+            socket.emit('directMessage',                                            // I should consider refactoring this code later.
+                        command[0].substring(1, command[0].length - 1),             // It's not horrible, but I can do better and I should do better.
+                        text.substr(command[0].length + 1));
+        }
+        /* Regular commands start with periods. */
+        else if (text[0] == ".") {
             switch(command[0]){
                 case ".login":
                     login(command[1], command[2]);
@@ -94,12 +106,6 @@ function keyPressed(event) {
                     socket.emit(command[0].substr(1),
                                 text.substr(command[0].length + 1));
             }
-        }
-        /* Special messages start with a '.' but do end with '!'. */
-        else if (text[0] == ".") {
-            socket.emit('specialMessage', 
-                        command[0].substring(1, command[0].length - 1),
-                        text.substr(command[0].length + 1));
         }
         /* All other messages get sent. */
         else {
