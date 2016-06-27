@@ -191,8 +191,10 @@ io.on('connection', function(socket) {
         if ( toSocketID ) {
             io.sockets.connected[ toSocketID ].emit('directMessage', "from",
                                                      nameSanitize(clients[socket.id]),
-                                                     message);
-            socket.emit('directMessage', "to", nameSanitize(userTo), message);
+                                                     message.substr(0,1000));
+            socket.emit('directMessage', "to", 
+                         nameSanitize(userTo), 
+                         message.substr(0,1000));
         }
         else {
             socket.emit('systemMessage', "That user isn't online right now.");
