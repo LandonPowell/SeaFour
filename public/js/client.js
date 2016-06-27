@@ -195,6 +195,17 @@ socket.on('userMessage', function(nick, post, id, flair){
     });
 });
 
+socket.on('directMessage', function(direction, from, message) {
+    append("#messages", 
+               "<div class=\"direct message\">"     +
+                    "<span class=\"direction\">"    + 
+                        direction + ": "            +
+                        parser.htmlEscape(from)     +
+                    "</span> "                      +
+                    parser.htmlEscape(message)      +
+               "</div>");
+});
+
 socket.on('me', function(post){
     append("#messages", 
                "<div class=\"me message\">" +
