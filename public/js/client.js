@@ -204,6 +204,7 @@ socket.on('directMessage', function(direction, from, message) {
                     "</span> "                      +
                     parser.htmlEscape(message)      +
                "</div>");
+    $("#notificationClick")[0].play();
 });
 
 socket.on('me', function(post){
