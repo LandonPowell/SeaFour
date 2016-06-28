@@ -181,11 +181,11 @@ socket.on('userMessage', function(nick, post, id, flair){
     }
 
     append("#messages", 
-               "<div class=\"" + postType + "\"> \
-                   <span class=\"postId\" id=\"" + id + "\">" + id + "</span> \
-                   <span class=\"userName\">"+
-                    flairify(nick, flair) + "</span>: " +
-                    parser.style(parser.quote(parser.htmlEscape( post ))) +
+               "<div class=\"" + postType + "\">                                \
+                   <span class=\"postId\" id=\"" + id + "\">" + id + "</span>   \
+                   <span class=\"userName\">"                                   +
+                    flairify(nick, flair) + "</span>: "                         +
+                    parser.style(parser.quote(parser.htmlEscape( post )))       +
                "</div>");
 
     $("#"+id).click(function(event) {
