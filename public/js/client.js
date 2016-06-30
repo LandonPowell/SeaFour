@@ -197,14 +197,25 @@ socket.on('userMessage', function(nick, post, id, flair){
     });
 });
 
+function directMessage(name) {
+    $("#inputbox").val(
+        "."+name+". " + $("#inputbox").val()
+    );
+}
+
 socket.on('directMessage', function(direction, from, message) {
     append("#messages", 
-               "<div class=\"direct message\">"     +
-                    "<span class=\"direction\">"    + 
-                        direction + ": "            +
-                        parser.htmlEscape(from)     +
-                    "</span> "                      +
-                    parser.htmlEscape(message)      +
+               "<div class=\"direct message\">"         +
+
+                    "<span class=\"direction\"          \
+                        onclick=\"directMessage('"      +
+                        parser.htmlEscape(from)         +
+                        "')\">"                         +
+
+                        direction + ": "                +
+                        parser.htmlEscape(from)         +
+                    "</span> "                          +
+                    parser.htmlEscape(message)          +
                "</div>");
     $("#notificationClick")[0].play();
 });
