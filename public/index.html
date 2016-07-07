@@ -1,17 +1,6 @@
 <head>
     <title>Welcome to SeaFour.club</title>
 
-    <!-- Outside scripts and libraries. -->
-    <script src="socket.io/socket.io.js"></script>
-    <script src="js/jquery.js"></script>
-    <script src="js/sha512.js"></script>
-    <script src="js/jquery-ui.js"></script>
-    <link href="css/jquery-ui.css" rel="stylesheet">
-
-    <!-- SeaFour assets. -->
-    <script src="js/parser.js"></script>
-    <script src="js/client.js"></script>
-
     <link href="css/chat.css" rel="stylesheet">
     <link href="css/fonts.css" rel="stylesheet">
     <link rel="shortcut icon" type="image/x-icon" href="css/images/iconPurple.png" />
@@ -54,5 +43,24 @@
     <audio id="notificationClick">
         <source src="js/alertNoise.ogg" type ="audio/ogg">
     </audio> 
+
+    <!-- 
+        The following scripts were moved below the 
+        fold to increase page speed. I don't generally
+        like the below-the-fold scripts thing in HTML,
+        but browsers are all made poorly and you have
+        to make accommodations for them. #Stop_W3C_2016
+    -->
+
+    <!-- Outside scripts and libraries. -->
+    <script src="socket.io/socket.io.js"></script>
+    <script src="js/jquery.js"></script>
+    <script src="js/sha512.js"></script>
+    <script src="js/jquery-ui.js"></script>
+    <link href="css/jquery-ui.css" rel="stylesheet">
+
+    <!-- SeaFour assets. -->
+    <script src="js/parser.js"></script>
+    <script src="js/client.js"></script>
 
 </body>
