@@ -379,7 +379,7 @@ io.on('connection', function(socket) {
         io.emit('listRefresh', toArray(clients));
     });
 
-}); 
+});
 
 // User account pages. 
 app.get('/[\\w-]+', function (request, response) {
