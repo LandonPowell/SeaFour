@@ -1,0 +1,483 @@
+@font-face {
+    font-family: JosefinSans;
+    font-weight: 300;
+    src: url('fonts/JosefinSans-Light.ttf');
+}
+@font-face {
+    font-family: JosefinSans;
+    font-weight: 500;
+    src: url('fonts/JosefinSans-Regular.ttf');
+}
+@font-face {
+    font-family: JosefinSans;
+    font-weight: 700;
+    src: url('fonts/JosefinSans-SemiBold.ttf');
+}
+
+body {
+    margin: 0px;
+    padding: 0px;
+    background-color: #48374c; /* This is to make #messages fuck ups obvious. */
+    font-family: "JosefinSans", sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    color: #f7f7f7;
+}
+
+/* This makes selection-text purple. */
+::selection         { color: #fff; background-color: #b53fff; }
+::-moz-selection    { color: #fff; background-color: #b53fff; }
+::-webkit-selection { color: #fff; background-color: #b53fff; }
+/* scrollbar css, only works in chromium */
+::-webkit-scrollbar {box-shadow:1px 3px 10px rgba(0, 0, 10, 0.15) inset;}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.2);}
+
+#messages {
+    height: 100%;
+    background: #779 url("images/purpleMist.png") repeat;
+    word-wrap: break-word;
+    overflow-x: hidden;
+}
+
+#menuButtons {
+    position: fixed;
+    top: 0px;
+    right: 20px;
+}
+.menuButton {
+    margin-top: 0px;
+    margin-right: 10px;
+    z-index: 1;
+    border: 0px;
+    text-align: center;
+    padding: 5px;
+    background-color: rgba(0,0,0,0.25);
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01);
+    color: white;
+    font-family: "JosefinSans", sans-serif;
+    font-size: 20px;
+    border-radius: 0px 0px 10px 10px;
+    transition: box-shadow .25s;
+    cursor: pointer;
+}
+.menuButton:hover {
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01),
+                 0px 1px 3px rgba(0,0,0, 0.9);
+}
+#userMenu {
+    display: none;
+    position: fixed;
+    top: 35px;
+    right: 20px;
+    margin: 10px;
+    z-index: 0;
+    padding: 10px;
+    background-color: rgba(0,0,0,0.05);
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01);
+    border-radius: 2px;
+}
+#userList {
+    margin-left: 10px;
+    float: right;   
+    text-align: center;
+    padding: 10px;
+    background-color: rgba(0,0,0,0.1);
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01);
+
+    height: 100px;
+    width: 80px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+#login {
+    float: left;
+    text-align: center;
+}
+#login input {
+    display: block;
+    margin-bottom: 10px;
+    border: 0px;
+    background-color: rgba(0,0,0,0.1);
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01);
+    font-family: "JosefinSans"; 
+    font-size: 20px;
+    width: 100px;
+    color: white;
+    padding: 5px;
+}
+#submitButton {
+    cursor: pointer;
+    height: 30px;
+    width: 30px;
+    border-radius: 100%;
+    border: 0px;
+    background-image: url(images/iconPurple.png);
+    background-position: center;
+    background-size: 40px;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01),
+                 0px 1px 3px rgba(0,0,0, 0.9);
+}
+#submitButton:hover {
+    animation-name: menuButton;
+    animation-duration: .3s;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01),
+                 0px 1px 3px rgba(0,0,0, 0.9);
+}
+
+#notifications {
+    position: fixed;
+    top: 100px;
+    right: 30px;
+    width: 225px;
+    background: none;
+}
+.notificationIcon {
+    background-image: url("images/iconOrange.png");
+    background-size: 25px;
+    height: 25px;
+    width: 25px;
+    float: left;
+}
+@keyframes systemMessage {
+    0% { opacity: 1; }
+    75% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.systemMessage {
+    animation-name: systemMessage;
+    animation-duration: 3s;
+    opacity: 0;
+    padding: 10px;
+    text-align: right;
+    color: #FFB946;
+    word-wrap: break-word;
+    font-weight: bold;
+    margin-top: 10px;
+    background-color: rgba(0,0,0,0.05);
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01);
+}
+
+#handle {
+    position: fixed !important;
+    bottom: 0px;
+    right: 0px;
+    margin: 20px;
+    border-radius: 4px;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset;
+    height: 160px;
+    width: 300px;
+    background-color: rgba(0,0,0,0.05);
+}
+#handlebar {
+    font-size: 12px;
+    height: 12px;
+    padding: 5px;
+    border-radius: 2px;
+    background-color: rgba(0,0,0,0.2);
+    cursor: all-scroll; 
+}
+#inputbox {
+    font-family: "JosefinSans", sans-serif;
+    font-size: 18px;
+    height: calc(100% - 23px);
+    width: 100%;
+    resize: none;
+    padding: 10px;
+    background-color: rgba(0,0,0,0);
+    color: #f7f7f7;
+    border: 0px;
+    border-radius: 2px;
+    box-shadow: -1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px rgba(255, 255, 255, .01);
+}
+
+#urlHandlebar {
+    padding-top: 5px;
+    height: 20px;
+    color: #8AFFD3;
+    text-align: center;
+    font-size: 15px;
+    cursor: all-scroll;
+}
+#urlClose {
+    font-family: WebSymbols;
+    font-size: 13px;
+    color: #8AFFD3;
+    cursor: pointer;
+    transition: text-shadow .25s, color .25s;
+    position: absolute;
+    right: 5px;
+    top: 3px;
+}
+#urlClose:hover {
+    color: #fff;
+    text-shadow: 0px 0px 5px #b53fff;
+}
+#embed {
+    position: fixed !important;
+    top: 60px;
+    right: 40px;
+    border-radius: 5px;
+    background-color: rgba(0,0,10, 0.25);
+    box-shadow: -1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px rgba(255, 255, 255, .01),
+                 0px 3px 5px rgba(0,0,10, 0.3);
+    width: 400px;
+    height: 400px;
+}
+iframe {
+    width: calc(100% - 1px);
+    height: calc(100% - 40px);
+    border: none;
+}
+
+#title {
+    color: #8AFFD3;
+    text-align: center;
+    font-size: 15px;
+    font-weight: normal;
+    padding-left: 5px;
+}
+
+.message {
+    padding: 10px 20px;
+    background-color: rgba(0,0,0,0.05);
+    max-width: 800px;
+    width: calc(100% - 400px);
+    margin: 10px 20px;
+    line-height: 1.4em;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1) inset, 
+                 1px 3px 10px rgba(0, 0, 10, 0.15) inset,
+                -1px 1px 2px  rgba(255, 255, 255, .01);
+}
+
+.alertMe, .direct {
+    background-color: rgba(0,0,0,0.2);
+}
+
+.postId, .postLink, .direction {
+    color: #b53fff;
+    cursor: pointer;
+    transition: color .25s, text-shadow .25s;
+}
+.postId:hover, .postLink:hover, .direction:hover {
+    color: #fff;
+    text-shadow: 0px 0px 9px #e6c2fc;
+}
+.postId, .direction {
+    font-size: 18px;
+    float: right;
+}
+.postLink {
+    padding-right: 5px;
+}
+
+.direct {
+    color: rgba(255,255,255, 0.7);
+}
+
+.me        { color: #b53fff; }
+.me:before { content: "- " ; }
+.me:after  { content: " -" ; }
+
+.inlineimage {
+    max-width: 120px;
+    max-height: 120px;
+    min-width: 60px;
+    min-height: 60px;
+    border: 10px solid #2a2530;
+    box-shadow: 0px 1px 0px rgba(255,255,200, 0.1) inset, 
+                0px 2px 3px rgba(0,0,10,0.6);
+}
+
+.link {
+    color: #8AFFD3;
+    text-decoration: none;
+    padding: 7px;
+    background-color:#2a2530;
+    transition: text-shadow .25s;
+    box-shadow: 0px 1px 0px rgba(255,255,200, 0.1) inset, 
+                0px 2px 3px rgba(0,0,10,0.6);
+}
+.link:hover {
+    animation-name: link;
+    animation-duration: .4s;
+    text-shadow: 0px 0px 10px rgba(100,230,255,.9);
+}
+
+.youtube {
+    font-family: WebSymbols;
+    border-radius: 100%;
+}
+
+.quote {
+    color: #8AFFD3;
+}
+.quote:before {
+    content: ">";
+}
+
+
+/*\
+|*| Everything below this line is a style class.
+|*| - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\*/
+
+.spoiler {
+    padding: 5px;
+    background-color:#2a2530;
+    color:#2a2530;
+    box-shadow: 0px 0px 10px rgba(0,0,10, 0.5) inset;
+    transition: color .25s;
+}
+.spoiler:hover {
+    animation-name: spoiler;
+    animation-duration: .5s;
+    color: #ffb946;
+    text-shadow: 0px 0px 10px rgba(255, 185, 70, 0.5);
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.ghost {
+    color: rgba(0,0,0,0);
+    text-shadow: 0px 0px 2px #666;
+}
+
+.big {
+    font-size: 40px;
+}
+
+@keyframes rainbow {
+    16% {
+        color: #f00;
+        text-shadow: 0px 0px 2px rgba(255,0,0,0.5);
+    }
+    33% {
+        color: #ff0;
+        text-shadow: 0px 0px 2px rgba(255,255,0,0.5);
+    }
+    50% {
+        color: #0f0;
+        text-shadow: 0px 0px 2px rgba(0,255,0,0.5);
+    }
+    66% {
+        color: #0ff;
+        text-shadow: 0px 0px 2px rgba(0,255,255,0.5);
+    }
+    83% {
+        color: #00f;
+        text-shadow: 0px 0px 2px rgba(0,0,255,0.5);
+    }
+    100% {
+        color: #f0f;
+        text-shadow: 0px 0px 2px rgba(255,0,255,0.5);
+    }
+}
+.rainbow {
+    animation-name: rainbow;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes fascists {
+    0% {
+        color: #f33;
+        text-shadow: 0px 0px 2px rgba(255,0,0,0.7);
+    }
+    25% {
+        color: #fff;
+        text-shadow: 0px 0px 2px rgba(255,255,255,0.7);
+    }
+    50% {
+        color: #33f;
+        text-shadow: 0px 0px 2px rgba(0,0,255,0.7);
+    }
+    75% {
+        color: #fff;
+        text-shadow: 0px 0px 2px rgba(255,255,255,0.7);
+    }
+    100% {
+        color: #f33;
+        text-shadow: 0px 0px 2px rgba(255,0,0,0.7);
+    }
+}
+.fascists {
+    animation-name: fascists;
+    animation-duration: .4s;
+    animation-iteration-count: infinite;
+}
+
+.italics {
+    font-style: italic;
+}
+
+/* End of Style Classes */
+
+/*\
+|*| Everything below this line is a special message class.
+|*| - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\*/
+
+.carbonite {
+    text-shadow: 0px 1px 1px rgba(0,0,0, 0.5), 
+                 0px -1px 0px rgba(255,255,255,0.1);
+    color: #333;
+    background-color: #333;
+    box-shadow:  0px 1px 3px rgba(0,0,0, 0.6),
+                 0px 1px 1px rgba(255,255,255,0.1) inset;
+}
+
+@keyframes term {
+    from { text-shadow: 0px 0px 4px rgba(255,200,0,.5) ;}
+    to   { text-shadow: 0px 0px 0px rgba(255,200,0,.5) ;}
+}
+.term {
+    color:       #fa0;
+    font-size:   15px;
+    font-family: "Eighty", monospace;
+    background:  url("images/CRTScanlines.gif") repeat;
+    box-shadow:  0px 0px 9px rgba(255,200,0,0.1), 
+                 0px 0px 9px rgba(0,0,0,1) inset;
+    animation:   term .1s infinite;
+}
+@keyframes afterm {
+    from { content: "_" ;}
+    to   { content: " " ;}
+}
+.term:after {
+    content: "_";
+    animation: afterm 1s infinite;
+    animation-direction: alternate;
+}
+
+.badOS {
+    border: 2px outset #ccc;
+    background: linear-gradient(to right, #0a256a, #a4c8ee);
+    border-radius: 0px;
+    padding: 8px 18px;
+    color: white;
+    text-shadow: 0px 0px 0px #fff;
+    font-family: Arial, sans-serif;
+    box-shadow: none;
+}
+
+/* End of special message classes. */
