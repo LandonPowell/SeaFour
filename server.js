@@ -50,7 +50,7 @@ function updateDatabase(socket, successMessage) {
     });
 }
 
-function generateSalt() { /* ! THIS IS NOT CRYPTO-HEALTHY CODE ! */
+function generateSalt() { /* ! THIS IS PROBABLY NOT CRYPTO-HEALTHY CODE ! */
     var salt = "";
     for (var i = 0; i < 64; i ++)
         salt += Math.random().toString(36).substr(2,1); /* ! PSEUDORANDOM ! */
