@@ -96,6 +96,7 @@ io.on('connection', function(socket) {
         socket.disconnect();
     }
     else {
+
         socket.emit('topic', moderatorSettings.topic);
         clients[socket.id] = Math.random().toString(16).substr(2,6);
         socket.emit('nickRefresh', clients[socket.id]);
@@ -104,8 +105,10 @@ io.on('connection', function(socket) {
         console.log("JOIN: " + socket.id);
         io.emit('systemMessage', clients[socket.id] + ' has joined.');
         io.emit('listRefresh', toArray(clients));
+
     }
-    addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
+
+    addEmit( socket.request.connection.remoteAddress, socket.id );
 
     // Core Listeners.
     socket.on('login', function(nick, password) { 

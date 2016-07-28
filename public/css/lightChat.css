@@ -247,7 +247,7 @@ iframe {
 }
 
 .postId, .postLink, .direction {
-    color: #666;
+    color: #ffafbf;
     cursor: pointer;
     transition: color .25s, text-shadow .25s;
 }

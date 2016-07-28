@@ -173,8 +173,8 @@ socket.on('userMessage', function(nick, post, id, flair){
     for (var i = 0; i < respondedTo.length; i++) {
 
         var number = respondedTo[0].replace(/{:(\w+)}/, "$1");
-        var referencedMessage = $(".message:has(#"+number+") .userName")
-                                    .html()
+        var referencedMessage = ($(".message:has(#"+number+") .userName")
+                                    .html() || "")
                                     .replace(/<[^>]+>| /g, "");
 
         if ( referencedMessage.length && /* If post contains your post number. */
