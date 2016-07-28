@@ -60,7 +60,7 @@ function generateSalt() { /* ! THIS IS PROBABLY NOT CRYPTO-HEALTHY CODE ! */
      *  from their mouse.  This would be way less prediction-prone than
      *  using a pseudorandom number generator. Kind of inspired by that
      *  one thing I can't remember right now, that makes you shake your
-     *  mouse around when you fist install it in to get a random number.
+     *  mouse around when you first install it in to get a random number.
      *  That'll probably lag a lot though, so I don't really have plans
      *  to implement it. 
     \*/
@@ -90,17 +90,16 @@ function addEmit(ipAddress, socketID) {
 
 // Real Time Chat using Sockets
 io.on('connection', function(socket) {
-    // Start Up.
-    socket.emit('topic', moderatorSettings.topic);
-    clients[socket.id] = Math.random().toString(16).substr(2,6);
-    socket.emit('nickRefresh', clients[socket.id]);
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
-    if( ipLog[ nameSanitize(clients[socket.id]) ] &&
-        banList.indexOf( ipLog[nameSanitize(clients[socket.id])] ) > 0 ) {
-        io.sockets.connected[ socket.id ].disconnect();
+    if( ipEmits[socket.request.connection.remoteAddress] > 4 ) {
+        socket.disconnect();
     }
     else {
+        socket.emit('topic', moderatorSettings.topic);
+        clients[socket.id] = Math.random().toString(16).substr(2,6);
+        socket.emit('nickRefresh', clients[socket.id]);
+
         ipLog[nameSanitize(clients[socket.id])] = socket.request.connection.remoteAddress;
         console.log("JOIN: " + socket.id);
         io.emit('systemMessage', clients[socket.id] + ' has joined.');
@@ -302,11 +301,11 @@ io.on('connection', function(socket) {
             var removedUserID = Object.keys(clients).find(name => clients[name] == removedUser); 
 
             if ( removedUserID ) {
-                io.emit('systemMessage', removedUser + 
-                                          " has been dismissed by " + 
+                io.emit('systemMessage', removedUser +
+                                          " has been dismissed by " +
                                           clients[socket.id]);
                 io.sockets.connected[ removedUserID ].disconnect();
-            } 
+            }
 
             else {
                 socket.emit('systemMessage', "They don't seem to be online.");

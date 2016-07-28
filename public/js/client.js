@@ -87,6 +87,11 @@ function keyPressed(event) {
                         command[0].substring(1, command[0].length - 1),             // It's not horrible, but I can do better and I should do better.
                         text.substr(command[0].length + 1));
         }
+        /* Theme changes start with a '.' and end with a '-'. */
+        else if (text[0] == "." && command[0][command[0].length - 1] == "-") {
+            var style = command[0].substring(1, command[0].length - 1);
+            
+        }
         /* Regular commands start with periods. */
         else if (text[0] == ".") {
             switch(command[0]){
