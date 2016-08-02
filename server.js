@@ -84,7 +84,6 @@ function addEmit(ipAddress, socketID) {
     if (ipEmits[ipAddress] > 2) {   // Limits posts to 2. 
         banList.push(ipAddress);
         console.log(ipAddress + " has been banned.");
-        io.sockets.connected[ socketID ].disconnect();
     }
 }
 
@@ -93,7 +92,7 @@ io.on('connection', function(socket) {
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
     if( ipEmits[socket.request.connection.remoteAddress] > 3 ) {
-        io.sockets.connected[socket.id].disconnect();
+        socket.disconnect();
     }
     else {
 
