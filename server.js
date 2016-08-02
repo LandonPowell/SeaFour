@@ -221,13 +221,11 @@ io.on('connection', function(socket) {
 
     socketEmit('register', function(password) {
         var salt = generateSalt();
-        if ( !clients[socket.id].match(/[\da-f]{6}/gi) ) {
+        if ( clients[socket.id].replace(/[\da-f]{6}/gi, "") ) {
             users[nameSanitize(clients[socket.id])] = {
                 "password"  : hash.sha512(password + salt),
                 "salt"      : salt,
                 "flair"     : null,
-                "bio"       : "This user has not set a bio yet.",
-                "website"   : "This user has not set a website yet.",
                 "corp"      : 0, /* Becomes an object upon incorporation */
                 "role"      : 0, /* Default role is 0 */
                 
@@ -391,10 +389,10 @@ app.get('/[\\w-]+', function (request, response) {
 
         user:   userName,
 
-        flair:      users[userName].flair,
-        role:       users[userName].role,
-        website:    users[userName].website,
-        bio:        users[userName].bio,
+        flair:      users[userName].flair   || "This user has not set a flair yet.",
+        role:       users[userName].role    || "This user has not been given a role yet.",
+        website:    users[userName].website || "This user has not set a website yet.",
+        bio:        users[userName].bio     || "This user has not set a bio yet.",
 
     });
     else response.send( "That user can't be found." );
