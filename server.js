@@ -93,7 +93,7 @@ io.on('connection', function(socket) {
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
     if( ipEmits[socket.request.connection.remoteAddress] > 3 ) {
-        socket.client.disconnect();
+        io.sockets.connected[socket.id].disconnect();
     }
     else {
 
