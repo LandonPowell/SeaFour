@@ -76,6 +76,19 @@ var moderatorSettings = {
     topic   : "Welcome to SeaFour.club" // The current topic. 
 };
 
+/*\ 
+ * Humans have been shit at timekeeping since we first looked at the sky and 
+ * used our sun's position to find out how long we had until nightfall. Now,
+ * I shall carry on that tradition by assuming 24 * 60 * 60 * 1000 is the length
+ * of a day in milliseconds, and I'll completely ignore that leap seconds and 
+ * DST are real things.
+\*/
+setTimeout( function() {
+    setInterval(function() {
+        
+    }, 86400000);
+}, ( 24 - new Date().getHours() ));
+
 var ipEmits = {};       // Stores the number of emits made by any IP. 
 setInterval(function() { ipEmits = {}; }, 3000);    // Every 3 seconds, clear.
 function addEmit(ipAddress, socketID) {
