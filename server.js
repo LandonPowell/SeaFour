@@ -115,7 +115,8 @@ io.on('connection', function(socket) {
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
     if( ipEmits[socket.request.connection.remoteAddress] > 4 || 
-        superBanList[socket.request.connection.remoteAddress] != undefined ) {
+        superBanList[socket.request.connection.remoteAddress] ) {
+        console.log("Spammer detected at " + socket.request.connection.remoteAddress);
         socket.disconnect();
     }
     else {
