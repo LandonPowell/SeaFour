@@ -69,6 +69,7 @@ function generateSalt() { /* ! THIS IS PROBABLY NOT CRYPTO-HEALTHY CODE ! */
 // Moderation and antispam related variables, functions, and calls. 
 var ipLog   = {};       // Stores IP based on username. Isn't in the DB because muhfreedom.
 var banList = [];       // List of banned IPs. 
+var superBanList = [];  // List of IPs that aren't even allowed to see the chat. NSA goes here. :^)
 
 var moderatorSettings = {
     quiet   : false, // Disallows unregistered from posting; they can watch.
@@ -81,9 +82,18 @@ function addEmit(ipAddress, socketID) {
     if (ipEmits[ipAddress]) ipEmits[ipAddress] += 1;
     else                    ipEmits[ipAddress]  = 1;
 
-    if (ipEmits[ipAddress] > 2) {   // Limits posts to 2. 
+    if (ipEmits[ipAddress] > 3) {   // Limits posts to 3. 
         banList.push(ipAddress);
         console.log(ipAddress + " has been banned.");
+    }
+
+    if (ipEmits[ipAddress] > 4) {   // Limits spam emits to 4. 
+        superBanList.push(ipAddress);
+        console.log(ipAddress + " has been super banned.");
+
+        if (io.sockets.connected[ socketID ]) { 
+            io.sockets.connected[ socketID ].disconnect();
+        }
     }
 }
 
@@ -91,7 +101,8 @@ function addEmit(ipAddress, socketID) {
 io.on('connection', function(socket) {
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
-    if( ipEmits[socket.request.connection.remoteAddress] > 3 ) {
+    if( ipEmits[socket.request.connection.remoteAddress] > 3 || 
+        superBanList[socket.request.connection.remoteAddress] != undefined ) {
         socket.disconnect();
     }
     else {
