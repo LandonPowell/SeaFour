@@ -17,16 +17,16 @@
 body {
     margin: 0px;
     padding: 0px;
-    background-color: #ffafbf; /* This is to make #messages fuck ups obvious. */
+    background-color: #DB9F9E; /* This is to make #messages fuck ups obvious. */
     font-family: "Quicksand", serif;
     font-size: 20px;
     color: #666;
 }
 
 /* This makes selection-text pink. */
-::selection         { color: #fff; background-color: #ffafbf; }
-::-moz-selection    { color: #fff; background-color: #ffafbf; }
-::-webkit-selection { color: #fff; background-color: #ffafbf; }
+::selection         { color: #fff; background-color: #DB9F9E; }
+::-moz-selection    { color: #fff; background-color: #DB9F9E; }
+::-webkit-selection { color: #fff; background-color: #DB9F9E; }
 /* scrollbar css, only works in chromium */
 ::-webkit-scrollbar {box-shadow:1px 3px 10px rgba(0, 0, 10, 0.15) inset;}
 ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.2);}
@@ -42,7 +42,7 @@ body {
 
 #messages {
     height: 100%;
-    background: #ffafbf url("images/pinkMist.png") repeat;
+    background: #DB9F9E url("images/pinkMist.png") repeat;
     background-size: cover;
     word-wrap: break-word;
     overflow-x: hidden;
@@ -248,7 +248,7 @@ iframe {
 }
 
 .postId, .postLink, .direction {
-    color: #ffafbf;
+    color: #65A4B2;
     cursor: pointer;
     transition: color .25s, text-shadow .25s;
 }
@@ -269,7 +269,7 @@ iframe {
     color: #999;
 }
 
-.me        { color: #ffafbf; }
+.me        { color: #DB9F9E; }
 .me:before { content: "- " ; }
 .me:after  { content: " -" ; }
 
@@ -282,7 +282,7 @@ iframe {
 }
 
 .link {
-    color: #ffafbf;
+    color: #65A4B2;
     text-decoration: none;
     padding: 7px; 
     transition: color .25s, text-shadow .25s;
@@ -298,7 +298,7 @@ iframe {
 }
 
 .quote {
-    color: #ffafbf;
+    color: #DB9F9E;
 }
 .quote:before {
     content: ">";
