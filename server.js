@@ -369,6 +369,7 @@ io.on('connection', function(socket) {
 
     userCommand('clearBans', 2, function() {
         banList = [];
+        superBanList = [];
         io.emit('systemMessage', "The ban list has been cleared.");
     });
 
