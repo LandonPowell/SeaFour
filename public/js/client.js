@@ -91,13 +91,13 @@ function keyPressed(event) {
         else if (text[0] == "." && command[0][command[0].length - 1] == "-") {
             var style = command[0].substring(1, command[0].length - 1);
             var styles = ["default", "dark", "light"];
-            for (var i = 0; i < $("link").length; i++) {
-                if ( $("link")[i].rel.indexOf("stylesheet") + 1 ) {
-                    if ( styles.indexOf(style) + 1 && $("link")[i].href.indexOf(style) + 1 ) {
-                        $("link")[i].disabled = false;
-                        $("link")[i].rel = "stylesheet";
+            for (var i = 0; i < $("[name=theme]").length; i++) {
+                if ( $("[name=theme]")[i].rel.indexOf("stylesheet") + 1 ) {
+                    if ( styles.indexOf(style) + 1 && $("[name=theme]")[i].href.indexOf(style) + 1 ) {
+                        $("[name=theme]")[i].disabled = false;
+                        $("[name=theme]")[i].rel = "stylesheet";
                     } else {
-                        $("link")[i].disabled = true;
+                        $("[name=theme]")[i].disabled = true;
                     }
                 }
             }
