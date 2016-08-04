@@ -85,7 +85,7 @@ var moderatorSettings = {
 \*/
 setTimeout( function() {
     setInterval(function() {
-        
+        banList = [];
     }, 86400000);
 }, ( 24 - new Date().getHours() ));
 
