@@ -87,7 +87,7 @@ function addEmit(ipAddress, socketID) {
         console.log(ipAddress + " has been banned.");
     }
 
-    if (ipEmits[ipAddress] > 4) {   // Limits spam emits to 4. 
+    if (ipEmits[ipAddress] > 5) {   // Limits spam emits to 4. 
         superBanList.push(ipAddress);
         console.log(ipAddress + " has been super banned.");
 
@@ -101,7 +101,7 @@ function addEmit(ipAddress, socketID) {
 io.on('connection', function(socket) {
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
-    if( ipEmits[socket.request.connection.remoteAddress] > 3 || 
+    if( ipEmits[socket.request.connection.remoteAddress] > 4 || 
         superBanList[socket.request.connection.remoteAddress] != undefined ) {
         socket.disconnect();
     }
