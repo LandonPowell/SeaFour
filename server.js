@@ -378,6 +378,12 @@ io.on('connection', function(socket) {
         moderatorSettings.quiet = ! moderatorSettings.quiet;
         io.emit('systemMessage', "Quiet mode set to " + moderatorSettings.quiet);
     });
+    
+    userCommand('superBan', 3, function(maliciousUser) {
+        var userIP = ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
+        superBanList.push( userIP );
+        socket.emit('systemMessage', userIP + " has been banned.");
+    });
 
     userCommand('banRange', 3, function(maliciousUser) {
         var userIP = ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
