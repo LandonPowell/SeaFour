@@ -55,11 +55,11 @@ body {
     position: fixed;
     top: 0px;
     right: 20px;
+    z-index: 1;
 }
 .menuButton {
     margin-top: 0px;
     margin-right: 10px;
-    z-index: 1;
     border: 0px;
     text-align: center;
     padding: 5px;
