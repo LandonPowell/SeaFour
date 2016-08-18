@@ -53,7 +53,7 @@ function pointsToRenown(points) { // Converts a point value to a 'renown' aka an
     }
     return renown;
 }
-function achievementHandler(message, username) { // Converts a user's message into 
+function achievementHandler(message, username) { // Distributes achievements based on messages. 
     var beforePoints = users[username].points || 0;
     var achievements = users[username].achievements || {};
     var news = [];
@@ -62,18 +62,56 @@ function achievementHandler(message, username) { // Converts a user's message in
         beforePoints + 
         message.substr(0,150).length * onlineIPs(clients);
 
-    // Trump posts.
-    if ( achievements.trumpPosts > 10 ) {
-        news.push
-        achievements.trumpPosts == "Done!";
+    var achievementSystem = {
+        drumpf : {
+            keywords: ['trump', 'drumpf', 'make america great again'],
+            limit: 5,   // The 'limit' is the amount of messsages needed to make it go off.
+            value: 300, // The 'value' is the amount of XP given upon completion. 
+        },
+        pol : {
+            keywords: ['9/11', 'jews', 'adolf', 'hitler'],
+            limit: 100,
+            value: 39000000,
+        },
+        autism : {
+            keywords: ['fursona', 'call of duty', 'vidya', 'weed', 'XDD', '420'],
+            limit: 3,
+            value: 420,
+        }
+    };
+
+    for ( var achievement in achievementSystem ) {
+        var achievementData = achievementSystem[achievement];
+        if ( achievements[achievement] != "done" ) {
+            var doesContain = false;
+            for ( var i = 0; i < achievementData.keywords.length; i++ ) {
+                if ( message.indexOf( achievementData.keywords[i] ) + 1 ) {
+                    doesContain = true;
+                }
+            }
+            if ( doesContain ) { 
+                achievements[achievement] = achievements[achievement] + 1 || 1;
+            }
+        }
+
+        if ( achievements[achievement] > achievementData.limit ) {
+
+            news.push("Achievement unlocked: " + 
+                       achievement + "\n" + 
+                       achievementData.value + " points.");
+
+            users[username].points += achievementData.value;
+            achievements[achievement] = "done";
+        }
     }
 
     if ( pointsToRenown(beforePoints) != pointsToRenown(users[username].points)) {
         news.push("Your renowned is now " + 
                   pointsToRenown(users[username].points) + ".");
+        updateDatabase();
     }
 
-    users[username].achievements = achievements;
+    users[username].achievements = achievements; // Gives the user their achievements. 
     return news;
 }
 
@@ -91,8 +129,10 @@ jsonfile.readFile('database.json', function(err, obj) {
 
 function updateDatabase(socket, successMessage) {
     jsonfile.writeFile('database.json', users, function(err) {
-        if  (err)   socket.emit('systemMessage', 'ERROR: ' + err);
-        else        socket.emit('systemMessage', successMessage);
+        if ( socket && successMessage ) {
+            if  (err)   socket.emit('systemMessage', 'ERROR: ' + err);
+            else        socket.emit('systemMessage', successMessage);
+        }
     });
 }
 
