@@ -28,10 +28,56 @@ function nameSanitize(nick) {   // Changes unimportant chars to dashes.
                .replace(/-?([\w]+(?:-[\w]+)*)-?/g, "$1");
 }
 function checkValidName(nick) { // Checks if a name contains no strange chars or is taken.
-    return ! users[nameSanitize(nick)] && nick.replace(/[^\u0020-\u007e]/gi, "") == nick;
+    return  !users[nameSanitize(nick)] && 
+            nick.replace(/[^\u0020-\u007e]/gi, "") == nick &&
+            nick.indexOf("\n") < 0 &&
+            nick.length < 30;
+}
+function onlineIPs(clients) {
+    var ipList = [];
+    for ( var user in clients ) {
+        var ip = ipLog[nameSanitize(clients[user])];
+        if (ipList.indexOf(ip) < 0) ipList.push(ip);
+    }
+    return ipList.length;
 }
 
-var clients = [];       // List of currently connected nicks by socketID.
+function pointsToRenown(points) { // Converts a point value to a 'renown' aka an XP level from total XP;
+    if ( points == Infinity ) return Infinity;
+    if ( ! points ) return 0;
+
+    var renown = 0;
+    while ( points > 12 ) {
+        renown++;
+        points = points / 12;
+    }
+    return renown;
+}
+function achievementHandler(message, username) { // Converts a user's message into 
+    var beforePoints = users[username].points || 0;
+    var achievements = users[username].achievements || {};
+    var news = [];
+
+    users[username].points = // This code-block adds more points.
+        beforePoints + 
+        message.substr(0,150).length * onlineIPs(clients);
+
+    // Trump posts.
+    if ( achievements.trumpPosts > 10 ) {
+        news.push
+        achievements.trumpPosts == "Done!";
+    }
+
+    if ( pointsToRenown(beforePoints) != pointsToRenown(users[username].points)) {
+        news.push("Your renowned is now " + 
+                  pointsToRenown(users[username].points) + ".");
+    }
+
+    users[username].achievements = achievements;
+    return news;
+}
+
+var clients = {};       // List of currently connected nicks by socketID.
 var postCount = 0;      // Amount of posts made so far. Used for Post IDs.
 
 // User Database
@@ -163,7 +209,7 @@ io.on('connection', function(socket) {
         socket.on(command, function(arg1, arg2){ 
             if ((!moderatorSettings.quiet ||                    // These two bools check 
                  users[ nameSanitize(clients[socket.id]) ]) &&  // if the mute applies. 
-                 banList.indexOf( ipLog[nameSanitize(clients[socket.id])] )<0 ) {  // This checks if the user is banned. 
+                 banList.indexOf( ipLog[nameSanitize(clients[socket.id])] ) < 0 ) {  // This checks if the user is banned. 
 
                 if (! usableVar(arg1)) arg1 = "I'm a stupid Idiot";   // This solution is a
                 if (! usableVar(arg2)) arg2 = "I'm a stupid Idiot";   // thousand times funnier.
@@ -180,29 +226,38 @@ io.on('connection', function(socket) {
         });
     }
 
-    socketEmit('userMessage', function(msg) {
+    socketEmit('userMessage', function(message) {
         postCount++;
-        var flair;
 
-        if ( users[nameSanitize(clients[socket.id])] )
-            flair = users[nameSanitize(clients[socket.id])].flair;
-        if (! usableVar(flair) )
-            flair = false;
+        var flair;
+        var username = nameSanitize(clients[socket.id]);
+        if ( users[username] ) {    // If the user is registered. 
+            flair = users[username].flair;
+
+            var achievementNews = achievementHandler(message, username);
+
+            for (var i = 0; i < achievementNews.length; i++) {
+                socket.emit('systemMessage', achievementNews[i]);
+            }
+        }
+
+        if (! usableVar(flair) ) flair = false; // If the flair isn't usable, set it to a boolean false;
 
         io.emit('userMessage',  clients[socket.id], 
-                                msg.substr(0,6000), 
+                                message.substr(0,6000), 
                                 postCount.toString(36), 
                                 flair);
     });
 
-    socketEmit('me', function(msg) {
-        io.emit('me', clients[socket.id]+" "+msg.substr(0,2048));
+    socketEmit('me', function(message) {
+        io.emit('me', clients[socket.id]+" "+message.substr(0,2048));
     });
 
-    socketEmit('specialMessage', function(type, msg) {
+    socketEmit('specialMessage', function(type, message) {
         var approvedTypes = ["term", "carbonite", "badOS"];
         if ( approvedTypes.indexOf(type) + 1 ) {
-            io.emit('specialMessage', type, clients[socket.id], msg.substr(0,2048));
+            io.emit('specialMessage', 
+                     type, clients[socket.id], message.substr(0,2048));
         }
         else {
             socket.emit('systemMessage', "I can't let you do that, Dave.");
@@ -370,8 +425,12 @@ io.on('connection', function(socket) {
 
     userCommand('clearBans', 2, function() {
         banList = [];
-        superBanList = [];
         io.emit('systemMessage', "The ban list has been cleared.");
+    });
+
+    userCommand('clearSuperBans', 2, function() {
+        superBanList = [];
+        io.emit('systemMessage', "The super ban list has been cleared.");
     });
 
     userCommand('quiet', 2, function() {
@@ -382,7 +441,7 @@ io.on('connection', function(socket) {
     userCommand('superBan', 3, function(maliciousUser) {
         var userIP = ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
         superBanList.push( userIP );
-        socket.emit('systemMessage', userIP + " has been banned.");
+        socket.emit('systemMessage', userIP + " has been super banned.");
     });
 
     userCommand('banRange', 3, function(maliciousUser) {
@@ -391,7 +450,7 @@ io.on('connection', function(socket) {
         socket.emit('systemMessage', userIP + " has been banned.");
     });
 
-    userCommand('genocide', 3, function(){
+    userCommand('genocide', 3, function() {
         io.emit('systemMessage', "There is much talk, and I have " +
                                  "listened, through rock and metal " +
                                  "and time. Now I shall talk, and you " +
@@ -426,6 +485,8 @@ app.get('/[\\w-]+', function (request, response) {
         role:       users[userName].role    || "This user has not been given a role yet.",
         website:    users[userName].website || "This user has not set a website yet.",
         bio:        users[userName].bio     || "This user has not set a bio yet.",
+
+        renown:     pointsToRenown( users[userName].points || 0 ),
 
     });
     else response.send( "That user can't be found." );
