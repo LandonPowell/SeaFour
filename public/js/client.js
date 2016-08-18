@@ -2,6 +2,7 @@ var socket = io();
 /* global parser flairify io nameSanitize */
 var attributes = {
     nick: "unnamed",
+    points: 0,
     title: "",
     unread: 0,
     focus: true,
