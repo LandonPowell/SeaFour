@@ -102,6 +102,8 @@ function achievementHandler(message, username) { // Distributes achievements bas
 
             users[username].points += achievementData.value;
             achievements[achievement] = "done";
+
+            updateDatabase();
         }
     }
 
@@ -294,7 +296,19 @@ io.on('connection', function(socket) {
     });
 
     socketEmit('specialMessage', function(type, message) {
-        var approvedTypes = ["term", "carbonite", "badOS"];
+        var approvedTypes = ["term", "carbonite", "badOS"]; // Default approved types.
+
+        var user = users[nameSanitize(clients[socket.id])];
+        if ( user ) {
+            var achievements = user.achievements || {};
+            for ( var achievement in achievements ) {
+                if ( achievements[achievement] == "done" ) {
+                    approvedTypes.push(achievement);
+                    
+                }
+            }
+        }
+
         if ( approvedTypes.indexOf(type) + 1 ) {
             io.emit('specialMessage', 
                      type, clients[socket.id], message.substr(0,2048));
