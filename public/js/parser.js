@@ -166,7 +166,7 @@ function nameSanitize(nick) {   // Changes unimportant chars to dashes.
 
 function flairify(nick, flair) {
     var parsedNick = parser.htmlEscape(nick);
-    
+
     if (flair) {
         var parsedFlair = parser.style(
                           parser.htmlEscape(
@@ -174,7 +174,8 @@ function flairify(nick, flair) {
                           ));
 
         if (nameSanitize( parsedNick ) == 
-            nameSanitize( parsedFlair.replace(/<[^>]+>| /g, "") ))
+            nameSanitize( parsedFlair.replace(/<[^>]+>| /g, "") ) &&
+            parsedNick.length < 30 && parsedNick.indexOf("\n") < 0 )
             return parsedFlair;
         else
             return parsedNick;
