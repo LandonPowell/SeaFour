@@ -71,7 +71,7 @@ function achievementHandler(message, username) { // Distributes achievements bas
         pol : {
             keywords: ['9/11', 'jews', 'adolf', 'hitler'],
             limit: 100,
-            value: 39000000,
+            value: 6000000,
         },
         autism : {
             keywords: ['fursona', 'call of duty', 'vidya', 'weed', 'XDD', '420'],
@@ -94,7 +94,7 @@ function achievementHandler(message, username) { // Distributes achievements bas
             }
         }
 
-        if ( achievements[achievement] > achievementData.limit ) {
+        if ( achievements[achievement] >= achievementData.limit ) {
 
             news.push("Achievement unlocked: " + 
                        achievement + "\n" + 
