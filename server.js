@@ -281,6 +281,8 @@ io.on('connection', function(socket) {
             for (var i = 0; i < achievementNews.length; i++) {
                 socket.emit('systemMessage', achievementNews[i]);
             }
+
+            socket.emit('pointsUpdate', users[username].points);
         }
 
         if (! usableVar(flair) ) flair = false; // If the flair isn't usable, set it to a boolean false;

@@ -44,6 +44,15 @@ body {
     outline: 0;
 }
 
+#progressBar {
+    width: calc( 100% - 40px );
+    display: none;
+    height: 3px;
+    background-color: #65A4B2;
+    margin-top: -3px;
+    margin-left: 20px;
+}
+
 #messages {
     height: 100%;
     word-wrap: break-word;

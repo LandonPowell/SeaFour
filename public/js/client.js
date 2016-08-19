@@ -130,7 +130,26 @@ function keyPressed(event) {
     }
 }
 
-// User List Management
+// Points Management.
+socket.on('pointsUpdate', function(pointValue) {
+    var lastRenown = 1,
+        soFar = 0;
+
+    if ( pointValue == Infinity ) soFar = 0;
+    else if ( pointValue <= 12 ) soFar = pointValue;
+    else {
+        while ( pointValue > lastRenown * 12 ) lastRenown *= 12;
+        soFar = pointValue - lastRenown;
+    }
+
+    $("#progressBar").css('width', 
+        "calc( (100% - 40px) *" + (soFar / (lastRenown * 12 - lastRenown)) + ")"
+    );
+
+    $("#progressBar").fadeIn(200).fadeOut(1000);
+});
+
+// User List Management.
 socket.on('listRefresh', function(newList){
     $("#usersButton").html("Users - " + newList.length);
     $("#userList").html("");
@@ -172,7 +191,7 @@ function append(appendTo, appendstring) {                         // This functi
 }
 
 // Event handlers.
-socket.on('userMessage', function(nick, post, id, flair){
+socket.on('userMessage', function(nick, post, id, flair) {
     var postType = "message";
 
     if (post.toLowerCase().indexOf( nameSanitize(attributes.nick) ) + 1) { /* If post contains your nick. */
@@ -236,7 +255,7 @@ socket.on('directMessage', function(direction, from, message) {
     $("#notificationClick")[0].play();
 });
 
-socket.on('me', function(post){
+socket.on('me', function(post) {
     append("#messages", 
                "<div class=\"me message\">" +
                     parser.htmlEscape(post) +
@@ -246,11 +265,12 @@ socket.on('me', function(post){
 socket.on('specialMessage', function(type, name, message) {
     append("#messages", 
                "<div class=\"message "+parser.htmlEscape(type)+"\">"+
-                    parser.htmlEscape(name + ": " + message) +
+                    "<span class=\"userName\">" + parser.htmlEscape(name) + 
+                    "</span>: " + parser.htmlEscape(message) +
                "</div>");
 });
 
-socket.on('systemMessage', function(post){
+socket.on('systemMessage', function(post) {
     $("#notifications").append(
        "<div class=\"systemMessage\">           " + 
        "<div class=\"notificationIcon\"></div>  " +
@@ -277,7 +297,7 @@ socket.on('systemMessage', function(post){
     }
 });
 
-socket.on('topic', function(newTitle){
+socket.on('topic', function(newTitle) {
     $("#title").html(parser.htmlEscape( newTitle ));
     $("title").html(parser.htmlEscape( newTitle ));
     attributes.title = newTitle;

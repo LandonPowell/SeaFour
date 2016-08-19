@@ -18,6 +18,10 @@
     border-width: 0px 1px 1px 0px;
     box-shadow: 0px 0px 20px 10px #ffe;
 }
+.pol .userName {
+    color: #117743;
+    font-weight: bold;
+}
 
 @keyframes autism {
     from { color: #ff0; }
