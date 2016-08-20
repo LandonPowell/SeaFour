@@ -74,7 +74,7 @@ function achievementHandler(message, username) { // Distributes achievements bas
             value: 6000000,
         },
         autism : {
-            keywords: ['fursona', 'call of duty', 'vidya', 'weed', 'XDD', '420'],
+            keywords: ['fursona', 'call of duty', 'vidya', 'weed', 'xdd', '420'],
             limit: 3,
             value: 420,
         }
@@ -85,7 +85,7 @@ function achievementHandler(message, username) { // Distributes achievements bas
         if ( achievements[achievement] != "done" ) {
             var doesContain = false;
             for ( var i = 0; i < achievementData.keywords.length; i++ ) {
-                if ( message.indexOf( achievementData.keywords[i] ) + 1 ) {
+                if ( message.toLowerCase().indexOf( achievementData.keywords[i] ) + 1 ) {
                     doesContain = true;
                 }
             }
