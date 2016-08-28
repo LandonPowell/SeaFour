@@ -354,7 +354,16 @@ io.on('connection', function(socket) {
         }
     });
 
-    socketEmit('register', function(password) {
+    socketEmit('register', function(nick, password) {
+        if ( checkValidName(nick) ) {
+            
+        }
+        else {
+            socket.emit('systemMessage', "That user is already registered.");
+        }
+    });
+
+    socketEmit('reRegister', function(password) {
         var salt = generateSalt();
         if ( clients[socket.id].replace(/[\da-f]{6}/gi, "") ) {
             users[nameSanitize(clients[socket.id])] = {

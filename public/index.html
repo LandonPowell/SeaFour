@@ -13,15 +13,37 @@
 
     <div id="menuButtons">
 
+        <button onclick="$('#loginMenu').slideToggle();" class="menuButton" id="accountButton">
+            Account
+        </button>
+        <div id="loginMenu">
+
+            <h4> Log In </h4>
+            <input type="text" id="userName" placeholder="Name"/>
+            <input type="password" id="passWord" placeholder="Pass"/>
+            <button id="loginButton"> Log into SeaFour </button>
+
+            <hr/>
+
+            <h4> Sign Up </h4>
+            <input type="text" id="newUserName" placeholder="Name"/> 
+            <span id="newUserNameSanitized"> - </span> <br />
+            <input type="password" id="newPassWord" placeholder="Pass"/>
+            <input type="password" id="confirmPass" placeholder="Confirm Pass"/>
+            <button id="registerButton"> Sign Up for SeaFour </button>
+
+            <hr/>
+            
+            <button id="guestButton" onclick="$('#loginMenu').slideToggle();"> 
+                Continue as a Guest
+            </button>
+
+        </div>
+
         <button onclick="$('#userMenu').slideToggle();" class="menuButton" id="usersButton">
             Users - 0
         </button>
         <div id="userMenu">
-            <div id="login">
-                <input type="text" id="userName" placeholder="Name"/>
-                <input type="password" id="passWord" placeholder="Pass"/>
-                <button id="submitButton">
-            </div>
             <div id="userList">
                 <!-- Users display here. -->
             </div>

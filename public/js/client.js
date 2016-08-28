@@ -19,7 +19,7 @@ $(function() { /* On load */
             handles: "se"
         });
 
-    $("#submitButton").click(function(){
+    $("#loginButton").click(function(){
         login(
             $("#userName").val(),
             $("#passWord").val()
@@ -27,8 +27,22 @@ $(function() { /* On load */
         $("#userName").val("");
         $("#passWord").val("");
         
-        $("#menu").slideToggle();
+        $("#loginMenu").slideToggle();
     });
+
+    $("#registerButton").click(function(){
+        if ( $("#newPassWord").val() == $("#confirmPass").val() ) {
+
+            socket.emit('register',
+                $("#userName").val(),
+                $("#passWord").val()
+            );
+
+            $("#loginMenu").slideToggle();
+
+        }
+    });
+
 });
 
 window.onfocus = function() {
