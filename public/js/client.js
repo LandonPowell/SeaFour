@@ -34,12 +34,15 @@ $(function() { /* On load */
         if ( $("#newPassWord").val() == $("#confirmPass").val() ) {
 
             socket.emit('register',
-                $("#userName").val(),
-                $("#passWord").val()
+                $("#newUserName").val(),
+                $("#newPassWord").val()
             );
 
             $("#loginMenu").slideToggle();
 
+        } else {
+            $("#newPassWord");
+            $("#confirmPass");
         }
     });
 

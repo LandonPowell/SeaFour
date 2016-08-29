@@ -355,8 +355,27 @@ io.on('connection', function(socket) {
     });
 
     socketEmit('register', function(nick, password) {
-        if ( checkValidName(nick) ) {
-            
+        if ( checkValidName(nick) && nick.replace(/[\da-f]{6}/gi, "") ) {
+
+            io.emit('systemMessage', clients[socket.id]+" is now known as "+nick);
+            socket.emit('nickRefresh', nick);
+
+            clients[socket.id] = nick;
+            ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
+
+            io.emit('listRefresh', toArray(clients));
+
+            var salt = generateSalt();
+            users[nameSanitize(clients[socket.id])] = {
+                "password"  : hash.sha512(password + salt),
+                "salt"      : salt,
+                "flair"     : null,
+                "corp"      : 0, /* Becomes an object upon incorporation */
+                "role"      : 0, /* Default role is 0 */
+                
+            };
+            updateDatabase(socket, "You are now registered.");
+
         }
         else {
             socket.emit('systemMessage', "That user is already registered.");
