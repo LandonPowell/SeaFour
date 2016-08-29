@@ -372,7 +372,6 @@ io.on('connection', function(socket) {
                 "flair"     : null,
                 "corp"      : 0, /* Becomes an object upon incorporation */
                 "role"      : 0, /* Default role is 0 */
-                
             };
             updateDatabase(socket, "You are now registered.");
 
@@ -391,7 +390,6 @@ io.on('connection', function(socket) {
                 "flair"     : null,
                 "corp"      : 0, /* Becomes an object upon incorporation */
                 "role"      : 0, /* Default role is 0 */
-                
             };
             updateDatabase(socket, "You are now registered.");
         }
