@@ -154,6 +154,15 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #fff;
     color: #aaa;
 }
+#newUserNameSanitized {
+    font-size: 15px;
+    color: #aaa;
+    vertical-align: middle;
+    display: inline-block;
+    width: 147px;
+    height: 20px;
+    overflow: hidden;
+}
 
 #userList {
     float: right;   
@@ -338,10 +347,6 @@ iframe {
 .quote {
     color: #DB9F9E;
 }
-.quote:before {
-    content: ">";
-}
-
 
 /*\
 |*| Everything below this line is a style class.

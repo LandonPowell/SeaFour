@@ -436,7 +436,7 @@ io.on('connection', function(socket) {
 
     //Registered-Exclusive listeners.
     userCommand('flair', 0, function(newFlair) {
-        users[nameSanitize(clients[socket.id])].flair = newFlair;
+        users[nameSanitize(clients[socket.id])].flair = newFlair.substr(0,255);
         updateDatabase(socket, "Your flair is now " + newFlair);
     });
     userCommand('bio', 0, function(newBio) {

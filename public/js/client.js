@@ -46,6 +46,12 @@ $(function() { /* On load */
         }
     });
 
+    $("#newUserName").keypress(function(event) {
+        $("#newUserNameSanitized").html(
+            nameSanitize( $("#newUserName").val() + event.key )
+        );
+    });
+
 });
 
 window.onfocus = function() {

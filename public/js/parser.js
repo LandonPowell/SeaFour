@@ -13,7 +13,7 @@ var parser = {
     },
     quote : function(string) { /* THIS CREATES THE QUOTES/GREENTEXT */
         return string.replace(/&gt;([^<]+)/gi,
-                              "<span class=\"quote\">$1</span>");
+                              "<span class=\"quote\">&gt;$1</span>");
     },
     style : function(string) { /* S-EXPRESSION STYLE SYNTAX PARSER. */ 
     /*  Can you believe that all this was once done with a 
