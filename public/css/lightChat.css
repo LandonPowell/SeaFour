@@ -208,12 +208,10 @@ h1, h2, h3, h4, h5, h6 {
 
 #handle {
     position: fixed !important;
-    bottom: 0px;
-    right: 0px;
     margin: 20px;
-    height: 160px;
-    width: 300px;
     padding-top: 3px;
+    top: calc(100% - 160px - 12px - 50px);
+    left: calc(100% - 300px - 35px);
 }
 #handlebar {
     font-size: 12px;
@@ -231,8 +229,8 @@ h1, h2, h3, h4, h5, h6 {
     font-family: "Quicksand", serif;
     font-size: 18px;
     height: calc(100% - 28px);
-    width: 100%;
-    resize: none;
+    width: 300px;
+    height: 160px;
     padding: 10px;
     background-color: #fff;
     color: #666;
@@ -267,6 +265,8 @@ h1, h2, h3, h4, h5, h6 {
     right: 40px;
     width: 400px;
     height: 400px;
+    resize: both;
+    overflow: auto;
 }
 iframe {
     width: 100%;

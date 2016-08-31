@@ -2,13 +2,20 @@
 <body>
     <div id="messages">
 
-        <div id="handle">
+        <div id="handle" class="draggable">
             <div id="handlebar">
                 <span id="title"></span>
             </div>
             <div id="progressBar"></div>
             <textarea id="inputbox" onKeydown="keyPressed(event);" placeholder="Type your message here."></textarea>
         </div>
+
+        <div id="embed">
+            <div id="urlHandlebar"> Embeded URL </div>
+            <span id="urlClose" onclick="embedURL('kill')"> ' </span>
+            <iframe src=""></iframe>
+        </div>
+
     </div>
 
     <div id="menuButtons">
@@ -70,9 +77,6 @@
     <!-- Outside scripts and libraries. -->
     <script src="socket.io/socket.io.js"></script>
     <script src="js/jquery.js"></script>
-    <script src="js/sha512.js"></script>
-    <script src="js/jquery-ui.js"></script>
-    <link href="css/jquery-ui.css" rel="stylesheet">
 
     <!-- SeaFour assets. -->
     <script src="js/parser.js"></script>

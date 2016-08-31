@@ -1,5 +1,5 @@
+/* global parser flairify io nameSanitize $ */
 var socket = io();
-/* global parser flairify io nameSanitize */
 var attributes = {
     nick: "unnamed",
     points: 0,
@@ -9,17 +9,32 @@ var attributes = {
 };
 
 // User Interface.
-/* global $ from Jquery library */
 $(function() { /* On load */
-    $('#handle')
-        .draggable({ containment: "#messages" })
-        .resizable({
-            minHeight: 51,
-            minWidth: 177,
-            handles: "se"
-        });
 
-    $("#loginButton").click(function(){
+    // This pile of Jquery is for the draggable box. 
+    // I use just about this exactly, with some minor mods, for the embeds too.
+    $("#messages").on("mousemove", function(event) {
+        if ($("#handlebar")[0].dragging) {
+            $("#handle").offset({
+                top:    event.pageY - 15,
+                left:   event.pageX - $("#handle").width() / 2,
+            });
+        }
+        if ($("#urlHandlebar")[0].dragging) {
+            $("#embed").offset({
+                top:    event.pageY - 15,
+                left:   event.pageX - $("#embed").width() / 2,
+            });
+        }
+    });
+
+    $("#handlebar, #urlHandlebar").on("mousedown", function(event) {
+        this.dragging = true;
+    }).on("mouseup", function(event) {
+        this.dragging = false;
+    });
+
+    $("#loginButton").click(function() {
         login(
             $("#userName").val(),
             $("#passWord").val()
@@ -30,7 +45,7 @@ $(function() { /* On load */
         $("#loginMenu").slideToggle();
     });
 
-    $("#registerButton").click(function(){
+    $("#registerButton").click(function() {
         if ( $("#newPassWord").val() == $("#confirmPass").val() ) {
 
             socket.emit('register',
@@ -64,24 +79,11 @@ window.onblur = function() {
 };
 
 function embedURL(link) {
-    $("#embed").remove();
+    $("#embed").show(250);
 
-    $("#messages").append("<div id=\"embed\">                               " +
-                              "<div id=\"urlHandlebar\"> Embeded URL </div> " + 
-                              "<span id=\"urlClose\" onclick=\"embedURL('kill')\"> ' "+ 
-                              "</span> " +
-                              "<iframe src=\"" + link + "\"></iframe>       " +
-                          "</div>");
+    if (link == "kill") $("#embed").hide(250);
 
-    $("#embed")
-        .draggable({ containment: "#messages" })
-        .resizable({
-            minHeight: 51,
-            minWidth: 177,
-            handles: "se"
-        });
-
-    if (link == "kill")   $("#embed").remove();
+    $("#embed iframe").attr('src', link);
 }
 
 // Command Handling.
@@ -173,7 +175,7 @@ socket.on('pointsUpdate', function(pointValue) {
 });
 
 // User List Management.
-socket.on('listRefresh', function(newList){
+socket.on('listRefresh', function(newList) {
     $("#usersButton").html("Users - " + newList.length);
     $("#userList").html("");
     for (var i = 0; i < newList.length; i++) {
@@ -181,7 +183,7 @@ socket.on('listRefresh', function(newList){
     }
 });
 
-socket.on('nickRefresh', function(newNick){
+socket.on('nickRefresh', function(newNick) {
     attributes.nick = newNick;
 });
 
@@ -305,7 +307,7 @@ socket.on('systemMessage', function(post) {
     } 
     else {
 
-        setTimeout(function(){
+        setTimeout(function() {
             $(".systemMessage:first").animate({
                 height: 0, 
                 margin: 0, 
@@ -313,7 +315,7 @@ socket.on('systemMessage', function(post) {
                 100);
         }, 3000);
 
-        setTimeout(function(){
+        setTimeout(function() {
             $(".systemMessage:first").remove();
         }, 3100);
 
@@ -326,7 +328,7 @@ socket.on('topic', function(newTitle) {
     attributes.title = newTitle;
 });
 
-socket.on('disconnect', function(){
+socket.on('disconnect', function() {
     append("#notifications", 
                 "<div class=\"systemMessage\">Your socket has been disconnected.</div>");
 });
