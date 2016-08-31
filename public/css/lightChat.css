@@ -210,8 +210,8 @@ h1, h2, h3, h4, h5, h6 {
     position: fixed !important;
     margin: 20px;
     padding-top: 3px;
-    top: calc(100% - 160px - 12px - 50px);
-    left: calc(100% - 300px - 35px);
+    top: calc(100% - 222px);
+    left: calc(100% - 350px);
 }
 #handlebar {
     font-size: 12px;
@@ -261,6 +261,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 #embed {
     position: fixed !important;
+    display: none;
     top: 60px;
     right: 40px;
     width: 400px;
