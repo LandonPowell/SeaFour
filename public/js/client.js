@@ -1,5 +1,5 @@
 /* global parser flairify io nameSanitize $ */
-var socket = io();
+var socket = io.connect({secure: true});
 var attributes = {
     nick: "unnamed",
     points: 0,

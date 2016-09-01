@@ -160,7 +160,7 @@ var parser = {
 
 function nameSanitize(nick) {   // Changes unimportant chars to dashes. 
     return nick.toLowerCase()
-               .replace(/[^\w]+/g, "-")
+               .replace(/[^a-z\d]+/gi, "-")
                .replace(/-?([\w]+(?:-[\w]+)*)-?/g, "$1");
 }
 
