@@ -26,21 +26,21 @@
         <div id="loginMenu">
 
             <h4> Log In </h4>
-            <input type="text" id="userName" placeholder="Name"/>
-            <input type="password" id="passWord" placeholder="Pass"/>
+            <input type="text" id="userName" placeholder="Handle"/>
+            <input type="password" id="passWord" placeholder="Passphrase"/>
             <button id="loginButton"> Log into SeaFour </button>
 
             <hr/>
 
             <h4> Sign Up </h4>
-            <input type="text" id="newUserName" placeholder="Name"/> 
+            <input type="text" id="newUserName" placeholder="Handle"/> 
             <span id="newUserNameSanitized"> - </span> <br />
-            <input type="password" id="newPassWord" placeholder="Pass"/>
+            <input type="password" id="newPassWord" placeholder="Passphrase"/>
             <input type="password" id="confirmPass" placeholder="Confirm Pass"/>
             <button id="registerButton"> Sign Up for SeaFour </button>
 
             <hr/>
-            
+
             <button id="guestButton" onclick="$('#loginMenu').slideToggle();"> 
                 Continue as a Guest
             </button>
@@ -75,8 +75,8 @@
     -->
 
     <!-- Outside scripts and libraries. -->
-    <script src="socket.io/socket.io.js"></script>
-    <script src="js/jquery.js"></script>
+    <script src="socket.io/socket.io.js"></script> <!-- Raw WebSockets suck ass. -->
+    <script src="js/jquery.js"></script> <!-- getElementByID, getElementsByClassName, and getElementBySelector suck ass. -->
 
     <!-- SeaFour made assets. -->
     <script src="js/parser.js"></script>
