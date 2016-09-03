@@ -4,6 +4,7 @@ h1 {
     font-size: 70px;
     color: #fff;
     text-shadow: 0px 1px 2px rgba(0,0,0, 0.5);
+    border-bottom: 0px;
 }
 
 .detail {
@@ -14,7 +15,7 @@ h1 {
 .detail:after { /* This is a hack to make float:right; take up space. */
     content: "";
     clear: both;
-    display:table;
+    display: table;
 }
 .title {
     display: inline;
