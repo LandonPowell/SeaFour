@@ -88,7 +88,7 @@ var parser = {
                         </a>";
             }
             else if ( regexEquals(string, /(https?:\/\/)?(www\.)?((youtube\.com\/watch\?v=)|(youtu\.be\/))[\w_\-]+/gi)) {
-                return string.replace(/(?:https:\/\/)?(?:www\.)?(?:(?:youtube\.com\/watch\?v=)|(?:youtu\.be\/))([\w_\-]+)/gi, 
+                return string.replace(/(?:https?:\/\/)?(?:www\.)?(?:(?:youtube\.com\/watch\?v=)|(?:youtu\.be\/))([\w_\-]+)/gi, 
                                       "<a class=\"youtube link\" \
                                       href=\"javascript:embedURL('https://www.youtube.com/embed/$1');\"> y </a>");
             }
