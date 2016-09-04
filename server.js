@@ -28,6 +28,8 @@ function nameSanitize(nick) {   // Changes unimportant chars to dashes.
                .replace(/-?([\w]+(?:-[\w]+)*)-?/g, "$1");
 }
 function checkValidName(nick) { // Checks if a name contains no strange chars or is taken.
+    if ( ['-', '', 'www'].indexOf(nick) + 1 ) return false;
+
     return  !users[nameSanitize(nick)] && 
             nick.replace(/[^\u0020-\u007e]/gi, "") == nick &&
             nick.indexOf("\n") < 0 &&
