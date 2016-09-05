@@ -2,7 +2,6 @@ var express = require('express');
 var app     = express();
 var http    = require('http').Server(app);
 var io      = require('socket.io')(http);
-var pug     = require('pug');
 
 var hash        = require('./lib/hash');
 var jsonfile    = require('jsonfile');
