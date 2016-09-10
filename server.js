@@ -1,7 +1,14 @@
 var express = require('express');
 var app     = express();
 var http    = require('http').Server(app);
-var io      = require('socket.io')(http);
+
+var webSocketServer = require('ws').Server;
+var socketServer    = new webSocketServer({ server: http });
+socketServer.broadcast = function() {
+    socketServer.clients.forEach(function(client) {
+        client.send(arguments[0].join(""));
+    });
+};
 
 var hash        = require('./lib/hash');
 var jsonfile    = require('jsonfile');
@@ -193,20 +200,20 @@ function addEmit(ipAddress, socketID) {
         superBanList.push(ipAddress);
         console.log(ipAddress + " has been super banned.");
 
-        if (io.sockets.connected[ socketID ]) { 
-            io.sockets.connected[ socketID ].disconnect();
+        if (socketServer.sockets.connected[ socketID ]) { 
+            socketServer.sockets.connected[ socketID ].disconnect();
         }
     }
 }
 
-// Real Time Chat using Sockets
-io.on('connection', function(socket) {
+// RTC using Web Sockets. Wew lad, we're in the future now.
+socketServer.on('connection', function(socket) {
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
-    if( ipEmits[socket.request.connection.remoteAddress] > 4 || 
-        superBanList.indexOf(socket.request.connection.remoteAddress) + 1 ) {
-        console.log("Spammer detected at " + socket.request.connection.remoteAddress);
-        socket.disconnect();
+    if( ipEmits[socket._socket.remoteAddress] > 4 || 
+        superBanList.indexOf(socket._socket.remoteAddress) + 1 ) {
+        console.log("Spammer detected at " + socket._socket.remoteAddress);
+        socket.close();
     }
     else {
 
@@ -214,14 +221,13 @@ io.on('connection', function(socket) {
         clients[socket.id] = Math.random().toString(16).substr(2,6);
         socket.emit('nickRefresh', clients[socket.id]);
 
-        ipLog[nameSanitize(clients[socket.id])] = socket.request.connection.remoteAddress;
+        ipLog[nameSanitize(clients[socket.id])] = socket._socket.remoteAddress;
         console.log("JOIN: " + socket.id);
-        io.emit('systemMessage', clients[socket.id] + ' has joined.');
-        io.emit('listRefresh', toArray(clients));
+        socketServer.broadcast('systemMessage', clients[socket.id] + ' has joined.');
+        socketServer.broadcast('listRefresh', toArray(clients));
 
     }
-
-    addEmit( socket.request.connection.remoteAddress, socket.id );
+    addEmit( socket._socket.remoteAddress, socket.id );
 
     // Core Listeners.
     socket.on('login', function(nick, password) { 
@@ -232,13 +238,13 @@ io.on('connection', function(socket) {
         if ( usableVar(nick) && usableVar(password) && users[nameSanitize(nick)] &&
              users[nameSanitize(nick)].password == hash.sha512(password + users[nameSanitize(nick)].salt) ) {
             
-            io.emit('systemMessage', clients[socket.id] + " is now known as " + nick);
+            socketServer.broadcast('systemMessage', clients[socket.id] + " is now known as " + nick);
             socket.emit('nickRefresh', nick);
 
             clients[socket.id] = nick;
-            ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
+            ipLog[nameSanitize(nick)] = socket._socket.remoteAddress;
 
-            io.emit('listRefresh', toArray(clients));
+            socketServer.broadcast('listRefresh', toArray(clients));
         }
         else { 
             socket.emit('systemMessage', 
@@ -288,14 +294,14 @@ io.on('connection', function(socket) {
 
         if (! usableVar(flair) ) flair = false; // If the flair isn't usable, set it to a boolean false;
 
-        io.emit('userMessage',  clients[socket.id], 
+        socketServer.broadcast('userMessage',  clients[socket.id], 
                                 message.substr(0,6000), 
                                 postCount.toString(36), 
                                 flair);
     });
 
     socketEmit('me', function(message) {
-        io.emit('me', clients[socket.id]+" "+message.substr(0,2048));
+        socketServer.broadcast('me', clients[socket.id]+" "+message.substr(0,2048));
     });
 
     socketEmit('specialMessage', function(type, message) {
@@ -313,7 +319,7 @@ io.on('connection', function(socket) {
         }
 
         if ( approvedTypes.indexOf(type) + 1 ) {
-            io.emit('specialMessage', 
+            socketServer.broadcast('specialMessage', 
                      type, clients[socket.id], message.substr(0,2048));
         }
         else {
@@ -342,13 +348,13 @@ io.on('connection', function(socket) {
     // Commands related to Registration and User Accounts.
     socketEmit('changeNick', function(nick) {
         if ( checkValidName(nick) ) {
-            io.emit('systemMessage', clients[socket.id]+" is now known as "+nick);
+            socketServer.broadcast('systemMessage', clients[socket.id]+" is now known as "+nick);
             socket.emit('nickRefresh', nick);
 
             clients[socket.id] = nick;
-            ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
+            ipLog[nameSanitize(nick)] = socket._socket.remoteAddress;
 
-            io.emit('listRefresh', toArray(clients));
+            socketServer.broadcast('listRefresh', toArray(clients));
         }
         else {
             socket.emit('systemMessage', "That user is already registered.");
@@ -358,13 +364,13 @@ io.on('connection', function(socket) {
     socketEmit('register', function(nick, password) {
         if ( checkValidName(nick) && nick.replace(/[\da-f]{6}/gi, "") ) {
 
-            io.emit('systemMessage', clients[socket.id]+" is now known as "+nick);
+            socketServer.broadcast('systemMessage', clients[socket.id]+" is now known as "+nick);
             socket.emit('nickRefresh', nick);
 
             clients[socket.id] = nick;
-            ipLog[nameSanitize(nick)] = socket.request.connection.remoteAddress;
+            ipLog[nameSanitize(nick)] = socket._socket.remoteAddress;
 
-            io.emit('listRefresh', toArray(clients));
+            socketServer.broadcast('listRefresh', toArray(clients));
 
             var salt = generateSalt();
             users[nameSanitize(clients[socket.id])] = {
@@ -451,7 +457,7 @@ io.on('connection', function(socket) {
 
     userCommand('topic', 0, function(newTopic) {
         moderatorSettings.topic = newTopic.substr(0, 27);
-        io.emit('topic', newTopic.substr(0, 27));
+        socketServer.broadcast('topic', newTopic.substr(0, 27));
     });
 
     //Mod-Exclusive Listeners.
@@ -464,7 +470,7 @@ io.on('connection', function(socket) {
             var removedUserID = Object.keys(clients).find(name => clients[name] == removedUser); 
 
             if ( removedUserID ) {
-                io.emit('systemMessage', removedUser +
+                socketServer.broadcast('systemMessage', removedUser +
                                           " has been dismissed by " +
                                           clients[socket.id]);
                 io.sockets.connected[ removedUserID ].disconnect();
@@ -508,17 +514,17 @@ io.on('connection', function(socket) {
 
     userCommand('clearBans', 2, function() {
         banList = [];
-        io.emit('systemMessage', "The ban list has been cleared.");
+        socketServer.broadcast('systemMessage', "The ban list has been cleared.");
     });
 
     userCommand('clearSuperBans', 2, function() {
         superBanList = [];
-        io.emit('systemMessage', "The super ban list has been cleared.");
+        socketServer.broadcast('systemMessage', "The super ban list has been cleared.");
     });
 
     userCommand('quiet', 2, function() {
         moderatorSettings.quiet = ! moderatorSettings.quiet;
-        io.emit('systemMessage', "Quiet mode set to " + moderatorSettings.quiet);
+        socketServer.broadcast('systemMessage', "Quiet mode set to " + moderatorSettings.quiet);
     });
     
     userCommand('superBan', 3, function(maliciousUser) {
@@ -534,7 +540,7 @@ io.on('connection', function(socket) {
     });
 
     userCommand('genocide', 3, function() {
-        io.emit('systemMessage', "There is much talk, and I have " +
+        socketServer.broadcast('systemMessage', "There is much talk, and I have " +
                                  "listened, through rock and metal " +
                                  "and time. Now I shall talk, and you " +
                                  "shall listen.");
@@ -548,10 +554,10 @@ io.on('connection', function(socket) {
 
     //Listener for Disconnects.
     socket.on('disconnect', function() {
-        io.emit('systemMessage', clients[socket.id] + ' has left.');
+        socketServer.broadcast('systemMessage', clients[socket.id] + ' has left.');
         console.log("LEAVE: " + socket.id);
         delete clients[socket.id];
-        io.emit('listRefresh', toArray(clients));
+        socketServer.broadcast('listRefresh', toArray(clients));
     });
 
 });
