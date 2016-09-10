@@ -1,5 +1,17 @@
-/* global parser flairify io nameSanitize $ */
-var socket = io.connect({secure: true});
+/* global parser flairify nameSanitize $ location */
+
+// Setting up websocket. I made some functions to make the syntax less obfuscated.
+window.WebSocket = window.WebSocket || window.MozWebSocket;
+var socket = new WebSocket("wss://" + location.host + location.pathname);
+socket.emit = function() { // This joins socke.emit's args with a delimeter (u0004) and socket.sends them.
+    socket.send( [...arguments].join("") );
+};
+socket.listOfListeners = {};
+socket.on = function(name, func) { // This adds a value to the listOfListeners.
+    this.listOfListeners[name] = func;
+};
+
+// These are the client-side attributes that need to be tracked for chat UI usage. 
 var attributes = {
     nick: "unnamed",
     points: 0,
@@ -154,6 +166,17 @@ function keyPressed(event) {
         }
     }
 }
+
+// Log errors to the console for debugging.
+socket.onerror = function(error) {
+    console.log(error);
+};
+
+// Listen to all socket.on functions.
+socket.onmessage = function(data) { // There has to be a more descriptive name than 'data' for this.
+    data = data.split("");
+    socket.listOfListeners[data[0]]( ...data.slice(1) );
+};
 
 // Points Management.
 socket.on('pointsUpdate', function(pointValue) {
