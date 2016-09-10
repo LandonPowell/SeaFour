@@ -61,6 +61,7 @@ function pointsToRenown(points) { // Converts a point value to a 'renown' aka an
     }
     return renown;
 }
+
 function achievementHandler(message, username) { // Distributes achievements based on messages. 
     var beforePoints = users[username].points || 0;
     var achievements = users[username].achievements || {};
