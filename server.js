@@ -715,17 +715,6 @@ var commands = {
         },
 	},
 
-    // WIP COMMANDS BELOW THIS LINE.
-
-    'banRange' : {
-        role: 3,
-        function(socket, maliciousUser) {
-            var userIP = moderatorSettings.ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
-            moderatorSettings.banList.push( userIP.substr(0, 14) );
-            socket.send(delimit( 'systemMessage', userIP + " has been banned." ));
-        },
-	},
-
     'genocide' : {
         role: 3,
         function(socket) {
@@ -739,6 +728,18 @@ var commands = {
             });
         },
 	},
+
+    // WIP COMMANDS BELOW THIS LINE.
+
+    'banRange' : {
+        role: 3,
+        function(socket, maliciousUser) {
+            var userIP = moderatorSettings.ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
+            moderatorSettings.banList.push( userIP.substr(0, 14) );
+            socket.send(delimit( 'systemMessage', userIP + " has been banned." ));
+        },
+	},
+
 };
 
 // RTC server using Web Sockets. Wew lad, we're in the future now.
