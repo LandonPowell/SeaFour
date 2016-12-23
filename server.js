@@ -1,96 +1,155 @@
+// Initializer.
 var express = require('express');
 var app     = express();
-var http    = require('http').Server(app);
+var http    = require('http');
+var https   = require('https');
+var webServer   = http.Server(app);
+var imageMagick = require('imagemagick');
 
+var serverData = {};
+
+// Cryptography intializers.
+var crypto  = require('crypto');
+var sjcl    = require('sjcl');
+var ECDH    = require('elliptic').ec;
+var ec      = new ECDH('curve25519');
+serverData.keyPair = ec.genKeyPair();
+serverData.tokens = {};
+
+// User database initializers.
+var mongodb = require('mongodb').MongoClient;
+
+var collection; // Make 'collection' a global variable.
+mongodb.connect("mongodb://localhost:27017/c4", function(err, db) { 
+    // If mongo is acting up, this might not connect, meaning 'collection' is left undefined.
+    if (err) throw "I wasn't able to connect to Mongo.";
+
+    collection = db.collection('users');
+    console.log("I've connected to Mongo.");
+});
+
+// WebSockets Settings
 var webSocketServer = require('ws').Server;
-var socketServer    = new webSocketServer({ server: http });
+var socketServer    = new webSocketServer({ server: webServer });
+
+function delimit() {
+    return Array.from(arguments).join("\u0004");
+}
+
 socketServer.broadcast = function() {
+    var args = Array.from(arguments);
     socketServer.clients.forEach(function(client) {
-        client.send(arguments[0].join(""));
+        client.send(args.join("\u0004"));
     });
 };
 
-var hash        = require('./lib/hash');
-var jsonfile    = require('jsonfile');
+serverData.rooms = {
+    'main' : {  // By default, we have a 'main' room.
+        clients : [],   // Connected sockets.
+        posts : 0,      // Posts made so far.
+        topic : "Warning - Highly Explosive", // The current topic. 
+    },
+};
 
-app.use(express.static(__dirname + '/public/'));
-app.set('view engine', 'pug');
+serverData.roomUsers = function(room) {
+    var nameList = [];
+    if (serverData.rooms[room] == undefined) return nameList;
 
-function toArray(object) {
-    var newArray = [];
-    for (var key in object) {
-        newArray.push(object[key]);
+    var clients = serverData.rooms[room].clients;
+    for (var client in clients) {
+        nameList.push( clients[client].nick );
     }
-    return newArray;
-}
+    return nameList;
+};
+
+socketServer.roomBroadcast = function(room) {
+    var args = Array.from(arguments).slice(1);
+    var clients = serverData.rooms[room].clients;
+    clients.forEach(function(client) {
+        if (client.readyState == 1) client.send(args.join("\u0004"));
+    });
+};
 
 // Functions used to wrap long statements in a more readable form. 
 function usableVar(variable) {  // Checks if a variable won't fuck something up.
     return typeof( variable ) === "string" && variable;
 }
+
 function nameSanitize(nick) {   // Changes unimportant chars to dashes. 
     return nick.toLowerCase()
                .replace(/[^a-z\d]+/gi, "-")
                .replace(/-?([\w]+(?:-[\w]+)*)-?/g, "$1");
 }
-function checkValidName(nick) { // Checks if a name contains no strange chars or is taken.
-    if ( ['-', '', 'www'].indexOf(nameSanitize(nick)) + 1 ) return false;
 
-    return  !users[nameSanitize(nick)] && 
-            nick.replace(/[^\u0020-\u007e]/gi, "") == nick &&
+function checkValidName(nick) { // Checks if a name contains no strange chars or is taken.
+    if (
+        ['www', 'main', 'server', 'http'] // Reserved and possibly malicious names.
+        .indexOf(nameSanitize(nick)) + 1 
+    ) return false; // It's an array so I can put more in it later without doing much. 'Maintainability.'
+
+    return  nick.replace(/[^\u0020-\u007e]/gi, "") == nick &&
             nick.indexOf("\n") < 0 &&
-            nick.length < 30;
+            nick.length < 30 && nick.length > 2;
 }
+
+// Functions dedicated to achievements and points.
 function onlineIPs(clients) {
     var ipList = [];
     for ( var user in clients ) {
-        var ip = ipLog[nameSanitize(clients[user])];
+        var ip = moderatorSettings.ipLog[nameSanitize(clients[user])];
         if (ipList.indexOf(ip) < 0) ipList.push(ip);
     }
     return ipList.length;
 }
 
-function pointsToRenown(points) { // Converts a point value to a 'renown' aka an XP level from total XP;
-    if ( points == Infinity ) return Infinity;
-    if ( ! points ) return 0;
-
-    var renown = 0;
-    while ( points > 12 ) {
-        renown++;
-        points = points / 12;
+var keywordAchievements = {
+    drumpf : {
+        keywords: ['trump', 'drumpf', 'make america great again'],
+        limit: 3,   // The 'limit' is the amount of messsages needed to make it go off.
+        value: 300, // The 'value' is the amount of XP given upon completion. 
+    },
+    pol : {
+        keywords: ['9/11', 'jews', 'adolf', 'hitler'],
+        limit: 6,
+        value: 911,
+    },
+    autism : {
+        keywords: ['fursona', 'call of duty', 'vidya', 'weed', 'xdd', '420'],
+        limit: 3,
+        value: 420,
     }
-    return renown;
+};
+
+function pointsToRenown(points) { // Converts a point value to a 'renown' aka an XP level from total XP;
+    if (!points) return 0;
+    return Math.floor( points / 16383 ); // 16,383 = 2^14 - 1 = 11111111111111 in binary
 }
 
-function achievementHandler(message, username) { // Distributes achievements based on messages. 
-    var beforePoints = users[username].points || 0;
-    var achievements = users[username].achievements || {};
-    var news = [];
+function achievementHandler(message, username, result) { // Distributes achievements based on messages.
+    username = nameSanitize(username);
+
+    collection.findOne({ name : username },
+    function(err, result) {
+        if (err | !result) return [];
+
+        var beforePoints = result.points || 0;
+        var achievements = result.achievements || {};
+        var news = [];
+
+        collection.updateOne({
+            'name' : username,
+        },
+        {
+            $set : { 'key' : value },
+        });
+    });
 
     users[username].points = // This code-block adds more points.
-        beforePoints + 
+        beforePoints +
         message.substr(0,150).length * onlineIPs(clients);
 
-    var achievementSystem = {
-        drumpf : {
-            keywords: ['trump', 'drumpf', 'make america great again'],
-            limit: 5,   // The 'limit' is the amount of messsages needed to make it go off.
-            value: 300, // The 'value' is the amount of XP given upon completion. 
-        },
-        pol : {
-            keywords: ['9/11', 'jews', 'adolf', 'hitler'],
-            limit: 100,
-            value: 6000000,
-        },
-        autism : {
-            keywords: ['fursona', 'call of duty', 'vidya', 'weed', 'xdd', '420'],
-            limit: 3,
-            value: 420,
-        }
-    };
-
-    for ( var achievement in achievementSystem ) {
-        var achievementData = achievementSystem[achievement];
+    for ( var achievement in keywordAchievements ) {
+        var achievementData = keywordAchievements[achievement];
         if ( achievements[achievement] != "done" ) {
             var doesContain = false;
             for ( var i = 0; i < achievementData.keywords.length; i++ ) {
@@ -126,51 +185,13 @@ function achievementHandler(message, username) { // Distributes achievements bas
     return news;
 }
 
-var clients = {};       // List of currently connected nicks by socketID.
-var postCount = 0;      // Amount of posts made so far. Used for Post IDs.
-
-// User Database
-var users;
-
-jsonfile.readFile('database.json', function(err, obj) {
-    users = obj;
-    if  (err)   console.log('Database Errors: ' + err);
-    else        console.log('Database loaded. ');
-});
-
-function updateDatabase(socket, successMessage) {
-    jsonfile.writeFile('database.json', users, function(err) {
-        if ( socket && successMessage ) {
-            if  (err)   socket.emit('systemMessage', 'ERROR: ' + err);
-            else        socket.emit('systemMessage', successMessage);
-        }
-    });
-}
-
-function generateSalt() { /* ! THIS IS PROBABLY NOT CRYPTO-HEALTHY CODE ! */
-    var salt = "";
-    for (var i = 0; i < 64; i ++)
-        salt += Math.random().toString(36).substr(2,1); /* ! PSEUDORANDOM ! */
-    return salt;
-    /*\
-     *  Later idea for higher sec - Allow the users to seed using input
-     *  from their mouse.  This would be way less prediction-prone than
-     *  using a pseudorandom number generator. Kind of inspired by that
-     *  one thing I can't remember right now, that makes you shake your
-     *  mouse around when you first install it in to get a random number.
-     *  That'll probably lag a lot though, so I don't really have plans
-     *  to implement it. 
-    \*/
-}
-
 // Moderation and antispam related variables, functions, and calls. 
-var ipLog   = {};       // Stores IP based on username. Isn't in the DB because muhfreedom.
-var banList = [];       // List of banned IPs. 
-var superBanList = [];  // List of IPs that aren't even allowed to see the chat. NSA goes here. :^)
 
 var moderatorSettings = {
     quiet   : false, // Disallows unregistered from posting; they can watch.
-    topic   : "Welcome to SeaFour.club" // The current topic. 
+    ipLog   : [],
+    banList : [],       // List of banned IPs.
+    superBanList : []   // List of IPs that aren't even allowed to see the chat. NSA goes here. :^)
 };
 
 /*\ 
@@ -180,409 +201,815 @@ var moderatorSettings = {
  * of a day in milliseconds, and I'll completely ignore that leap seconds and 
  * DST are real things.
 \*/
+
 setTimeout( function() {
     setInterval(function() {
-        banList = [];
+        moderatorSettings.banList = [];
+        serverData.keyPair = ec.genKeyPair(); // Reset keypair every night.
     }, 86400000);
 }, ( 24 - new Date().getHours() ));
 
 var ipEmits = {};       // Stores the number of emits made by any IP. 
 setInterval(function() { ipEmits = {}; }, 3000);    // Every 3 seconds, clear.
-function addEmit(ipAddress, socketID) {
+function addEmit(ipAddress, socket) {
     if (ipEmits[ipAddress]) ipEmits[ipAddress] += 1;
     else                    ipEmits[ipAddress]  = 1;
 
-    if (ipEmits[ipAddress] > 3) {   // Limits posts to 3. 
-        banList.push(ipAddress);
+    if (ipEmits[ipAddress] > 6) {   // Limits normal emits. 
+        moderatorSettings.banList.push(ipAddress);
         console.log(ipAddress + " has been banned.");
+        socket.close();
     }
 
-    if (ipEmits[ipAddress] > 5) {   // Limits spam emits to 4. 
-        superBanList.push(ipAddress);
+    if (ipEmits[ipAddress] > 10) {   // Limits spam emits. 
+        moderatorSettings.superBanList.push(ipAddress);
         console.log(ipAddress + " has been super banned.");
 
-        if (socketServer.sockets.connected[ socketID ]) { 
-            socketServer.sockets.connected[ socketID ].disconnect();
+        if ( socket.readyState == 1 ) {
+            socket.close();
         }
     }
 }
 
-// RTC using Web Sockets. Wew lad, we're in the future now.
+var commands = {
+    // Simple messages.
+    'roomMessage' : {
+        function(socket, message) {
+            serverData.rooms[socket.room].posts++;
+
+            var flair;
+            collection.findOne({'name' : nameSanitize(socket.nick)},
+            function(err, result) {
+
+                if ( !err && result ) { 
+                    flair = result.flair;
+                    if (! usableVar(flair) ) flair = false; // If the flair isn't usable, set it to a boolean false;
+    
+                    var achievementNews = []// achievementHandler(message, username);
+    
+                    for (var i = 0; i < achievementNews.length; i++) {
+                        socket.send(delimit( 'systemMessage', achievementNews[i] ));
+                    }
+    
+                    socket.send(delimit( 'pointsUpdate', result.points ));
+                }
+
+                socketServer.roomBroadcast(socket.room,
+                    'roomMessage',
+                    socket.nick, 
+                    message.substr(0,6000), 
+                    serverData.rooms[socket.room].posts.toString(36),
+                    flair
+                );
+
+            });
+        },
+    },
+
+    'me' : {
+        function(socket, message) {
+            socketServer.roomBroadcast(socket.room,
+                'me', socket.nick+" "+message.substr(0,2048));
+        }
+    },
+
+    'specialMessage' : {
+        function(socket, type, message) {
+            var approvedTypes = ["term", "carbonite", "badOS"]; // Default approved types.
+
+            collection.findOne({'name' : socket.nick},
+            function(err, result) {
+
+                if ( !err && result ) {
+                    var achievements = result.achievements;
+                    for (var achievement in achievements) {
+                        if (achievements[achievement] == "done") {
+                            approvedTypes.push(result.achievements);
+                        }
+                    }
+                }
+
+                if ( approvedTypes.indexOf(type) + 1 ) {
+                    socketServer.roomBroadcast(socket.room,
+                        'specialMessage', type, socket.nick, message.substr(0,2048) );
+                }
+                else {
+                    socket.send(delimit( 'systemMessage', "I can't let you do that, Dave." ));
+                }
+
+            });
+        },
+    },
+
+    // Get an encrypted private key.
+    'getEncryptedPrivateKey' : {
+        function(socket, nick) {
+            collection.findOne({'name' : nameSanitize(nick)},
+            function(err, result) {
+                if (err || !result) {
+                    socket.send(delimit( 'systemMessage', "That user doesn't exist." ));
+                    socket.send(delimit( 'encryptedPrivateKey', nameSanitize(nick), "" ));
+                    return false;
+                }
+
+                socket.send(delimit( 'encryptedPrivateKey',
+                    nameSanitize(nick),
+                    result.encryptedPrivateKey
+                ));
+            });
+        },
+    },
+
+    // Registering, logging in, and changing names.
+    'register' : {
+        function(socket, nick, publicKey, encryptedPrivateKey) {
+
+            if ( !checkValidName(nick) ) {
+                socket.send(delimit( 'systemMessage', "You're not able to use " + nick + "."));
+                socket.send('badLogin');
+                return false;
+            }
+            collection.findOne({'name' : nameSanitize(nick)},
+            function(err, result) {
+                if (err || result) { // If this is true, someone else already registered.
+                    socket.send(delimit( 'systemMessage', "That's someone else."));
+                    socket.send('badLogin');
+                    return false;
+                }
+
+                collection.insert({
+                    'name' : nameSanitize(nick),
+                    'role' : 0,
+                    'publicKey' : publicKey,
+                    'encryptedPrivateKey' : encryptedPrivateKey,
+                },
+                function(err, result) {
+                    if (err) { console.log(err); return false; }
+
+                    socket.send(delimit( 'systemMessage', "You are now registered, " + nick + "."));
+                    socket.send(delimit( 'nickRefresh', nick ));
+
+                    socket.nick = nick;
+                    socket.role = 0;
+
+                    socketServer.roomBroadcast(socket.room, 
+                        'listRefresh', serverData.roomUsers(socket.room).join("\u0004"));
+                    moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket._socket.remoteAddress;
+                });
+            });
+        },
+    },
+
+    'createToken' : { // Token is created for later authentication.
+        // In order to create a token
+        function(socket, nick) {
+            collection.findOne({'name' : nameSanitize(nick)},
+            function(err, result) {
+                if (err || !result) return false;
+
+                var plainToken = crypto.randomBytes(666).toString('hex'); // Firstly, create a random string. The end user will need to determine this.
+
+                var sharedKey = serverData.keyPair.derive( // Nextly, we find the sharedKey between the server and our user.
+                    ec.keyFromPublic(result.publicKey, 'hex').pub
+                ).toString(36);
+
+                var cryptoToken = sjcl.encrypt(sharedKey, plainToken); // Cryptographically secured token. We give this to the end user, who then decrypts it.
+
+                serverData.tokens[plainToken] = { // We use the plainToken as a key, so we'll be able to easily access it.
+                    userName : nameSanitize(nick), // Username is stored for later confirmation.
+                    role  : result.role,
+                };
+
+                setTimeout(function() { // Delete the token after 2 seconds for obvious reasons.
+                    delete serverData.tokens[plainToken];
+                }, 2000);
+
+                socket.send(delimit('cryptoToken', cryptoToken)); // Send the user the encryptedToken so he can decrypt it and send it back.
+            });
+        },
+    },
+
+    'authenticate' : { // Authenticate based upon a token.
+        function(socket, nick, token) {
+            if ( !serverData.tokens[token] ) {
+                socket.send(delimit('systemMessage',
+                    "You weren't able to authenticate as " + nameSanitize(nick) + "."
+                ));
+                return false;
+            }
+
+            var tokenObject = serverData.tokens[token];
+
+            if ( tokenObject.userName == nameSanitize(nick) ) {
+                socket.send(delimit( 'systemMessage', "You are now authenticated, " + nick + "."));
+                socket.send(delimit( 'nickRefresh', nick ));
+
+                socket.nick = nick;
+                socket.role = tokenObject.role;
+
+                socketServer.roomBroadcast(socket.room, 
+                    'listRefresh', serverData.roomUsers(socket.room).join("\u0004"));
+
+                moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket._socket.remoteAddress;
+            }
+            else {
+                socket.send(delimit('systemMessage',
+                    "You weren't able to authenticate as " + nameSanitize(nick) + "."
+                ));
+                socket.send('badLogin');
+            }
+        },
+    },
+
+    'changeNick' : {
+        function(socket, nick) {
+            if ( !checkValidName(nick) ) {
+                socket.send(delimit( 'systemMessage', "That user is already registered." ));
+                return false;
+            }
+
+            socketServer.roomBroadcast(socket.room,
+                'systemMessage', socket.nick + " is now known as " + nick);
+
+            socket.send(delimit( 'nickRefresh', nick ));
+
+            socket.nick = nick;
+            moderatorSettings.ipLog[nameSanitize(nick)] = socket._socket.remoteAddress;
+
+            socketServer.roomBroadcast(socket.room, 
+                'listRefresh', serverData.roomUsers(socket.room).join("\u0004"));
+        }
+    },
+    // Room management.
+    'join' : {
+        function(socket, room) {
+            // To-do. Maybe clean this up?
+
+            socketServer.roomBroadcast(socket.room,
+                'systemMessage', socket.nick + ' has left.');
+    
+            var index = serverData.rooms[socket.room].clients.indexOf(socket);
+            if (index + 1) serverData.rooms[socket.room].clients.splice(index, 1);
+    
+            socketServer.roomBroadcast(socket.room, 
+                'listRefresh', serverData.roomUsers(socket.room).join("\u0004"));
+
+            function joinBroadcast(room) {
+                serverData.rooms[room].clients.push(socket);
+                socket.send(delimit( 'topic', serverData.rooms[room].topic ));
+
+                socketServer.roomBroadcast(room, 
+                    'systemMessage', socket.nick + ' has joined.');
+
+                socketServer.roomBroadcast(room, 
+                    'listRefresh', serverData.roomUsers(room).join("\u0004"));
+            }
+
+            if (serverData.rooms[room]) {
+                socket.room = room;
+                joinBroadcast(socket.room);
+                return true;
+            }
+        
+            collection.findOne({'name' : nameSanitize(room) },
+            function(err, result) {
+                if (err || !result) {
+                    socket.send('badRoom');
+                    return false;
+                }
+
+                socket.room = room;
+                joinBroadcast(socket.room);
+            });
+        }
+    },
+
+    // Whispering.
+    'directMessage' : {
+        function(socket, userTo, message) {
+            var wasSent = false;
+
+            socketServer.clients.forEach(function(client) {
+                if ( client.nick == userTo ) {
+                    client.send(delimit('directMessage', "from",
+                                nameSanitize(socket.nick),
+                                message.substr(0,1000)));
+                    wasSent = true;
+                }
+            });
+
+            if ( !wasSent ) {
+                socket.send(delimit( 'systemMessage', "That user isn't online right now." ));
+                return false;
+            }
+
+            socket.send(delimit( 'directMessage', "to",
+                        nameSanitize(userTo),
+                        message.substr(0,1000)) );
+
+        }
+    },
+
+    // Check user details.
+    'who' : {
+        function(socket, userName) {
+            userName = nameSanitize(userName);
+            collection.findOne({'name' : nameSanitize(userName)},
+            function(err, result) {
+                if (err || !result) {
+                    socket.send(delimit('systemMessage', 
+                        userName + " isn't registered."
+                    ));
+                    return false;
+                }
+                socket.send(delimit('systemMessage', 
+                    userName + " is role " + result.role + "."
+                ));
+            });
+        }
+    },
+
+    'getPublicKey' : {
+        function(socket, nick) {
+            if (nick == "server") {
+                socket.send(delimit( 'publicKey',
+                    'server',
+                    serverData.keyPair.getPublic('hex')
+                ));
+                return true;
+            }
+
+            collection.findOne({'name' : nameSanitize(nick)},
+            function(err, result) {
+                if (err || !result) {
+                    socket.send(delimit( 'systemMessage', "That user doesn't exist." ));
+                    socket.send(delimit( 'publicKey', nameSanitize(nick), "" ));
+                    return false;
+                }
+
+                socket.send(delimit( 'publicKey',
+                    nameSanitize(nick),
+                    result.publicKey
+                ));
+            });
+        },
+    },
+
+    // Registered exclusive commands.
+    'flair' : {
+        role : 0,
+        function(socket, flair) {
+            collection.updateOne({'name' : nameSanitize(socket.nick)},
+                { $set : { 'flair' : flair  } }
+            );
+            socket.send(delimit('systemMessage', "Your flair has been updated."));
+        },
+    },
+
+    'bio' : {
+        role : 0,
+        function(socket, bio) {
+            collection.updateOne({'name' : nameSanitize(socket.nick)},
+                { $set : { 'bio' : bio  } }
+            );
+            socket.send(delimit('systemMessage', "Your bio has been updated."));
+        },
+    },
+
+    'website' : {
+        role : 0,
+        function(socket, link) {
+            collection.updateOne({'name' : nameSanitize(socket.nick)},
+                { $set : { 'website' : link  } }
+            );
+            socket.send(delimit('systemMessage', "Your website has been updated."));
+        },
+    },
+
+    // Room settings.
+    'topic' : {
+        role: 0, 
+        function(socket, newTopic) {
+            var room = socket.room;
+            var mods = serverData.rooms[room].mods;
+
+            if (mods && mods.indexOf(nameSanitize(socket.nick)) < 0 ) {
+                socket.send(delimit('systemMessage', "You aren't an approved moderator here."));
+                return false;
+            }
+
+            serverData.rooms[room].topic = newTopic.substr(0, 27);
+            socketServer.roomBroadcast(room, 
+                'topic', newTopic.substr(0, 27));
+        }
+    },
+
+    // Global moderator exclusive commands.
+    'fistOfRemoval' : {
+        role: 1,
+        function(socket, removedUser) {
+            removedUser = nameSanitize(removedUser);
+            collection.findOne({'name' : removedUser},
+            function(err, result) {
+                if (err || !result || socket.role > result.role) {
+                    var clients = serverData.rooms[socket.room].clients;
+
+                    for (var client in clients) {
+                        if (nameSanitize(clients[client].nick) == removedUser) {
+                            clients[client].close();
+                            return true;
+                        }
+                    }
+
+                    socket.send(delimit('systemMessage', "That user isn't in this room."));
+                    return false;
+                }
+                socket.send(delimit('systemMessage', "That user seems to have a level too high for you to kick."));
+            });
+        },
+    },
+
+    'getIP' : {
+        role: 2,
+        function(socket, searchedUser) {
+            socket.send(delimit('systemMessage', 
+                moderatorSettings.ipLog[ nameSanitize(searchedUser) ] || "no-ip-available"
+            ));
+        },
+    },
+
+    'roleChange' : {
+        role: 2,
+        function(socket, changedUser, role) {
+
+            changedUser = nameSanitize(changedUser);
+            role = parseInt(role, 10);
+            if (socket.role < role && false) {
+                socket.send(delimit('systemMessage', "Your role is too low."));
+                return false;
+            }
+
+            collection.findOne({
+                'name' : changedUser,
+                'role' : { $lt : socket.role },
+            },
+            function(err, result) {
+                if (err || !result) {
+                    socket.send(delimit('systemMessage', changedUser + " does not exist or is too highly ranked."));
+                }
+                else {
+                    socket.send(delimit('systemMessage', changedUser + "'s role is now " + role + "."));
+                }
+            });
+
+            collection.updateOne({
+                'name' : changedUser,
+                'role' : { $lt : socket.role },
+            },
+            {
+                $set : { 'role' : role },
+            });
+
+        },
+    },
+
+    'ban' : {
+        role: 2,
+        function(socket, maliciousUser) {
+            var userIP = moderatorSettings.ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
+            moderatorSettings.banList.push( userIP );
+            socket.send(delimit('systemMessage', userIP + " has been banned."));
+        },
+    },
+
+    'superBan' : {
+        role: 3,
+        function(socket, maliciousUser) {
+            var userIP = moderatorSettings.ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
+            moderatorSettings.superBanList.push( userIP );
+            socket.send(delimit( 'systemMessage', userIP + " has been super banned." ));
+        },
+	},
+
+    'clearBans' : {
+        role: 2,
+        function(socket) {
+            moderatorSettings.banList = [];
+            socketServer.broadcast('systemMessage', "The ban list has been cleared.");
+        },
+    },
+
+    'clearSuperBans' : {
+        role: 2,
+        function(socket) {
+            moderatorSettings.superBanList = [];
+            socketServer.broadcast('systemMessage', "The super ban list has been cleared.");
+        },
+    },
+
+    'quiet' : {
+        role: 2,
+        function(socket) {
+            moderatorSettings.quiet = !moderatorSettings.quiet;
+            socketServer.broadcast('systemMessage', "Quiet mode set to " + moderatorSettings.quiet);
+        },
+	},
+
+    // WIP COMMANDS BELOW THIS LINE.
+
+    'banRange' : {
+        role: 3,
+        function(socket, maliciousUser) {
+            var userIP = moderatorSettings.ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
+            moderatorSettings.banList.push( userIP.substr(0, 14) );
+            socket.send(delimit( 'systemMessage', userIP + " has been banned." ));
+        },
+	},
+
+    'genocide' : {
+        role: 3,
+        function(socket) {
+            socketServer.broadcast('systemMessage', "There is much talk, and I have " +
+                                     "listened, through rock and metal " +
+                                     "and time. Now I shall talk, and you " +
+                                     "shall listen.");
+    
+            socketServer.clients.forEach(function(client) {
+                client.close();
+            });
+        },
+	},
+};
+
+// RTC server using Web Sockets. Wew lad, we're in the future now.
 socketServer.on('connection', function(socket) {
+    addEmit( socket._socket.remoteAddress, socket );
+    socket.room = "main"; // Default fallback room is 'main'. To-do
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
-    if( ipEmits[socket._socket.remoteAddress] > 4 || 
-        superBanList.indexOf(socket._socket.remoteAddress) + 1 ) {
+    if ( ipEmits[socket._socket.remoteAddress] > 6 || 
+         moderatorSettings.superBanList.indexOf(socket._socket.remoteAddress) + 1 ||
+         collection === undefined ) { // If the collection is undefined, they've joined so quickly the server couldn't even startup.
+
         console.log("Spammer detected at " + socket._socket.remoteAddress);
         socket.close();
+
+        return false;
     }
-    else {
 
-        socket.emit('topic', moderatorSettings.topic);
-        clients[socket.id] = Math.random().toString(16).substr(2,6);
-        socket.emit('nickRefresh', clients[socket.id]);
+    // Handlng the more 'front end' aspect of joining.
+    socket.nick = Math.random().toString(16).substr(2,6);
+    socket.send(delimit( 'nickRefresh', socket.nick ));
+    moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket._socket.remoteAddress;
 
-        ipLog[nameSanitize(clients[socket.id])] = socket._socket.remoteAddress;
-        console.log("JOIN: " + socket.id);
-        socketServer.broadcast('systemMessage', clients[socket.id] + ' has joined.');
-        socketServer.broadcast('listRefresh', toArray(clients));
+    socket.on('message', function(data) {
+        addEmit( socket._socket.remoteAddress, socket );
 
-    }
-    addEmit( socket._socket.remoteAddress, socket.id );
+        var parameters = data.split("\u0004");
 
-    // Core Listeners.
-    socket.on('login', function(nick, password) { 
+        var command = commands[ parameters[0] ];
 
-        /* LOTS OF SECURITY-SPAGHETTI AHEAD. */
-        /* Simplicity leads to storing passwords in plaintext, I guess. */
-
-        if ( usableVar(nick) && usableVar(password) && users[nameSanitize(nick)] &&
-             users[nameSanitize(nick)].password == hash.sha512(password + users[nameSanitize(nick)].salt) ) {
-            
-            socketServer.broadcast('systemMessage', clients[socket.id] + " is now known as " + nick);
-            socket.emit('nickRefresh', nick);
-
-            clients[socket.id] = nick;
-            ipLog[nameSanitize(nick)] = socket._socket.remoteAddress;
-
-            socketServer.broadcast('listRefresh', toArray(clients));
+        if ( command == undefined ) { // If a dumbass sends a command that isn't real.
+            socket.send(delimit( 'systemMessage', parameters[0] + ' is not a command.' ));
+            return false;
         }
-        else { 
-            socket.emit('systemMessage', 
-                        "That doesn't seem to be a registered combination. " +
-                        "Please make sure you type '.login User Password'.");
+
+        if ( (moderatorSettings.quiet && !users[ nameSanitize(socket.nick) ])   ||      // If the mute applies.
+              moderatorSettings.banList.indexOf( socket._socket.remoteAddress ) + 1 ) { // If the user is banned. 
+            return false;
         }
-        addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
-    });
-    
-    function socketEmit(command, func) { // Disallows spammers.
-        socket.on(command, function(arg1, arg2){ 
-            if ((!moderatorSettings.quiet ||                    // These two bools check 
-                 users[ nameSanitize(clients[socket.id]) ]) &&  // if the mute applies. 
-                 banList.indexOf( ipLog[nameSanitize(clients[socket.id])] ) < 0 ) {  // This checks if the user is banned. 
 
-                if (! usableVar(arg1)) arg1 = "I'm a stupid Idiot";   // This solution is a
-                if (! usableVar(arg2)) arg2 = "I'm a stupid Idiot";   // thousand times funnier.
+        for (var x = 1; x <= 2; x++) {
+            if ( !usableVar(parameters[x]) ) {
+                parameters[x] = "I'm a stupid idiot.";   // Funniest solution of the century.
+            }
+        }
 
-                func(arg1, arg2); // This calms the Disco Pirates
+        if ( command.role != undefined && 
+           ( socket.role == undefined || socket.role < command.role ) ) {
+
+            if (command.role == 0) {
+                socket.send(delimit( 'systemMessage', parameters[0] + ' requires you to be registered.' )); 
             }
             else {
-                socket.emit('systemMessage', "Either only logged in users are " +
-                                              "allowed to post, or you've been " +
-                                              "disallowed from posting. " +
-                                              "Maybe you'd just like to watch?");
+                socket.send(delimit( 'systemMessage', parameters[0] + ' requires at least role ' + command.role + '.' ));
             }
-            addEmit( ipLog[nameSanitize(clients[socket.id])], socket.id );
-        });
-    }
-
-    socketEmit('userMessage', function(message) {
-        postCount++;
-
-        var flair;
-        var username = nameSanitize(clients[socket.id]);
-        if ( users[username] ) {    // If the user is registered. 
-            flair = users[username].flair;
-
-            var achievementNews = achievementHandler(message, username);
-
-            for (var i = 0; i < achievementNews.length; i++) {
-                socket.emit('systemMessage', achievementNews[i]);
-            }
-
-            socket.emit('pointsUpdate', users[username].points);
-        }
-
-        if (! usableVar(flair) ) flair = false; // If the flair isn't usable, set it to a boolean false;
-
-        socketServer.broadcast('userMessage',  clients[socket.id], 
-                                message.substr(0,6000), 
-                                postCount.toString(36), 
-                                flair);
-    });
-
-    socketEmit('me', function(message) {
-        socketServer.broadcast('me', clients[socket.id]+" "+message.substr(0,2048));
-    });
-
-    socketEmit('specialMessage', function(type, message) {
-        var approvedTypes = ["term", "carbonite", "badOS"]; // Default approved types.
-
-        var user = users[nameSanitize(clients[socket.id])];
-        if ( user ) {
-            var achievements = user.achievements || {};
-            for ( var achievement in achievements ) {
-                if ( achievements[achievement] == "done" ) {
-                    approvedTypes.push(achievement);
-                    
-                }
-            }
-        }
-
-        if ( approvedTypes.indexOf(type) + 1 ) {
-            socketServer.broadcast('specialMessage', 
-                     type, clients[socket.id], message.substr(0,2048));
-        }
-        else {
-            socket.emit('systemMessage', "I can't let you do that, Dave.");
-        }
-    });
-
-    socketEmit('directMessage', function(userTo, message) {
-        var toSocketID = Object.keys(clients).find(
-            name => nameSanitize(clients[name]) == nameSanitize(userTo)
-        );
-
-        if ( toSocketID ) {
-            io.sockets.connected[ toSocketID ].emit('directMessage', "from",
-                                                     nameSanitize(clients[socket.id]),
-                                                     message.substr(0,1000));
-            socket.emit('directMessage', "to", 
-                         nameSanitize(userTo), 
-                         message.substr(0,1000));
-        }
-        else {
-            socket.emit('systemMessage', "That user isn't online right now.");
-        }
-    });
-
-    // Commands related to Registration and User Accounts.
-    socketEmit('changeNick', function(nick) {
-        if ( checkValidName(nick) ) {
-            socketServer.broadcast('systemMessage', clients[socket.id]+" is now known as "+nick);
-            socket.emit('nickRefresh', nick);
-
-            clients[socket.id] = nick;
-            ipLog[nameSanitize(nick)] = socket._socket.remoteAddress;
-
-            socketServer.broadcast('listRefresh', toArray(clients));
-        }
-        else {
-            socket.emit('systemMessage', "That user is already registered.");
-        }
-    });
-
-    socketEmit('register', function(nick, password) {
-        if ( checkValidName(nick) && nick.replace(/[\da-f]{6}/gi, "") ) {
-
-            socketServer.broadcast('systemMessage', clients[socket.id]+" is now known as "+nick);
-            socket.emit('nickRefresh', nick);
-
-            clients[socket.id] = nick;
-            ipLog[nameSanitize(nick)] = socket._socket.remoteAddress;
-
-            socketServer.broadcast('listRefresh', toArray(clients));
-
-            var salt = generateSalt();
-            users[nameSanitize(clients[socket.id])] = {
-                "password"  : hash.sha512(password + salt),
-                "salt"      : salt,
-                "flair"     : null,
-                "corp"      : 0, /* Becomes an object upon incorporation */
-                "role"      : 0, /* Default role is 0 */
-            };
-            updateDatabase(socket, "You are now registered.");
+            return false;
 
         }
-        else {
-            socket.emit('systemMessage', "That user is already registered.");
-        }
-    });
 
-    socketEmit('reRegister', function(password) {
-        var salt = generateSalt();
-        if ( clients[socket.id].replace(/[\da-f]{6}/gi, "") ) {
-            users[nameSanitize(clients[socket.id])] = {
-                "password"  : hash.sha512(password + salt),
-                "salt"      : salt,
-                "flair"     : null,
-                "corp"      : 0, /* Becomes an object upon incorporation */
-                "role"      : 0, /* Default role is 0 */
-            };
-            updateDatabase(socket, "You are now registered.");
-        }
-        else {
-            socket.emit('systemMessage', "That doesn't look right. Try again.");
-        }
-
-    });
-
-    socketEmit('who', function(userName) {
-        if ( users[nameSanitize(userName)] ) {
-            var user = users[nameSanitize(userName)];
-            var message = nameSanitize(userName) + 
-                          " is role " + user.role + 
-                          ", with flair " + user.flair;
-
-            if (user.corp) message += ", and is incorporated.";
-            else           message += ", and isn't incorporated.";
-
-            socket.emit('systemMessage', message);
-        }
-        else {
-            socket.emit('systemMessage', 
-                nameSanitize(userName) + " is not registered."
-            );
-        }
-    });
-
-    //Function for commands that require registering or a specific role.
-    function userCommand(command, role, func) {
-        socketEmit(command, function(arg1, arg2){ 
-            if (users[ nameSanitize(clients[socket.id]) ] && 
-                users[ nameSanitize(clients[socket.id]) ].role >= role) {
-                func(arg1, arg2); //This calms the Disco Pirates
-            }
-            else if (role) {
-                socket.emit('systemMessage', "Your role must be "+role+" or higher.");
-            }
-            else {
-                socket.emit('systemMessage', "You must be registered to do that.");
-            }
-        });
-    }
-
-    //Registered-Exclusive listeners.
-    userCommand('flair', 0, function(newFlair) {
-        users[nameSanitize(clients[socket.id])].flair = newFlair.substr(0,255);
-        updateDatabase(socket, "Your flair is now " + newFlair);
-    });
-    userCommand('bio', 0, function(newBio) {
-        users[nameSanitize(clients[socket.id])].bio = newBio;
-        updateDatabase(socket, "Your bio is now: " + newBio);
-    });
-    userCommand('website', 0, function(newWebsite) {
-        users[nameSanitize(clients[socket.id])].website = newWebsite;
-        updateDatabase(socket, "Your website is now " + newWebsite);
-    });
-
-    userCommand('topic', 0, function(newTopic) {
-        moderatorSettings.topic = newTopic.substr(0, 27);
-        socketServer.broadcast('topic', newTopic.substr(0, 27));
-    });
-
-    //Mod-Exclusive Listeners.
-
-    userCommand('fistOfRemoval', 1, function(removedUser) { /* Kick Command */ 
-        if ( users[nameSanitize(removedUser)] &&
-             users[nameSanitize(clients[socket.id])].role > users[nameSanitize(removedUser)].role ||
-             ! users[nameSanitize(removedUser)] ) {
-
-            var removedUserID = Object.keys(clients).find(name => clients[name] == removedUser); 
-
-            if ( removedUserID ) {
-                socketServer.broadcast('systemMessage', removedUser +
-                                          " has been dismissed by " +
-                                          clients[socket.id]);
-                io.sockets.connected[ removedUserID ].disconnect();
-            }
-
-            else {
-                socket.emit('systemMessage', "They don't seem to be online.");
-            }
-
-        }
-        else {
-            socket.emit('systemMessage', "That doesn't look quite right.");
-        }
-    });
-
-    userCommand('getIP', 2, function(searchedUser) {
-        var userIP = ipLog[ nameSanitize(searchedUser) ] || "no-ip-available";
-        socket.emit('systemMessage', userIP);
-    });
-
-    userCommand('roleChange', 2, function(userName, role) {
-        if ( usableVar(userName) && usableVar(role) && 
-             users[nameSanitize(userName)] &&
-             users[nameSanitize(clients[socket.id])].role > users[nameSanitize(userName)].role &&
-             users[nameSanitize(clients[socket.id])].role > parseInt(role, 10) ) {
-
-                users[nameSanitize(userName)].role = parseInt(role, 10);
-                updateDatabase(socket, userName + " is now role: " + role);
-        }
-        else {
-            socket.emit('systemMessage', "That doesn't seem quite right. " + 
-                                         "Try .roleChange userName role ");
-        }
-    });
-
-    userCommand('ban', 2, function(maliciousUser) {
-        var userIP = ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
-        banList.push( userIP );
-        socket.emit('systemMessage', userIP + " has been banned.");
-    });
-
-    userCommand('clearBans', 2, function() {
-        banList = [];
-        socketServer.broadcast('systemMessage', "The ban list has been cleared.");
-    });
-
-    userCommand('clearSuperBans', 2, function() {
-        superBanList = [];
-        socketServer.broadcast('systemMessage', "The super ban list has been cleared.");
-    });
-
-    userCommand('quiet', 2, function() {
-        moderatorSettings.quiet = ! moderatorSettings.quiet;
-        socketServer.broadcast('systemMessage', "Quiet mode set to " + moderatorSettings.quiet);
-    });
-    
-    userCommand('superBan', 3, function(maliciousUser) {
-        var userIP = ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
-        superBanList.push( userIP );
-        socket.emit('systemMessage', userIP + " has been super banned.");
-    });
-
-    userCommand('banRange', 3, function(maliciousUser) {
-        var userIP = ipLog[ nameSanitize(maliciousUser) ] || maliciousUser;
-        banList.push( userIP.substr(0, 14) );
-        socket.emit('systemMessage', userIP + " has been banned.");
-    });
-
-    userCommand('genocide', 3, function() {
-        socketServer.broadcast('systemMessage', "There is much talk, and I have " +
-                                 "listened, through rock and metal " +
-                                 "and time. Now I shall talk, and you " +
-                                 "shall listen.");
-
-        for ( var endUser in clients ) {
-            io.sockets.connected[ endUser ].disconnect();
-        }
-
-        clients = [];
+        parameters[0] = socket;
+        command.function.apply(this, parameters);
     });
 
     //Listener for Disconnects.
-    socket.on('disconnect', function() {
-        socketServer.broadcast('systemMessage', clients[socket.id] + ' has left.');
-        console.log("LEAVE: " + socket.id);
-        delete clients[socket.id];
-        socketServer.broadcast('listRefresh', toArray(clients));
+    socket.on('close', function() {
+        socketServer.roomBroadcast(socket.room,
+            'systemMessage', socket.nick + ' has left.');
+
+        var index = serverData.rooms[socket.room].clients.indexOf(socket);
+        if (index + 1) serverData.rooms[socket.room].clients.splice(index, 1);
+
+        socketServer.roomBroadcast(socket.room, 
+            'listRefresh', serverData.roomUsers(socket.room).join("\u0004"));
     });
 
 });
+
+// Webapp Settings
+app.set('view engine', 'pug');
+
+app.use("/=:room/", function(request, response, giveClient) {
+    if (request.url != '/' && request.url != '/index.html') {
+        giveClient(); // Gives client assets. 
+        return true;
+    }
+
+    var room = nameSanitize(request.params.room);
+
+    if (serverData.rooms[room]) {
+        giveClient();
+        return true;
+    }
+
+    collection.findOne({ 'name' : room },
+    function(err, result) {
+        if (err || !result) {
+            response.render('errorPage', {
+                error: "That room doesn't seem to be available."
+            });
+
+            return false;
+        }
+
+        if (!result.room) {
+            result.room = {
+                topic : "Warning - Highly Explosive", // The current topic. 
+                posts : 0,      // Posts that have been made so far.
+                mods  : [room], // List of people with moderator permissions.
+            };
+        }
+
+        serverData.rooms[room] = result.room;
+        serverData.rooms[room].clients = [];
+
+        giveClient(); // Gives client assets.
+    });
+
+}, express.static(__dirname + '/client/') );
 
 // User account pages. 
-app.get('/[\\w-]+', function (request, response) {
+app.get('/[\\w-]+', function(request, response) {
     var userName = nameSanitize( request.url.substr(1) );
 
-    if ( users[userName] ) response.render('userPage', {
+    collection.findOne({ 'name' : nameSanitize(userName) },
+    function(err, result) {
+        if (err || !result) {
+            response.render('errorPage', {
+                error: "That user doesn't seem to exist."
+            });
+            return false;
+        }
 
-        user:   userName,
+        // Heads up: Pug auto-sanitizes HTML for you, so you
+        // don't have to worry too hard about it; however, stay frosty.
 
-        flair:      users[userName].flair   || "This user has not set a flair yet.",
-        role:       users[userName].role    || "This user has not been given a role yet.",
-        website:    users[userName].website || "This user has not set a website yet.",
-        bio:        users[userName].bio     || "This user has not set a bio yet.",
-
-        renown:     pointsToRenown( users[userName].points || 0 ),
-
+        response.render('userPage', {
+            user:       userName,
+            flair:      result.flair   || "This user has not set a flair yet.",
+            role:       result.role    || "This user has not been given a role yet.",
+            website:    result.website || "This user has not set a website yet.",
+            bio:        result.bio     || "This user has not set a bio yet.",
+            renown:     pointsToRenown( result.points || 0 ),
+        });
     });
-    else response.send( "That user can't be found." );
 
 });
 
-// These lines run the webserver. 
+app.get('/api/[\\w]+', function(request, response) {
+    var userName = request.url.substr(5);
+
+    if (userName == "server") {
+        return response.send(JSON.stringify({
+            publicKey : serverData.keyPair.getPublic('hex')
+        }, null, 4 ));
+    }
+
+    collection.findOne({'name' : nameSanitize(userName) },
+    function(err, result) {
+        if (err || !result) {
+            response.send("{}");
+            return false;
+        }
+
+        response.send(JSON.stringify(
+            result, ["name", "publicKey", "encryptedPrivateKey", "_id"], 4
+        ));
+    });
+});
+
+var lastImage = { // Defined globally so multiple uses of the function below can modify it.
+    url: "",
+    data: "",
+};
+// Image link to 100x100 thumbnail.
+app.get('/img/[^\\s#]+', function(request, response) {
+    var imageSource = request.url.substr(5).replace(/^[^:]*/, "https"); // This cures autism. Some idiots ACTUALLY use http.
+
+    if ( imageSource == lastImage.url ) { // Checks for consecutive requests to the same image.
+        response.writeHead(200, {'Content-Type' : 'image/jpeg'});
+        response.end(lastImage.data, 'binary');
+        return true;
+    }
+
+    https.get(imageSource, function(imageResponse) {
+        var body = '';
+        imageResponse.setEncoding('binary');
+        imageResponse.on('data', function(data) {
+            body += data;
+        });
+        imageResponse.on('end', function() {
+            imageMagick.crop({
+                srcData : body,
+                format  : 'jpg',
+                width   : 100,
+                height  : 100,
+                progressive : true,
+            }, function(err, imageData){
+                if (err) {
+                    console.log(err);
+                    return false; // Note, this is inside an anonymous function.
+                }
+
+                lastImage.url = imageSource;
+                lastImage.data = imageData;
+
+                response.writeHead(200, {'Content-Type' : 'image/jpeg'});
+                response.end(imageData, 'binary');
+            });
+        });
+    }).on('error', function(err) {
+        console.log(err);
+    });
+});
+
+app.get("/", function(request, response, giveClient) {
+    // Warning: The following section is full of reasons why JavaScript is a broken language and ECMA is full of retards. 
+    // I'll fill it with comments so you can understand why.
+
+    var topRooms = [];
+
+    // We duplicate the object so we can remove rooms every run.
+    // If you just do var rooms = serverData.rooms, changing 'rooms' will change serverData. 
+    // "Could you use a function's scope to solve that?" Nope. Modifying a function's argument's keys will modify the input.
+    var rooms = Object.assign({}, serverData.rooms); 
+
+    // {} == {} simply doesn't work in JS.
+    // {} != {} doesn't either.
+    // You simply can't compare objects in JS and get non-retarded results.
+    function hasRooms(rooms) {
+        for (var room in rooms) return true || room;
+        return false;
+    }
+
+    // This is just a selection algorithm that gets the 20 most important rooms.
+    // It's obvious what this does.
+    for (var x = 0; x < 20 && hasRooms(rooms); x++) {
+        var maxRoom = {
+            name: "",
+            posts: -1,
+            users: -1
+        };
+
+        for (var roomName in rooms) {
+            var room = rooms[roomName];
+            if (room.clients.length > maxRoom.users) {
+                maxRoom = {
+                    name: roomName,
+                    posts: room.posts,
+                    users: room.clients.length,
+                };
+            }
+            else if (room.clients.length == maxRoom.users) {
+                maxRoom = {
+                    name: roomName,
+                    posts: room.posts,
+                    users: room.clients.length,
+                };
+            }
+        }
+
+        topRooms.push(maxRoom);
+        delete rooms[maxRoom.name];
+    }
+
+    response.render('landingPage', {
+        rooms: topRooms,
+    });
+});
+
+app.use("/", express.static(__dirname + '/client/'));
+
+// These lines run the webserver.
 var port = process.env.PORT || 80;
-http.listen(port, console.log('Listening on port ' + port));
+webServer.listen(port, console.log('Listening on port ' + port));

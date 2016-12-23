@@ -1,0 +1,51 @@
+h1 {
+    font-family: "RockSalt";
+    color: #fff;
+    text-shadow: 0px 1px 2px rgba(0,0,0, 0.4);
+    border-bottom: none;
+}
+
+.room {
+    width: 800px;
+    margin: auto;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+a {
+    color: #666;
+    transition: color .25s;
+}
+a:hover {
+    color: #65A4B2;
+}
+
+.name, .posts, .users {
+    display: inline-block;
+    background-color: #fff;
+    box-shadow: 0px 1px 2px rgba(0,0,0, 0.4);
+    padding: 10px;
+}
+
+.name {
+    width: 59%;
+    text-transform: capitalize;
+    transition: margin-right .25s, padding .25s;
+}
+.name:hover {
+    margin-right: 5px;
+    padding-right: 35px;
+}
+
+.name, .posts {
+    margin-right: 20px;
+}
+
+.posts, .users {
+    min-width: 100px;
+    text-align: center;
+}
+
+.users {
+    border-right: 1px solid #aaa;
+}

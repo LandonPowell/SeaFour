@@ -1,0 +1,26 @@
+doctype html
+html
+    head
+        title="Warning - Highly Explosive"
+
+        link( rel="stylesheet"      href="css/lightChat.css"         )
+        link( rel="stylesheet"      href="css/fonts.css"             )
+        link( rel="shortcut icon"   href="css/images/iconPurple.png" )
+
+        link( rel="stylesheet"      href="css/views/landingPage.css" )
+
+    body
+        h1="LeaderBoard"
+
+        a( href="/="+rooms[0].name )
+            .room.toproom
+                .name=rooms[0].name
+                .posts="Posts: "+rooms[0].posts
+                .users="Users: "+rooms[0].users
+
+        each room, index in rooms.splice(1)
+            a( href="/="+room.name )
+                .room
+                    .name=room.name
+                    .posts="Posts: "+room.posts
+                    .users="Users: "+room.users

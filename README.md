@@ -1,13 +1,13 @@
 # SeaFour
 SeaFour is the SeaFour.club community's chat engine. 
-Powered by Node.js and Socket.io.
+`Powered by Node.js`
 
 ### Depends Upon
 * Node.JS
-* Socket.io
 * Express
-* JsonFile
-* SHA512
+* MongoDB
+* ImageMagick
+* WS & HTTP
 
 ### Donate Bitcoin at `1Bmo74LBR6PFBtdsMnFms1rLqYFVDXCyvG`
 

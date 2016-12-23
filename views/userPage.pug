@@ -10,7 +10,7 @@ html
         link( rel="stylesheet"      href="css/fonts.css"             )
         link( rel="shortcut icon"   href="css/images/iconPurple.png" )
 
-        link( rel="stylesheet"      href="css/userPage.css"          )
+        link( rel="stylesheet"      href="css/views/userPage.css"    )
 
     body
         h1= user
@@ -36,24 +36,16 @@ html
                 .value= renown
 
         script.
-            // This script sanitizes and stylizes the user's fields.
+            // This script stylizes the user's fields.
 
-            $("h1").html(  
+            $("h1").html(
                 flairify( $("h1").html(), $("#flair .value").html() )  
             )
 
-            $("#flair .value").html(
-                parser.htmlEscape( $("#flair .value").html() )
-            )
-
             $("#website .value").html(
-                parser.style(parser.htmlEscape(
-                    $("#website .value").html()
-                ))
+                parser.style( $("#website .value").html() )
             )
 
             $("#bio .value").html(
-                parser.style(parser.htmlEscape(
-                    $("#bio .value").html()
-                ))
-            )            
+                parser.style( $("#bio .value").html() )
+            )

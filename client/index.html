@@ -1,0 +1,117 @@
+<head>
+    <title> Welcome to SeaFour.club </title> 
+
+    <!-- Meta tags are so fucking obfuscating, but muh SEO. -->
+    <meta charset="UTF-8"> <!-- Just like every other webpage ever. -->
+
+    <meta name="keywords" 
+        content="chat,webchat,irc,technology,programming,social,cute,kawaii,desu,senpai">
+
+    <meta name="description" 
+        content="Get ready for the future of social metacommunication.
+                Social metacommunication?
+                What's that even mean?">
+
+    <meta name="author" 
+        content="Landon Powell">
+
+    <link href="/css/lightChat.css"   rel="stylesheet"           name="theme">
+    <link href="/css/darkChat.css"    rel="alternate stylesheet" name="theme">
+    <link href="/css/stealthChat.css" rel="alternate stylesheet" name="theme">
+
+    <link href="/css/fonts.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/x-icon" href="/css/images/iconPurple.png">
+
+</head>
+<body>
+    <div id="messages">
+
+        <div id="handle" class="draggable">
+            <div id="handlebar">
+                <span id="title"></span>
+            </div>
+            <div id="progressBar"></div>
+            <textarea id="inputbox" onKeydown="keyPressed(event);" placeholder="Type your message here."></textarea>
+        </div>
+
+        <div id="embed" style="display:none;">
+            <div id="urlHandlebar"> Embeded URL </div>
+            <span id="urlClose" onclick="embedURL('kill')"> ' </span>
+            <iframe src=""></iframe>
+        </div>
+
+    </div>
+
+    <div id="menuButtons">
+
+        <button onclick="$('#loginMenu').slideToggle();" class="menuButton" id="accountButton">
+            Account
+        </button>
+        <div id="loginMenu">
+
+            <h4> Log In </h4>
+            <input type="text" id="userName" placeholder="Handle"/>
+            <input type="password" id="passWord" placeholder="Passphrase"/>
+            <button id="loginButton"> Log into SeaFour </button>
+
+            <hr/>
+
+            <h4> Sign Up </h4>
+            <input type="text" id="newUserName" placeholder="Handle"/> 
+            <span id="newUserNameSanitized"> - </span> <br />
+            <input type="password" id="newPassphrase" placeholder="Passphrase"/>
+            <input type="password" id="confirmPhrase" placeholder="Confirm it"/>
+            <button id="registerButton"> Sign Up for SeaFour </button>
+
+            <hr/>
+
+            <button id="guestButton" onclick="$('#loginMenu').slideToggle();"> 
+                Continue as a Guest
+            </button>
+
+        </div>
+
+        <button onclick="$('#userMenu').slideToggle();" class="menuButton" id="usersButton">
+            Users - 0
+        </button>
+        <div id="userMenu">
+            <div id="userList">
+                <!-- Users display here. -->
+            </div>
+        </div>
+
+    </div>
+
+    <div id="notifications">
+        <!-- System messages display here -->
+    </div>
+
+    <div id="popupNotification" style="display:none;"> <!-- To-do -->
+        <span> Please Wait <br> Magic is Happening </span>
+    </div>
+
+    <audio id="notificationClick">
+        <source src="/js/alertNoise.ogg" type="audio/ogg">
+    </audio> 
+
+    <!-- 
+        The following assets were moved below the 
+        fold to increase page speed. I don't generally
+        like the below-the-fold scripts thing in HTML,
+        but browsers are all made poorly and you have
+        to make accommodations for them. #Stop_W3C_2016
+    -->
+
+    <!-- Outside scripts and libraries. -->
+    <script src="/js/jquery.js"></script> <!-- getElementByID, getElementsByClassName, and getElementBySelector suck ass. So does jQuery though. -->
+
+    <!-- Cryptography Related Scripts (VERY IMPORTANT) -->
+    <script src="/js/crypto/sjcl/sjcl.js"></script> <!-- Stanford JS Crypto lib, used for pbkdf2 symmetric encryption. -->
+    <script src="/js/crypto/ellipticBrowserify.js"></script>
+
+    <!-- SeaFour made assets. -->
+    <script src="/js/parser.js"></script>
+    <script src="/js/client.js"></script>
+    <link href="/css/specialMessages.css" rel="stylesheet" >
+
+</body>

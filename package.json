@@ -1,14 +1,13 @@
 {
-    "name"        : "SeaFour",
-    "version"     : "1.0.0",
-    "description" : "A simple webchat.",
-    "license"     : "C4L",
-    "dependencies": {
-
-        "express"   : "^4.10.2",
-        "ws"        : "^1.1.1",
-        "pug"       : "^0.1.0",
-        "mongodb"   : "^2.2.10",
-        "openpgp"   : "^2.3.3"
-    }
+  "name": "SeaFour",
+  "version": "1.0.0",
+  "description": "A simple webchat.",
+  "license": "C4L",
+  "dependencies": {
+    "cryptico": "^1.0.2",
+    "express": "^4.10.2",
+    "mongodb": "^2.2.10",
+    "pug": "^0.1.0",
+    "ws": "^1.1.1"
+  }
 }

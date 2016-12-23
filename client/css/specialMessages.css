@@ -1,0 +1,47 @@
+.vulgar {
+    filter: blur(3px);
+    transition: filter .25s;
+}
+.vulgar:hover {
+    filter:         blur(0px);
+}
+
+.drumpf {
+    background-color: #efde88;
+    background: linear-gradient(45deg, #d6b34d, #efde88);
+    border: 5px outset #efde88;
+    box-shadow: -1px -1px 1px #a39a66 inset, 
+                0px 1px 3px #f4edcb inset,
+                0px 1px 2px rgba(0,0,0, 0.4);
+    color: #efde88;
+    font-family: "Slabo", serif;
+    text-shadow: 0px 1px 0px #f4edcb, 
+                 0px -1px 0px #8e8555;
+}
+.pol {
+    color: #800000;
+    font-family: arial, helvetica, sans-serif;
+    background-color: #f0e0d6;
+    border: 1px solid #D9BFB7;
+    border-width: 0px 1px 1px 0px;
+    box-shadow: 0px 0px 20px 10px #ffe;
+}
+.pol .userName {
+    color: #117743;
+    font-weight: bold;
+}
+
+@keyframes autism {
+    from { color: #ff0; }
+    to { color: #f00; }
+}
+.autism {
+    background-color: #f00;
+    background: linear-gradient(to bottom, #f00, #fa0);
+    box-shadow: 4px 4px rgba(100, 0, 0, 1), 
+                8px 8px rgba(100, 0, 0,.5);
+    border: 2px solid #ff0;
+    color: #ff0;
+    animation: autism .2s linear infinite alternate;
+    font-family: "ComicRelief", cursive;
+}
