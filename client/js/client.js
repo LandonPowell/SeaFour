@@ -15,23 +15,13 @@ console.log( // This is how we greet our friends.
     "font-size: 20px; font-family: serif; color: #666; padding-left: 100px;", 
     "font-size: 18px; font-family: serif; color: #666;");
 
-// Setting up websocket. I made some functions to make the syntax less obfuscated.
-window.WebSocket = window.WebSocket || window.MozWebSocket;
-var socket = new WebSocket("wss://" + location.host + location.pathname);
-socket.emit = function() { // This joins socke.emit's args with a delimeter (\u0004) and socket.sends them.
-    socket.send( [...arguments].join("\u0004") );
-};
-socket.listOfListeners = {};
-socket.on = function(name, func) { // This adds a value to the listOfListeners.
-    this.listOfListeners[name] = func;
-};
-
 // Setting up elliptical curve cryptography.
 var ECDH = require('elliptic').ec;
 var ec = new ECDH('curve25519');
 
 // These are the client-side attributes that need to be tracked for chat frontend usage. 
 var attributes = {
+    listOfListeners: {},
     nick: "unnamed",
     points: 0,
     title: "",
@@ -287,27 +277,65 @@ function keyPressed(event) {
     }
 }
 
-// Log errors to the console for debugging.
-socket.onerror = function(error) {
-    console.log(error);
+
+// Setting up websocket. I made some functions to make the syntax less obfuscated.
+window.WebSocket = window.WebSocket || window.MozWebSocket;
+var socket = new WebSocket("wss://" + location.host + location.pathname);
+
+socket.emit = function() { // This joins socket.emit's args with a delimeter (\u0004) and socket.sends them.
+    socket.send( [...arguments].join("\u0004") );
 };
 
-// Listen to all socket.on functions.
-socket.onmessage = function(message) { // There has to be a more descriptive name than 'data' for this.
-    var data = message.data.split("\u0004");
-    if (! socket.listOfListeners[data[0]] ) {  // Safety check, outputs a notice message to the console.
-        console.log(
-            "%cThe server has sent '" + data[0] + "', which is not defined as a listener.",
-            "background-color: #DB9F9E; color: white;"
-        );
-        return false;
-    }
-    socket.listOfListeners[data[0]]( ...data.slice(1) );
+socket.on = function(name, func) { // This adds a value to the listOfListeners.
+    attributes.listOfListeners[name] = func;
 };
 
-socket.onopen = function(openingEvent) {
-    socket.emit('join', attributes.room);
-};
+// Automatic reconnect.
+function connect() {
+    socket = new WebSocket("wss://" + location.host + location.pathname);
+
+    socket.emit = function() { // This joins socke.emit's args with a delimeter (\u0004) and socket.sends them.
+        socket.send( [...arguments].join("\u0004") );
+    };
+
+    socket.on = function(name, func) { // This adds a value to the listOfListeners.
+        attributes.listOfListeners[name] = func;
+    };
+    
+    // Log errors to the console for debugging.
+    socket.onerror = function(error) {
+        console.log(error);
+    };
+    
+    // Reconnect upon disconnect.
+    socket.onclose = function() {
+        append("#notifications", 
+                    "<div class=\"systemMessage\">Your socket has been disconnected. Attempting to reconnect...</div>");
+    
+        $("#usersButton").html("Users - 0");
+        $("#userList").html("");
+        setTimeout(function() { connect(); }, 1000);
+    };
+
+    // Listen to all socket.on functions.
+    socket.onmessage = function(message) { // There has to be a more descriptive name than 'data' for this.
+        var data = message.data.split("\u0004");
+        if (! attributes.listOfListeners[data[0]] ) {  // Safety check, outputs a notice message to the console.
+            console.log(
+                "%cThe server has sent '" + data[0] + "', which is not defined as a listener.",
+                "background-color: #DB9F9E; color: white;"
+            );
+            return false;
+        }
+        attributes.listOfListeners[data[0]]( ...data.slice(1) );
+    };
+    
+    socket.onopen = function(openingEvent) {
+        socket.emit('join', attributes.room);
+    };
+}
+
+connect(); 
 
 // Points Management.
 socket.on('pointsUpdate', function(pointValue) {
@@ -499,11 +527,3 @@ socket.on('badRoom', function() {
                 "<div class=\"systemMessage\">That room seems to be unavailable.</div>");
     socket.emit('join', "main");
 });
-
-socket.onclose = function() {
-    append("#notifications", 
-                "<div class=\"systemMessage\">Your socket has been disconnected.</div>");
-
-    $("#usersButton").html("Users - 0");
-    $("#userList").html("");
-};
