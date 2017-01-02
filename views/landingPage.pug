@@ -14,13 +14,13 @@ html
 
         a( href="/="+rooms[0].name )
             .room.toproom
-                .name=rooms[0].name
+                .name=rooms[0].name+": "+rooms[0].topic
                 .posts="Posts: "+rooms[0].posts
                 .users="Users: "+rooms[0].users
 
         each room, index in rooms.splice(1)
             a( href="/="+room.name )
                 .room
-                    .name=room.name
+                    .name=room.name+": "+room.topic
                     .posts="Posts: "+room.posts
                     .users="Users: "+room.users

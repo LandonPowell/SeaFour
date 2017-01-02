@@ -94,6 +94,7 @@ function checkValidName(nick) { // Checks if a name contains no strange chars or
 
 // Functions dedicated to achievements and points.
 function onlineIPs(clients) {
+    // To-do
     var ipList = [];
     for ( var user in clients ) {
         var ip = moderatorSettings.ipLog[nameSanitize(clients[user])];
@@ -102,7 +103,7 @@ function onlineIPs(clients) {
     return ipList.length;
 }
 
-var keywordAchievements = {
+var achievable = {
     drumpf : {
         keywords: ['trump', 'drumpf', 'make america great again'],
         limit: 3,   // The 'limit' is the amount of messsages needed to make it go off.
@@ -120,75 +121,28 @@ var keywordAchievements = {
     }
 };
 
-function pointsToRenown(points) { // Converts a point value to a 'renown' aka an XP level from total XP;
-    if (!points) return 0;
-    return Math.floor( points / 16383 ); // 16,383 = 2^14 - 1 = 11111111111111 in binary
-}
-
 function achievementHandler(message, username, result) { // Distributes achievements based on messages.
+    // To-do
+    // The following code should calculate points gained and achievements earned,
+    // then update the database accordingly. 
     username = nameSanitize(username);
+    var news = [];
 
-    collection.findOne({ name : username },
-    function(err, result) {
-        if (err | !result) return [];
+    collection.updateOne({
+        'name' : username,
+    },
+    { $set : { 'points' : 
+        result.points +
+        message.substr(0,150).length
+    },});
 
-        var beforePoints = result.points || 0;
-        var achievements = result.achievements || {};
-        var news = [];
-
-        collection.updateOne({
-            'name' : username,
-        },
-        {
-            $set : { 'key' : value },
-        });
-    });
-
-    users[username].points = // This code-block adds more points.
-        beforePoints +
-        message.substr(0,150).length * onlineIPs(clients);
-
-    for ( var achievement in keywordAchievements ) {
-        var achievementData = keywordAchievements[achievement];
-        if ( achievements[achievement] != "done" ) {
-            var doesContain = false;
-            for ( var i = 0; i < achievementData.keywords.length; i++ ) {
-                if ( message.toLowerCase().indexOf( achievementData.keywords[i] ) + 1 ) {
-                    doesContain = true;
-                }
-            }
-            if ( doesContain ) { 
-                achievements[achievement] = achievements[achievement] + 1 || 1;
-            }
-        }
-
-        if ( achievements[achievement] >= achievementData.limit ) {
-
-            news.push("Achievement unlocked: " + 
-                       achievement + "\n" + 
-                       achievementData.value + " points.");
-
-            users[username].points += achievementData.value;
-            achievements[achievement] = "done";
-
-            updateDatabase();
-        }
-    }
-
-    if ( pointsToRenown(beforePoints) != pointsToRenown(users[username].points)) {
-        news.push("Your renowned is now " + 
-                  pointsToRenown(users[username].points) + ".");
-        updateDatabase();
-    }
-
-    users[username].achievements = achievements; // Gives the user their achievements. 
     return news;
 }
 
 // Moderation and antispam related variables, functions, and calls. 
 
 var moderatorSettings = {
-    quiet   : false, // Disallows unregistered from posting; they can watch.
+    quiet   : false,    // Disallows unregistered from posting; they can watch.
     ipLog   : [],
     banList : [],       // List of banned IPs.
     superBanList : []   // List of IPs that aren't even allowed to see the chat. NSA goes here. :^)
@@ -202,7 +156,7 @@ var moderatorSettings = {
  * DST are real things.
 \*/
 
-setTimeout( function() {
+setTimeout(function() {
     setInterval(function() {
         moderatorSettings.banList = [];
         serverData.keyPair = ec.genKeyPair(); // Reset keypair every night.
@@ -236,16 +190,19 @@ var commands = {
     'roomMessage' : {
         function(socket, message) {
             serverData.rooms[socket.room].posts++;
+            var username = nameSanitize(socket.nick);
 
             var flair;
-            collection.findOne({'name' : nameSanitize(socket.nick)},
+            collection.findOne({'name' : username},
             function(err, result) {
 
                 if ( !err && result ) { 
                     flair = result.flair;
                     if (! usableVar(flair) ) flair = false; // If the flair isn't usable, set it to a boolean false;
     
-                    var achievementNews = []// achievementHandler(message, username);
+                    var achievementNews = achievementHandler(
+                        message, username, result
+                    );
     
                     for (var i = 0; i < achievementNews.length; i++) {
                         socket.send(delimit( 'systemMessage', achievementNews[i] ));
@@ -342,6 +299,11 @@ var commands = {
                     'role' : 0,
                     'publicKey' : publicKey,
                     'encryptedPrivateKey' : encryptedPrivateKey,
+
+                    'points' : 0,
+                    'renown' : 0,
+                    'achievements' : {},
+
                 },
                 function(err, result) {
                     if (err) { console.log(err); return false; }
@@ -881,7 +843,7 @@ app.get('/[\\w-]+', function(request, response) {
             role:       result.role    || "This user has not been given a role yet.",
             website:    result.website || "This user has not set a website yet.",
             bio:        result.bio     || "This user has not set a bio yet.",
-            renown:     pointsToRenown( result.points || 0 ),
+            renown:     result.renown,
         });
     });
 
@@ -977,7 +939,7 @@ app.get("/", function(request, response, giveClient) {
     // It's obvious what this does.
     for (var x = 0; x < 20 && hasRooms(rooms); x++) {
         var maxRoom = {
-            name: "",
+            name: "Err: Sorting reaching non-max room.",
             posts: -1,
             users: -1
         };
@@ -987,6 +949,7 @@ app.get("/", function(request, response, giveClient) {
             if (room.clients.length > maxRoom.users) {
                 maxRoom = {
                     name: roomName,
+                    topic: room.topic,
                     posts: room.posts,
                     users: room.clients.length,
                 };
@@ -994,6 +957,7 @@ app.get("/", function(request, response, giveClient) {
             else if (room.clients.length == maxRoom.users) {
                 maxRoom = {
                     name: roomName,
+                    topic: room.topic,
                     posts: room.posts,
                     users: room.clients.length,
                 };
