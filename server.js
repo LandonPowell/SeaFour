@@ -8,6 +8,10 @@ var imageMagick = require('imagemagick');
 
 var serverData = {};
 
+process.on('uncaughtException', function(err) { // I don't like killing the process when one of my libraries fucks up.
+    console.log("UNCAUGHT EXCEPTION\n" + err);
+});
+
 // Cryptography intializers.
 var crypto  = require('crypto');
 var sjcl    = require('sjcl');
@@ -901,7 +905,7 @@ app.get('/img/[^\\s#]+', function(request, response) {
             }, function(err, imageData){
                 if (err) {
                     console.log(err);
-                    return false; // Note, this is inside an anonymous function.
+                    return false;
                 }
 
                 lastImage.url = imageSource;
