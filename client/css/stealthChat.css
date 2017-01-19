@@ -296,6 +296,10 @@ iframe {
     line-height: 1.4em;
 }
 
+.userName:after {
+    content: ":";
+}
+
 .alertMe, .direct {
     background-color: #1a1a1a;
     box-shadow: 0px 0px 0px 3px #222 inset;
