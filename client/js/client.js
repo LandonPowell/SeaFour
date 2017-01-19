@@ -311,7 +311,7 @@ function connect() {
     socket.onclose = function() {
         append("#notifications", 
                     "<div class=\"systemMessage\">Your socket has been disconnected. Attempting to reconnect...</div>");
-    
+
         $("#usersButton").html("Users - 0");
         $("#userList").html("");
         setTimeout(function() { connect(); }, 1000);
@@ -320,7 +320,7 @@ function connect() {
     // Listen to all socket.on functions.
     socket.onmessage = function(message) { // There has to be a more descriptive name than 'data' for this.
         var data = message.data.split("\u0004");
-        if (! attributes.listOfListeners[data[0]] ) {  // Safety check, outputs a notice message to the console.
+        if (! attributes.listOfListeners[data[0]] ) { // Safety check, outputs a notice message to the console.
             console.log(
                 "%cThe server has sent '" + data[0] + "', which is not defined as a listener.",
                 "background-color: #DB9F9E; color: white;"
@@ -434,7 +434,7 @@ socket.on('roomMessage', function(nick, post, id, flair) {
                "<div class=\"" + postType + "\">                                \
                    <span class=\"postId\" id=\"" + id + "\">" + id + "</span>   \
                    <span class=\"userName\">"                                   +
-                    flairify(nick, flair) + "</span>: " + post + 
+                    flairify(nick, flair) + "</span> " + post + 
                "</div>");
 
     $("#"+id).click(function(event) {
