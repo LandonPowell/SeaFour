@@ -51,7 +51,9 @@ serverData.rooms = {
     'main' : {  // By default, we have a 'main' room.
         clients : [],   // Connected sockets.
         posts : 0,      // Posts made so far.
-        topic : "Warning - Highly Explosive", // The current topic. 
+        topic : "Highly Explosive", // The current topic. 
+        messages : [],  // Last few messages posted.
+        logLimit : 10   // How many messages should the log store. Lower if you're 'noided.
     },
 };
 
@@ -215,6 +217,21 @@ var commands = {
                     socket.send(delimit( 'pointsUpdate', result.points ));
                 }
 
+                var room = serverData.rooms[socket.room];
+
+                if (room.logLimit != 0) {
+                    room.messages.push({
+                        nick: socket.nick,
+                        message: message.substr(0,3000), // Lower because muh data usage.
+                        number: serverData.rooms[socket.room].posts.toString(36),
+                        flair: flair,
+                    });
+                }
+
+                if (room.messages.length > room.logLimit) {
+                    room.messages = room.messages.slice(room.messages.length - room.logLimit);
+                }
+
                 socketServer.roomBroadcast(socket.room,
                     'roomMessage',
                     socket.nick, 
@@ -225,6 +242,22 @@ var commands = {
 
             });
         },
+    },
+
+    'giveRecent' : {
+        function(socket, message) {
+            var recentMessages = serverData.rooms[socket.room].messages;
+            for (var x = 0; x < recentMessages.length; x++) {
+                var currentMessage = recentMessages[x];
+                socketServer.roomBroadcast(socket.room,
+                    'roomMessage',
+                    currentMessage.nick,
+                    currentMessage.message,
+                    currentMessage.number,
+                    currentMessage.flair
+                );
+            }
+        }
     },
 
     'me' : {
@@ -410,10 +443,8 @@ var commands = {
     'join' : {
         function(socket, room) {
             // To-do. Maybe clean this up?
+            socket.room = room;
 
-            socketServer.roomBroadcast(socket.room,
-                'systemMessage', socket.nick + ' has left.');
-    
             var index = serverData.rooms[socket.room].clients.indexOf(socket);
             if (index + 1) serverData.rooms[socket.room].clients.splice(index, 1);
     
@@ -441,6 +472,7 @@ var commands = {
             function(err, result) {
                 if (err || !result) {
                     socket.send('badRoom');
+                    socket.room = "main";
                     return false;
                 }
 
@@ -711,7 +743,6 @@ var commands = {
 // RTC server using Web Sockets. Wew lad, we're in the future now.
 socketServer.on('connection', function(socket) {
     addEmit( socket._socket.remoteAddress, socket );
-    socket.room = "main"; // Default fallback room is 'main'. To-do
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
     if ( ipEmits[socket._socket.remoteAddress] > 6 || 
@@ -771,6 +802,9 @@ socketServer.on('connection', function(socket) {
 
     //Listener for Disconnects.
     socket.on('close', function() {
+        // To-do : Fix double-call
+        console.log (socket.room);
+
         socketServer.roomBroadcast(socket.room,
             'systemMessage', socket.nick + ' has left.');
 
@@ -811,7 +845,7 @@ app.use("/=:room/", function(request, response, giveClient) {
 
         if (!result.room) {
             result.room = {
-                topic : "Warning - Highly Explosive", // The current topic. 
+                topic : "Highly Explosive", // The current topic. 
                 posts : 0,      // Posts that have been made so far.
                 mods  : [room], // List of people with moderator permissions.
             };

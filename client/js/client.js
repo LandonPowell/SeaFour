@@ -332,6 +332,7 @@ function connect() {
     
     socket.onopen = function(openingEvent) {
         socket.emit('join', attributes.room);
+        socket.emit('giveRecent');
     };
 }
 
