@@ -848,6 +848,8 @@ app.use("/=:room/", function(request, response, giveClient) {
                 topic : "Highly Explosive", // The current topic. 
                 posts : 0,      // Posts that have been made so far.
                 mods  : [room], // List of people with moderator permissions.
+                messages : [],
+                logLimit : 10
             };
         }
 
