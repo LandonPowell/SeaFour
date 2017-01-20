@@ -249,13 +249,13 @@ var commands = {
             var recentMessages = serverData.rooms[socket.room].messages;
             for (var x = 0; x < recentMessages.length; x++) {
                 var currentMessage = recentMessages[x];
-                socketServer.roomBroadcast(socket.room,
+                socket.send(delimit(
                     'roomMessage',
                     currentMessage.nick,
                     currentMessage.message,
                     currentMessage.number,
                     currentMessage.flair
-                );
+                ));
             }
         }
     },
