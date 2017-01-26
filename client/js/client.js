@@ -336,7 +336,7 @@ function connect() {
     };
 }
 
-connect(); 
+connect();
 
 // Points Management.
 socket.on('pointsUpdate', function(pointValue) {
@@ -528,3 +528,15 @@ socket.on('badRoom', function() {
                 "<div class=\"systemMessage\">That room seems to be unavailable.</div>");
     socket.emit('join', "main");
 });
+
+socket.on('ping', function() {
+    socket.emit('pong');
+});
+
+socket.on('pong', function() {
+    console.log("Connection is Alive");
+});
+
+setInterval(function() {
+    socket.emit('ping');
+}, 13000);

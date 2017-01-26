@@ -738,6 +738,13 @@ var commands = {
         },
 	},
 
+    // Low-level only commands. Not to be sent upon user request.
+
+    'ping' : { // This is basically the 'keepAlive' of SeaFour.
+        function(socket) { 
+            socket.send('pong');
+        }
+    }
 };
 
 // RTC server using Web Sockets. Wew lad, we're in the future now.
