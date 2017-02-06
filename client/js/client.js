@@ -19,6 +19,13 @@ console.log( // This is how we greet our friends.
 var ECDH = require('elliptic').ec;
 var ec = new ECDH('curve25519');
 
+// Picks which default CSS to use based on screen size.
+if (window.outerWidth < window.outerHeight) { // If on a portrait screen (phone, tall, etc).
+    var tallTheme = $("[name=tallTheme]")[0];
+    tallTheme.disabled = false;
+    tallTheme.rel = "stylesheet";
+}
+
 // These are the client-side attributes that need to be tracked for chat frontend usage. 
 var attributes = {
     listOfListeners: {},
