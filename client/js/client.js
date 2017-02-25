@@ -28,7 +28,6 @@ if (window.outerWidth < window.outerHeight) { // If on a portrait screen (phone,
 
 // These are the client-side attributes that need to be tracked for chat frontend usage. 
 var attributes = {
-    listOfListeners: {},
     nick: "unnamed",
     points: 0,
     title: "",
@@ -119,14 +118,14 @@ $(function() { // On load
             // Generate a random ECC key pair upon registration.
             attributes.keyPair = ec.genKeyPair();
 
-            socket.emit('register', // Send the server all the details of registration
+            emit(['register', // Send the server all the details of registration
                 $("#newUserName").val(),
                 attributes.keyPair.getPublic('hex'),
                 sjcl.encrypt(
                     attributes.pbkdf2DerivedKey,
                     attributes.keyPair.getPrivate('hex')
                 )
-            );
+            ]);
 
             // Reset everything.
             setTimeout(function(){
@@ -168,7 +167,7 @@ function embedURL(link) {
 
 // Simple Command Handlers.
 function send(msg) { // Setting a function allows the end-user to modify it.
-    if (msg) socket.emit('roomMessage', msg);
+    if (msg) emit(['roomMessage', msg, attributes.room]);
 }
 
 function login(nick, password) {
@@ -181,16 +180,16 @@ function login(nick, password) {
             3500, 3000)
     );
 
-    socket.emit('getPublicKey', 'server');
-    socket.on('publicKey', function(name, key) {
+    emit(['getPublicKey', 'server']);
+    listeners['publicKey'] = function(name, key) {
         if (name == 'server') {
             attributes.serverKey = ec.keyFromPublic(key, 'hex');
         }
 
-        socket.emit('getEncryptedPrivateKey', nick);
-    });
+        emit(['getEncryptedPrivateKey', nick]);
+    };
 
-    socket.on('encryptedPrivateKey', function(name, encryptedPrivateKey) {
+    listeners['encryptedPrivateKey'] = function(name, encryptedPrivateKey) {
         try {
             var privateKey = sjcl.decrypt(
                 attributes.pbkdf2DerivedKey,
@@ -203,10 +202,10 @@ function login(nick, password) {
 
         attributes.keyPair = ec.keyFromPrivate(privateKey, 'hex');
 
-        socket.emit('createToken', nick);
-    });
+        emit(['createToken', nick]);
+    };
 
-    socket.on('cryptoToken', function(cryptoToken) {
+    listeners['cryptoToken'] = function(cryptoToken) {
         var sharedKey = attributes.keyPair.derive(
             attributes.serverKey.getPublic()
         ).toString(36);
@@ -216,8 +215,8 @@ function login(nick, password) {
             cryptoToken
         );
 
-        socket.emit('authenticate', nick, token);
-    });
+        emit(['authenticate', nick, token]);
+    };
 }
 
 function keyPressed(event) {
@@ -229,15 +228,15 @@ function keyPressed(event) {
 
         // Special messages start with a '.' and end with '!'.
         if (text[0] == "." && command[0][command[0].length - 1] == "!") {
-            socket.emit('specialMessage', 
-                        command[0].substring(1, command[0].length - 1),
-                        text.substr(command[0].length + 1));
+            emit(['specialMessage', 
+                command[0].substring(1, command[0].length - 1),
+                text.substr(command[0].length + 1)]);
         }
         // Direct messages start with a '.' and end with a '.'. 
         else if (text[0] == "." && command[0][command[0].length - 1] == ".") {      // This is obviously very much the same as special messages.
-            socket.emit('directMessage',                                            // I should consider refactoring this code later.
-                        command[0].substring(1, command[0].length - 1),             // It's not horrible, but I can do better and I should do better.
-                        text.substr(command[0].length + 1));
+            emit(['directMessage',                                            // I should consider refactoring this code later.
+                command[0].substring(1, command[0].length - 1),             // It's not horrible, but I can do better and I should do better.
+                text.substr(command[0].length + 1)]);
         }
         // Theme changes start with a '.' and end with a '-'. 
         else if (text[0] == "." && command[0][command[0].length - 1] == "-") {
@@ -261,7 +260,7 @@ function keyPressed(event) {
                     login(command[1], command[2]);
                     break;
                 case ".nick":
-                    socket.emit('changeNick', text.substr(6));
+                    emit(['changeNick', text.substr(6)]);
                     break;
                 case ".safe":
                     attributes.safe = ! attributes.safe;
@@ -270,11 +269,10 @@ function keyPressed(event) {
                     embedURL(text.substr(10));
                     break;
                 case ".roleChange": 
-                    socket.emit('roleChange', command[1], command[2]);
+                    emit(['roleChange', command[1], command[2]]);
                     break;
                 default:
-                    socket.emit(command[0].substr(1),
-                                text.substr(command[0].length + 1));
+                    emit([command[0].substr(1), text.substr(command[0].length + 1)]);
             }
         }
         // All other messages get sent. 
@@ -286,29 +284,22 @@ function keyPressed(event) {
 
 
 // Setting up websocket. I made some functions to make the syntax less obfuscated.
+var listeners = {}
 window.WebSocket = window.WebSocket || window.MozWebSocket;
-var socket = new WebSocket("wss://" + location.host + location.pathname);
+var socket = new WebSocket("wss://" + location.host);
 
-socket.emit = function() { // This joins socket.emit's args with a delimeter (\u0004) and socket.sends them.
-    socket.send( [...arguments].join("\u0004") );
-};
-
-socket.on = function(name, func) { // This adds a value to the listOfListeners.
-    attributes.listOfListeners[name] = func;
-};
+function emit(message) {
+    socket.send( message.join("\u0004") );
+}
 
 // Automatic reconnect.
 function connect() {
-    socket = new WebSocket("wss://" + location.host + location.pathname);
+    socket = new WebSocket("wss://" + location.host);
 
     socket.emit = function() { // This joins socke.emit's args with a delimeter (\u0004) and socket.sends them.
         socket.send( [...arguments].join("\u0004") );
     };
 
-    socket.on = function(name, func) { // This adds a value to the listOfListeners.
-        attributes.listOfListeners[name] = func;
-    };
-    
     // Log errors to the console for debugging.
     socket.onerror = function(error) {
         console.log(error);
@@ -324,29 +315,28 @@ function connect() {
         setTimeout(function() { connect(); }, 1000);
     };
 
-    // Listen to all socket.on functions.
     socket.onmessage = function(message) { // There has to be a more descriptive name than 'data' for this.
         var data = message.data.split("\u0004");
-        if (! attributes.listOfListeners[data[0]] ) { // Safety check, outputs a notice message to the console.
+        if (! listeners[data[0]] ) { // Safety check, outputs a notice message to the console.
             console.log(
                 "%cThe server has sent '" + data[0] + "', which is not defined as a listener.",
                 "background-color: #DB9F9E; color: white;"
             );
             return false;
         }
-        attributes.listOfListeners[data[0]]( ...data.slice(1) );
+        listeners[data[0]]( ...data.slice(1) );
     };
     
     socket.onopen = function(openingEvent) {
-        socket.emit('join', attributes.room);
-        socket.emit('giveRecent');
+        emit(['join', attributes.room]);
+        emit(['giveRecent']);
     };
 }
 
 connect();
 
 // Points Management.
-socket.on('pointsUpdate', function(pointValue) {
+listeners['pointsUpdate'] = function(pointValue) {
     var lastRenown = 1,
         soFar = 0;
 
@@ -362,20 +352,21 @@ socket.on('pointsUpdate', function(pointValue) {
     );
 
     $("#progressBar").fadeIn(200).fadeOut(1000);
-});
+};
 
 // User List Management.
-socket.on('listRefresh', function() {
-    $("#usersButton").html("Users - " + arguments.length);
+listeners['listRefresh'] = function() {
+    $("#usersButton").html("Users - " + (arguments.length - 1));
     $("#userList").html("");
-    for (var i = 0; i < arguments.length; i++) {
+    // Note : Final argument is the room name, therefore we use 'length - 1'.
+    for (var i = 0; i < arguments.length - 1; i++) {
         $("#userList").append(parser.htmlEscape(arguments[i]) + "<br>");
     }
-});
+};
 
-socket.on('nickRefresh', function(newNick) {
+listeners['nickRefresh'] = function(newNick) {
     attributes.nick = newNick;
-});
+};
 
 function idJump(postId) {
     window.location.hash = postId;
@@ -406,7 +397,7 @@ function append(appendTo, appendstring) {                         // This functi
 }
 
 // Event handlers.
-socket.on('roomMessage', function(nick, post, id, flair) {
+listeners['roomMessage'] = function(nick, post, id, flair) {
     var postType = "message";
 
     if (post.toLowerCase().indexOf( nameSanitize(attributes.nick) ) + 1) { // If post contains your nick. 
@@ -450,7 +441,7 @@ socket.on('roomMessage', function(nick, post, id, flair) {
             $("#inputbox").val() + "{:"+id+"} "
         );
     });
-});
+};
 
 function directMessage(name) {
     $("#inputbox").val(
@@ -458,7 +449,7 @@ function directMessage(name) {
     );
 }
 
-socket.on('directMessage', function(direction, from, message) {
+listeners['directMessage'] = function(direction, from, message) {
     append("#messages", 
                "<div class=\"direct message\">"         +
 
@@ -473,24 +464,24 @@ socket.on('directMessage', function(direction, from, message) {
                     parser.htmlEscape(message)          +
                "</div>");
     $("#notificationClick")[0].play();
-});
+};
 
-socket.on('me', function(post) {
+listeners['me'] = function(post) {
     append("#messages", 
                "<div class=\"me message\">" +
                     parser.htmlEscape(post) +
                "</div>");
-});
+};
 
-socket.on('specialMessage', function(type, name, message) {
+listeners['specialMessage'] = function(type, name, message) {
     append("#messages", 
                "<div class=\"message "+parser.htmlEscape(type)+"\">"+
                     "<span class=\"userName\">" + parser.htmlEscape(name) + 
                     "</span>: " + parser.htmlEscape(message) +
                "</div>");
-});
+};
 
-socket.on('systemMessage', function(post) {
+listeners['systemMessage'] = function(post) {
     $("#notifications").append(
        "<div class=\"systemMessage\">           " + 
        "<div class=\"notificationIcon\"></div>  " +
@@ -515,35 +506,35 @@ socket.on('systemMessage', function(post) {
         }, 3100);
 
     }
-});
+};
 
-socket.on('topic', function(newTitle) {
+listeners['topic'] = function(newTitle) {
     $("#title").html(parser.htmlEscape( newTitle ));
     $("title").html(parser.htmlEscape( newTitle ));
     attributes.title = newTitle;
-});
+};
 
 // Error and issue handling. 
 
-socket.on('badLogin', function() {
+listeners['badLogin'] = function() {
     $('#loginMenu').show(250); // Kind of To-do?
-});
+};
 
 
-socket.on('badRoom', function() {
+listeners['badRoom'] = function() {
     append("#notifications", 
                 "<div class=\"systemMessage\">That room seems to be unavailable.</div>");
-    socket.emit('join', "main");
-});
+    emit(['join', "main"]);
+};
 
-socket.on('ping', function() {
-    socket.emit('pong');
-});
+listeners['ping'] = function() {
+    emit(['pong']);
+};
 
-socket.on('pong', function() {
+listeners['pong'] = function() {
     console.log("Connection is Alive");
-});
+};
 
 setInterval(function() {
-    socket.emit('ping');
+    emit(['ping']);
 }, 13000);
