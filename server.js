@@ -65,14 +65,17 @@ serverData.roomUsers = function(room) {
     for (var client in clients) {
         nameList.push( clients[client].nick );
     }
+
     return nameList;
 };
 
 socketServer.roomBroadcast = function(room) {
     var args = Array.from(arguments).slice(1);
+    args.push(room);
     var clients = serverData.rooms[room].clients;
+    var binaryData = args.join("\u0004");
     clients.forEach(function(client) {
-        if (client.readyState == 1) client.send(args.join("\u0004"));
+        if (client.readyState == 1) client.send(binaryData);
     });
 };
 
@@ -96,53 +99,6 @@ function checkValidName(nick) { // Checks if a name contains no strange chars or
     return  nick.replace(/[^\u0020-\u007e]/gi, "") == nick &&
             nick.indexOf("\n") < 0 &&
             nick.length < 30 && nick.length > 2;
-}
-
-// Functions dedicated to achievements and points.
-function onlineIPs(clients) {
-    // To-do
-    var ipList = [];
-    for ( var user in clients ) {
-        var ip = moderatorSettings.ipLog[nameSanitize(clients[user])];
-        if (ipList.indexOf(ip) < 0) ipList.push(ip);
-    }
-    return ipList.length;
-}
-
-var achievable = {
-    drumpf : {
-        keywords: ['trump', 'drumpf', 'make america great again'],
-        limit: 3,   // The 'limit' is the amount of messsages needed to make it go off.
-        value: 300, // The 'value' is the amount of XP given upon completion. 
-    },
-    pol : {
-        keywords: ['9/11', 'jews', 'adolf', 'hitler'],
-        limit: 6,
-        value: 911,
-    },
-    autism : {
-        keywords: ['fursona', 'call of duty', 'vidya', 'weed', 'xdd', '420'],
-        limit: 3,
-        value: 420,
-    }
-};
-
-function achievementHandler(message, username, result) { // Distributes achievements based on messages.
-    // To-do
-    // The following code should calculate points gained and achievements earned,
-    // then update the database accordingly. 
-    username = nameSanitize(username);
-    var news = [];
-
-    collection.updateOne({
-        'name' : username,
-    },
-    { $set : { 'points' : 
-        result.points +
-        message.substr(0,150).length
-    },});
-
-    return news;
 }
 
 // Moderation and antispam related variables, functions, and calls. 
@@ -192,61 +148,51 @@ function addEmit(ipAddress, socket) {
 }
 
 var commands = {
-    // Simple messages.
+    // Simple messages.s
     'roomMessage' : {
-        function(socket, message) {
-            serverData.rooms[socket.room].posts++;
-            var username = nameSanitize(socket.nick);
+        function(socket, message, roomName) {
+            serverData.rooms[roomName].posts++;
 
-            var flair;
-            collection.findOne({'name' : username},
-            function(err, result) {
+            // If the user isn't in that room, toss out his message.
+            if (socket.rooms.indexOf(roomName) < 0) {
+                return false;
+            }
 
-                if ( !err && result ) { 
-                    flair = result.flair;
-                    if (! usableVar(flair) ) flair = false; // If the flair isn't usable, set it to a boolean false;
-    
-                    var achievementNews = achievementHandler(
-                        message, username, result
-                    );
-    
-                    for (var i = 0; i < achievementNews.length; i++) {
-                        socket.send(delimit( 'systemMessage', achievementNews[i] ));
-                    }
-    
-                    socket.send(delimit( 'pointsUpdate', result.points ));
-                }
+            socketServer.roomBroadcast(roomName,
+                'roomMessage',
+                socket.nick,
+                message.substr(0,6000),
+                serverData.rooms[roomName].posts.toString(36),
+                socket.flair
+            );
 
-                var room = serverData.rooms[socket.room];
+            var room = serverData.rooms[roomName];
 
-                if (room.logLimit != 0) {
-                    room.messages.push({
-                        nick: socket.nick,
-                        message: message.substr(0,3000), // Lower because muh data usage.
-                        number: serverData.rooms[socket.room].posts.toString(36),
-                        flair: flair,
-                    });
-                }
+            if (room.logLimit != 0) {
+                room.messages.push({
+                    nick: socket.nick,
+                    message: message.substr(0,3000), // Lower because muh data usage.
+                    number: serverData.rooms[roomName].posts.toString(36),
+                    flair: socket.flair,
+                });
+            }
 
-                if (room.messages.length > room.logLimit) {
-                    room.messages = room.messages.slice(room.messages.length - room.logLimit);
-                }
+            if (room.messages.length > room.logLimit) {
+                room.messages = room.messages.slice(room.messages.length - room.logLimit);
+            }
 
-                socketServer.roomBroadcast(socket.room,
-                    'roomMessage',
-                    socket.nick, 
-                    message.substr(0,6000), 
-                    serverData.rooms[socket.room].posts.toString(36),
-                    flair
-                );
-
-            });
         },
     },
 
     'giveRecent' : {
-        function(socket, message) {
-            var recentMessages = serverData.rooms[socket.room].messages;
+        function(socket, roomName) {
+
+            // If the user isn't in that room, don't give him anything.
+            if (socket.rooms.indexOf(roomName) < 0) {
+                return false;
+            }
+
+            var recentMessages = serverData.rooms[roomName].messages;
             for (var x = 0; x < recentMessages.length; x++) {
                 var currentMessage = recentMessages[x];
                 socket.send(delimit(
@@ -261,37 +207,24 @@ var commands = {
     },
 
     'me' : {
-        function(socket, message) {
-            socketServer.roomBroadcast(socket.room,
+        function(socket, message, roomName) {
+            socketServer.roomBroadcast(roomName,
                 'me', socket.nick+" "+message.substr(0,2048));
         }
     },
 
     'specialMessage' : {
-        function(socket, type, message) {
-            var approvedTypes = ["term", "carbonite", "badOS"]; // Default approved types.
+        function(socket, type, message, roomName) {
+            var approvedTypes = ["term", "carbonite", "badOS", "pol", "autism", "drumpf"]; // Default approved types.
 
-            collection.findOne({'name' : socket.nick},
-            function(err, result) {
+            if ( approvedTypes.indexOf(type) + 1 ) {
+                socketServer.roomBroadcast(roomName,
+                    'specialMessage', type, socket.nick, message.substr(0,2048) );
+            }
+            else {
+                socket.send(delimit( 'systemMessage', "I can't let you do that, Dave." ));
+            }
 
-                if ( !err && result ) {
-                    var achievements = result.achievements;
-                    for (var achievement in achievements) {
-                        if (achievements[achievement] == "done") {
-                            approvedTypes.push(result.achievements);
-                        }
-                    }
-                }
-
-                if ( approvedTypes.indexOf(type) + 1 ) {
-                    socketServer.roomBroadcast(socket.room,
-                        'specialMessage', type, socket.nick, message.substr(0,2048) );
-                }
-                else {
-                    socket.send(delimit( 'systemMessage', "I can't let you do that, Dave." ));
-                }
-
-            });
         },
     },
 
@@ -351,8 +284,11 @@ var commands = {
                     socket.nick = nick;
                     socket.role = 0;
 
-                    socketServer.roomBroadcast(socket.room, 
-                        'listRefresh', serverData.roomUsers(socket.room).join("\u0004"));
+                    for (var x = 0; x < socket.rooms.length; x++) {
+                        socketServer.roomBroadcast(socket.rooms[x],
+                            'listRefresh', serverData.roomUsers(socket.rooms[x]).join("\u0004"));
+                    }
+
                     moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket._socket.remoteAddress;
                 });
             });
@@ -384,12 +320,15 @@ var commands = {
                 }, 2000);
 
                 socket.send(delimit('cryptoToken', cryptoToken)); // Send the user the encryptedToken so he can decrypt it and send it back.
+
+                // Additional login settings should be defined here. 
+                socket.flair = result.flair; // Give the user the flair they desire.
             });
         },
     },
 
     'authenticate' : { // Authenticate based upon a token.
-        function(socket, nick, token) {
+        function(socket, nick, token, roomName) {
             if ( !serverData.tokens[token] ) {
                 socket.send(delimit('systemMessage',
                     "You weren't able to authenticate as " + nameSanitize(nick) + "."
@@ -406,8 +345,8 @@ var commands = {
                 socket.nick = nick;
                 socket.role = tokenObject.role;
 
-                socketServer.roomBroadcast(socket.room, 
-                    'listRefresh', serverData.roomUsers(socket.room).join("\u0004"));
+                socketServer.roomBroadcast(roomName, 
+                    'listRefresh', serverData.roomUsers(roomName).join("\u0004"));
 
                 moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket._socket.remoteAddress;
             }
@@ -420,65 +359,41 @@ var commands = {
         },
     },
 
-    'changeNick' : {
-        function(socket, nick) {
-            if ( !checkValidName(nick) ) {
-                socket.send(delimit( 'systemMessage', "That user is already registered." ));
-                return false;
-            }
-
-            socketServer.roomBroadcast(socket.room,
-                'systemMessage', socket.nick + " is now known as " + nick);
-
-            socket.send(delimit( 'nickRefresh', nick ));
-
-            socket.nick = nick;
-            moderatorSettings.ipLog[nameSanitize(nick)] = socket._socket.remoteAddress;
-
-            socketServer.roomBroadcast(socket.room, 
-                'listRefresh', serverData.roomUsers(socket.room).join("\u0004"));
-        }
-    },
     // Room management.
     'join' : {
-        function(socket, room) {
-            // To-do. Maybe clean this up?
-            socket.room = room;
-
-            var index = serverData.rooms[socket.room].clients.indexOf(socket);
-            if (index + 1) serverData.rooms[socket.room].clients.splice(index, 1);
-    
-            socketServer.roomBroadcast(socket.room, 
-                'listRefresh', serverData.roomUsers(socket.room).join("\u0004"));
+        function(socket, roomName) {
+            socketServer.roomBroadcast(roomName, 
+                'listRefresh', serverData.roomUsers(roomName).join("\u0004"));
 
             function joinBroadcast(room) {
                 serverData.rooms[room].clients.push(socket);
                 socket.send(delimit( 'topic', serverData.rooms[room].topic ));
 
-                socketServer.roomBroadcast(room, 
+                socketServer.roomBroadcast(room,
                     'systemMessage', socket.nick + ' has joined.');
 
-                socketServer.roomBroadcast(room, 
+                socketServer.roomBroadcast(room,
                     'listRefresh', serverData.roomUsers(room).join("\u0004"));
             }
 
-            if (serverData.rooms[room]) {
-                socket.room = room;
-                joinBroadcast(socket.room);
+            if (serverData.rooms[roomName]) {
+                socket.rooms.push(roomName);
+                joinBroadcast(roomName);
                 return true;
             }
         
-            collection.findOne({'name' : nameSanitize(room) },
+            collection.findOne({'name' : nameSanitize(roomName) },
             function(err, result) {
                 if (err || !result) {
                     socket.send('badRoom');
-                    socket.room = "main";
+                    socket.rooms.push("main");
                     return false;
                 }
 
-                socket.room = room;
-                joinBroadcast(socket.room);
+                socket.rooms.push(roomName);
+                joinBroadcast(roomName);
             });
+
         }
     },
 
@@ -560,6 +475,7 @@ var commands = {
             collection.updateOne({'name' : nameSanitize(socket.nick)},
                 { $set : { 'flair' : flair  } }
             );
+            socket.flair = flair;
             socket.send(delimit('systemMessage', "Your flair has been updated."));
         },
     },
@@ -587,17 +503,16 @@ var commands = {
     // Room settings.
     'topic' : {
         role: 0, 
-        function(socket, newTopic) {
-            var room = socket.room;
-            var mods = serverData.rooms[room].mods;
+        function(socket, newTopic, roomName) {
+            var mods = serverData.rooms[roomName].mods;
 
             if (mods && mods.indexOf(nameSanitize(socket.nick)) < 0 ) {
                 socket.send(delimit('systemMessage', "You aren't an approved moderator here."));
                 return false;
             }
 
-            serverData.rooms[room].topic = newTopic.substr(0, 27);
-            socketServer.roomBroadcast(room, 
+            serverData.rooms[roomName].topic = newTopic.substr(0, 27);
+            socketServer.roomBroadcast(roomName,
                 'topic', newTopic.substr(0, 27));
         }
     },
@@ -605,12 +520,13 @@ var commands = {
     // Global moderator exclusive commands.
     'fistOfRemoval' : {
         role: 1,
-        function(socket, removedUser) {
+        function(socket, removedUser, roomName) {
             removedUser = nameSanitize(removedUser);
+
             collection.findOne({'name' : removedUser},
             function(err, result) {
                 if (err || !result || socket.role > result.role) {
-                    var clients = serverData.rooms[socket.room].clients;
+                    var clients = serverData.rooms[roomName].clients;
 
                     for (var client in clients) {
                         if (nameSanitize(clients[client].nick) == removedUser) {
@@ -750,6 +666,7 @@ var commands = {
 // RTC server using Web Sockets. Wew lad, we're in the future now.
 socketServer.on('connection', function(socket) {
     addEmit( socket._socket.remoteAddress, socket );
+    socket.rooms = [];
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
     if ( ipEmits[socket._socket.remoteAddress] > 6 || 
@@ -779,8 +696,7 @@ socketServer.on('connection', function(socket) {
             return false;
         }
 
-        if ( (moderatorSettings.quiet && !users[ nameSanitize(socket.nick) ])   ||      // If the mute applies.
-              moderatorSettings.banList.indexOf( socket._socket.remoteAddress ) + 1 ) { // If the user is banned. 
+        if ( moderatorSettings.banList.indexOf( socket._socket.remoteAddress ) + 1 ) { // If the user is banned. 
             return false;
         }
 
@@ -809,17 +725,20 @@ socketServer.on('connection', function(socket) {
 
     //Listener for Disconnects.
     socket.on('close', function() {
-        // To-do : Fix double-call
-        console.log (socket.room);
+        for (var x = 0; x < socket.rooms.length; x++) {
 
-        socketServer.roomBroadcast(socket.room,
-            'systemMessage', socket.nick + ' has left.');
+            var roomName = socket.rooms[x];
 
-        var index = serverData.rooms[socket.room].clients.indexOf(socket);
-        if (index + 1) serverData.rooms[socket.room].clients.splice(index, 1);
+            socketServer.roomBroadcast(roomName,
+                'systemMessage', socket.nick + ' has left.');
 
-        socketServer.roomBroadcast(socket.room, 
-            'listRefresh', serverData.roomUsers(socket.room).join("\u0004"));
+            var index = serverData.rooms[roomName].clients.indexOf(socket);
+            if (index + 1) serverData.rooms[roomName].clients.splice(index, 1);
+
+            socketServer.roomBroadcast(roomName,
+                'listRefresh', serverData.roomUsers(roomName).join("\u0004"));
+
+        }
     });
 
 });
@@ -978,7 +897,7 @@ app.get("/", function(request, response, giveClient) {
     // {} != {} doesn't either.
     // You simply can't compare objects in JS and get non-retarded results.
     function hasRooms(rooms) {
-        for (var room in rooms) return true || room;
+        for (var _ in rooms) return true;
         return false;
     }
 
