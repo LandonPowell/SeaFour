@@ -151,12 +151,13 @@ var commands = {
     // Simple messages.s
     'roomMessage' : {
         function(socket, message, roomName) {
-            serverData.rooms[roomName].posts++;
-
             // If the user isn't in that room, toss out his message.
             if (socket.rooms.indexOf(roomName) < 0) {
+                console.log(socket.rooms);
                 return false;
             }
+
+            serverData.rooms[roomName].posts++;
 
             socketServer.roomBroadcast(roomName,
                 'roomMessage',
@@ -186,7 +187,6 @@ var commands = {
 
     'giveRecent' : {
         function(socket, roomName) {
-
             // If the user isn't in that room, don't give him anything.
             if (socket.rooms.indexOf(roomName) < 0) {
                 return false;
@@ -200,7 +200,8 @@ var commands = {
                     currentMessage.nick,
                     currentMessage.message,
                     currentMessage.number,
-                    currentMessage.flair
+                    currentMessage.flair,
+                    roomName
                 ));
             }
         }
@@ -362,9 +363,6 @@ var commands = {
     // Room management.
     'join' : {
         function(socket, roomName) {
-            socketServer.roomBroadcast(roomName, 
-                'listRefresh', serverData.roomUsers(roomName).join("\u0004"));
-
             function joinBroadcast(room) {
                 serverData.rooms[room].clients.push(socket);
                 socket.send(delimit( 'topic', serverData.rooms[room].topic ));
@@ -378,19 +376,31 @@ var commands = {
 
             if (serverData.rooms[roomName]) {
                 socket.rooms.push(roomName);
+                console.log(socket.rooms);
                 joinBroadcast(roomName);
                 return true;
             }
-        
+
             collection.findOne({'name' : nameSanitize(roomName) },
             function(err, result) {
                 if (err || !result) {
                     socket.send('badRoom');
-                    socket.rooms.push("main");
                     return false;
                 }
 
-                socket.rooms.push(roomName);
+                if (!result.room) { // To-do: Make this update the DB.
+                    result.room = {
+                        topic : "Highly Explosive", // The current topic. 
+                        posts : 0,      // Posts that have been made so far.
+                        mods  : [roomName], // List of people with moderator permissions.
+                        messages : [],
+                        logLimit : 10
+                    };
+                }
+
+                serverData.rooms[roomName] = result.room;
+                serverData.rooms[roomName].clients = [];
+
                 joinBroadcast(roomName);
             });
 
@@ -768,19 +778,6 @@ app.use("/=:room/", function(request, response, giveClient) {
 
             return false;
         }
-
-        if (!result.room) {
-            result.room = {
-                topic : "Highly Explosive", // The current topic. 
-                posts : 0,      // Posts that have been made so far.
-                mods  : [room], // List of people with moderator permissions.
-                messages : [],
-                logLimit : 10
-            };
-        }
-
-        serverData.rooms[room] = result.room;
-        serverData.rooms[room].clients = [];
 
         giveClient(); // Gives client assets.
     });
