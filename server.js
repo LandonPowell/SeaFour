@@ -151,23 +151,21 @@ var commands = {
     // Simple messages.s
     'roomMessage' : {
         function(socket, message, roomName) {
+            var room = serverData.rooms[roomName];
             // If the user isn't in that room, toss out his message.
-            if (socket.rooms.indexOf(roomName) < 0) {
-                console.log(socket.rooms);
+            if (room.clients.indexOf(socket) < 0) {
                 return false;
             }
 
-            serverData.rooms[roomName].posts++;
+            room.posts++;
 
             socketServer.roomBroadcast(roomName,
                 'roomMessage',
                 socket.nick,
                 message.substr(0,6000),
-                serverData.rooms[roomName].posts.toString(36),
+                room.posts.toString(36),
                 socket.flair
             );
-
-            var room = serverData.rooms[roomName];
 
             if (room.logLimit != 0) {
                 room.messages.push({
@@ -187,12 +185,13 @@ var commands = {
 
     'giveRecent' : {
         function(socket, roomName) {
+            var room = serverData.rooms[roomName];
             // If the user isn't in that room, don't give him anything.
-            if (socket.rooms.indexOf(roomName) < 0) {
+            if (room.clients.indexOf(socket) < 0) {
                 return false;
             }
 
-            var recentMessages = serverData.rooms[roomName].messages;
+            var recentMessages = room.messages;
             for (var x = 0; x < recentMessages.length; x++) {
                 var currentMessage = recentMessages[x];
                 socket.send(delimit(
