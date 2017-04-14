@@ -2,7 +2,7 @@
 var express = require('express');
 var app     = express();
 var http    = require('http');
-var https   = require('https');
+// var https   = require('https');
 var webServer   = http.Server(app);
 var imageMagick = require('imagemagick');
 
