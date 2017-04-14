@@ -59,7 +59,9 @@ serverData.rooms = {
 
 serverData.roomUsers = function(room) {
     var nameList = [];
-    if (serverData.rooms[room] == undefined) return nameList;
+    if (serverData.rooms[room] == undefined) {
+        return nameList;
+    }
 
     var clients = serverData.rooms[room].clients;
     for (var client in clients) {
@@ -75,7 +77,9 @@ socketServer.roomBroadcast = function(room) {
     var clients = serverData.rooms[room].clients;
     var binaryData = args.join("\u0004");
     clients.forEach(function(client) {
-        if (client.readyState == 1) client.send(binaryData);
+        if (client.readyState == 1) {
+            client.send(binaryData);
+        }
     });
 };
 
@@ -128,16 +132,20 @@ setTimeout(function() {
 var ipEmits = {};       // Stores the number of emits made by any IP. 
 setInterval(function() { ipEmits = {}; }, 3000);    // Every 3 seconds, clear.
 function addEmit(ipAddress, socket) {
-    if (ipEmits[ipAddress]) ipEmits[ipAddress] += 1;
-    else                    ipEmits[ipAddress]  = 1;
+    if (ipEmits[ipAddress]) {
+        ipEmits[ipAddress] += 1;
+    }
+    else {
+        ipEmits[ipAddress]  = 1;
+    }
 
-    if (ipEmits[ipAddress] > 6) {   // Limits normal emits. 
+    if (ipEmits[ipAddress] > 12) {   // Limits normal emits. 
         moderatorSettings.banList.push(ipAddress);
         console.log(ipAddress + " has been banned.");
         socket.close();
     }
 
-    if (ipEmits[ipAddress] > 10) {   // Limits spam emits. 
+    if (ipEmits[ipAddress] > 20) {   // Limits spam emits. 
         moderatorSettings.superBanList.push(ipAddress);
         console.log(ipAddress + " has been super banned.");
 
@@ -151,7 +159,10 @@ var commands = {
     // Simple messages.s
     'roomMessage' : {
         function(socket, message, roomName) {
+            addEmit( socket._socket.remoteAddress, socket ); // Room messages count for double usage.
+
             var room = serverData.rooms[roomName];
+
             // If the user isn't in that room, toss out his message.
             if (room.clients.indexOf(socket) < 0) {
                 return false;
@@ -276,7 +287,9 @@ var commands = {
 
                 },
                 function(err, result) {
-                    if (err) { console.log(err); return false; }
+                    if (err) { 
+                        console.log(err); return false; 
+                    }
 
                     socket.send(delimit( 'systemMessage', "You are now registered, " + nick + "."));
                     socket.send(delimit( 'nickRefresh', nick ));
@@ -300,7 +313,8 @@ var commands = {
         function(socket, nick) {
             collection.findOne({'name' : nameSanitize(nick)},
             function(err, result) {
-                if (err || !result) return false;
+                if (err || !result)
+                    return false;
 
                 var plainToken = crypto.randomBytes(666).toString('hex'); // Firstly, create a random string. The end user will need to determine this.
 
@@ -345,7 +359,7 @@ var commands = {
                 socket.nick = nick;
                 socket.role = tokenObject.role;
 
-                socketServer.roomBroadcast(roomName, 
+                socketServer.roomBroadcast(roomName,
                     'listRefresh', serverData.roomUsers(roomName).join("\u0004"));
 
                 moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket._socket.remoteAddress;
@@ -375,7 +389,6 @@ var commands = {
 
             if (serverData.rooms[roomName]) {
                 socket.rooms.push(roomName);
-                console.log(socket.rooms);
                 joinBroadcast(roomName);
                 return true;
             }
@@ -410,9 +423,10 @@ var commands = {
     'directMessage' : {
         function(socket, userTo, message) {
             var wasSent = false;
+            userTo = nameSanitize(userTo);
 
             socketServer.clients.forEach(function(client) {
-                if ( client.nick == userTo ) {
+                if ( nameSanitize( client.nick ) == userTo ) {
                     client.send(delimit('directMessage', "from",
                                 nameSanitize(socket.nick),
                                 message.substr(0,1000)));
@@ -678,7 +692,7 @@ socketServer.on('connection', function(socket) {
     socket.rooms = [];
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
-    if ( ipEmits[socket._socket.remoteAddress] > 6 || 
+    if ( ipEmits[socket._socket.remoteAddress] > 12 || 
          moderatorSettings.superBanList.indexOf(socket._socket.remoteAddress) + 1 ||
          collection === undefined ) { // If the collection is undefined, they've joined so quickly the server couldn't even startup.
 
@@ -742,7 +756,9 @@ socketServer.on('connection', function(socket) {
                 'systemMessage', socket.nick + ' has left.');
 
             var index = serverData.rooms[roomName].clients.indexOf(socket);
-            if (index + 1) serverData.rooms[roomName].clients.splice(index, 1);
+            if (index + 1) {
+                serverData.rooms[roomName].clients.splice(index, 1);
+            }
 
             socketServer.roomBroadcast(roomName,
                 'listRefresh', serverData.roomUsers(roomName).join("\u0004"));

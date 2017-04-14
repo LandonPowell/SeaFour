@@ -215,7 +215,7 @@ function login(nick, password) {
             cryptoToken
         );
 
-        emit(['authenticate', nick, token]);
+        emit(['authenticate', nick, token, attributes.room]);
     };
 }
 
