@@ -4,9 +4,12 @@
   "description": "A simple webchat.",
   "license": "C4L",
   "dependencies": {
+    "imagemagick": "^0.1.3",
     "cryptico": "^1.0.2",
+    "elliptic": "^3.1.0",
     "express": "^4.10.2",
     "mongodb": "^2.2.10",
+    "sjcl": "^1.0.6",
     "pug": "^0.1.0",
     "ws": "^1.1.1"
   }
