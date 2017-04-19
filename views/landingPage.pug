@@ -1,7 +1,7 @@
 doctype html
 html
     head
-        title="Warning - Highly Explosive"
+        title="SeaFour - Highly Explosive"
 
         meta( charset="UTF-8" )
 
@@ -12,27 +12,40 @@ html
             content="Get ready for the future of social metacommunication. \
                     Social metacommunication? What's that even mean?" )
 
-        meta( name="author" 
+        meta( name="author"
             content="Landon Powell" )
 
         link( rel="stylesheet"      href="css/lightChat.css"         )
         link( rel="stylesheet"      href="css/fonts.css"             )
         link( rel="shortcut icon"   href="css/images/iconPurple.png" )
 
-        link( rel="stylesheet"      href="css/views/landingPage.css" )
+        link( rel="stylesheet" href="css/views/landingPage.css" )
 
     body
-        h1="Top Boards"
+        #top
+            h1="What is SeaFour?"
 
-        a( href="/="+rooms[0].name )
-            .room.toproom
-                .name=rooms[0].name+": "+rooms[0].topic
-                .posts="Posts: "+rooms[0].posts
-                .users="Users: "+rooms[0].users
+            .explanation.
+                SeaFour is a freedom-oriented chat 
+                protocol implemented in websockets, as well as a group of 
+                related projects. It includes a a multitude of security features, 
+                such as an asymmetric cryptographic login system, which disallows 
+                malicious moderators from seeing your password, as well as hosting
+                of your Public and Private ECC keys. Related projects include a
+                web-client hosted on this domain, and a full-featured Android client. 
 
-        each room, index in rooms.splice(1)
-            a( href="/="+room.name )
-                .room
-                    .name=room.name+": "+room.topic
-                    .posts="Posts: "+room.posts
-                    .users="Users: "+room.users
+            #buttons
+                a#trybutton( href="/=main" )
+                    span="Try it Online Now!"
+
+                a.button( href="https://github.com/LandonPowell/SeaFour" )
+                    img( src="css/images/github.png" )
+                    span="Source Code"
+                a.button( href="https://github.com/LandonPowell/SeaFour-Mobile" )
+                    img( src="css/images/github.png" )
+                    span="Mobile Source"
+
+                a#rooms( href="https://github.com/LandonPowell/SeaFour" )
+                    span="Most Popular Rooms"
+
+

@@ -2,7 +2,7 @@
 var express = require('express');
 var app     = express();
 var http    = require('http');
-// var https   = require('https');
+var https   = require('https');
 var webServer   = http.Server(app);
 var imageMagick = require('imagemagick');
 
@@ -96,7 +96,10 @@ function nameSanitize(nick) {   // Changes unimportant chars to dashes.
 
 function checkValidName(nick) { // Checks if a name contains no strange chars or is taken.
     if (
-        ['www', 'main', 'server', 'http'] // Reserved and possibly malicious names.
+        // Reserved or possibly malicious names.
+        ['www', 'main', 'server', 'http', 'index', 
+        'index-html', 'leaderboard', 'seafour']
+
         .indexOf(nameSanitize(nick)) + 1 
     ) return false; // It's an array so I can put more in it later without doing much. 'Maintainability.'
 
@@ -799,34 +802,6 @@ app.use("/=:room/", function(request, response, giveClient) {
 
 }, express.static(__dirname + '/client/') );
 
-// User account pages. 
-app.get('/[\\w-]+', function(request, response) {
-    var userName = nameSanitize( request.url.substr(1) );
-
-    collection.findOne({ 'name' : nameSanitize(userName) },
-    function(err, result) {
-        if (err || !result) {
-            response.render('errorPage', {
-                error: "That user doesn't seem to exist."
-            });
-            return false;
-        }
-
-        // Heads up: Pug auto-sanitizes HTML for you, so you
-        // don't have to worry too hard about it; however, stay frosty.
-
-        response.render('userPage', {
-            user:       userName,
-            flair:      result.flair   || "This user has not set a flair yet.",
-            role:       result.role    || "This user has not been given a role yet.",
-            website:    result.website || "This user has not set a website yet.",
-            bio:        result.bio     || "This user has not set a bio yet.",
-            renown:     result.renown,
-        });
-    });
-
-});
-
 app.get('/api/[\\w]+', function(request, response) {
     var userName = request.url.substr(5);
 
@@ -894,7 +869,7 @@ app.get('/img/[^\\s#]+', function(request, response) {
     });
 });
 
-app.get("/", function(request, response, giveClient) {
+app.get("/leaderboard", function(request, response, giveClient) {
     // Warning: The following section is full of reasons why JavaScript is a broken language and ECMA is full of retards. 
     // I'll fill it with comments so you can understand why.
 
@@ -946,9 +921,41 @@ app.get("/", function(request, response, giveClient) {
         delete rooms[maxRoom.name];
     }
 
-    response.render('landingPage', {
+    response.render('leaderBoard', {
         rooms: topRooms,
     });
+});
+
+// User account pages. 
+app.get('/[\\w-]+', function(request, response) {
+    var userName = nameSanitize( request.url.substr(1) );
+
+    collection.findOne({ 'name' : nameSanitize(userName) },
+    function(err, result) {
+        if (err || !result) {
+            response.render('errorPage', {
+                error: "That user doesn't seem to exist."
+            });
+            return false;
+        }
+
+        // Heads up: Pug auto-sanitizes HTML for you, so you
+        // don't have to worry too hard about it; however, stay frosty.
+
+        response.render('userPage', {
+            user:       userName,
+            flair:      result.flair   || "This user has not set a flair yet.",
+            role:       result.role    || "This user has not been given a role yet.",
+            website:    result.website || "This user has not set a website yet.",
+            bio:        result.bio     || "This user has not set a bio yet.",
+            renown:     result.renown,
+        });
+    });
+
+});
+
+app.get('/', function(request, response) {
+    response.render('landingPage', {});
 });
 
 app.use("/", express.static(__dirname + '/client/'));

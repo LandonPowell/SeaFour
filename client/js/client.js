@@ -230,7 +230,8 @@ function keyPressed(event) {
         if (text[0] == "." && command[0][command[0].length - 1] == "!") {
             emit(['specialMessage', 
                 command[0].substring(1, command[0].length - 1),
-                text.substr(command[0].length + 1)]);
+                text.substr(command[0].length + 1),
+                attributes.room]);
         }
         // Direct messages start with a '.' and end with a '.'. 
         else if (text[0] == "." && command[0][command[0].length - 1] == ".") {      // This is obviously very much the same as special messages.
@@ -259,9 +260,6 @@ function keyPressed(event) {
                 case ".login":
                     login(command[1], command[2]);
                     break;
-                case ".nick":
-                    emit(['changeNick', text.substr(6)]);
-                    break;
                 case ".safe":
                     attributes.safe = ! attributes.safe;
                     break;
@@ -272,7 +270,7 @@ function keyPressed(event) {
                     emit(['roleChange', command[1], command[2]]);
                     break;
                 default:
-                    emit([command[0].substr(1), text.substr(command[0].length + 1)]);
+                    emit([command[0].substr(1), text.substr(command[0].length + 1), attributes.room]);
             }
         }
         // All other messages get sent. 
@@ -284,7 +282,7 @@ function keyPressed(event) {
 
 
 // Setting up websocket. I made some functions to make the syntax less obfuscated.
-var listeners = {}
+var listeners = {};
 window.WebSocket = window.WebSocket || window.MozWebSocket;
 var socket = new WebSocket("wss://" + location.host);
 
@@ -295,10 +293,6 @@ function emit(message) {
 // Automatic reconnect.
 function connect() {
     socket = new WebSocket("wss://" + location.host);
-
-    socket.emit = function() { // This joins socke.emit's args with a delimeter (\u0004) and socket.sends them.
-        socket.send( [...arguments].join("\u0004") );
-    };
 
     // Log errors to the console for debugging.
     socket.onerror = function(error) {
