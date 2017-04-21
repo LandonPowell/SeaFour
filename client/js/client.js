@@ -318,7 +318,7 @@ function connect() {
             );
             return false;
         }
-        listeners[data[0]]( ...data.slice(1) );
+        listeners[data[0]].apply(undefined, data.slice(1));
     };
     
     socket.onopen = function(openingEvent) {
