@@ -29,7 +29,6 @@ if (window.outerWidth < window.outerHeight) { // If on a portrait screen (phone,
 // These are the client-side attributes that need to be tracked for chat frontend usage. 
 var attributes = {
     nick: "unnamed",
-    points: 0,
     title: "",
     unread: 0,
     focus: true,
@@ -328,25 +327,6 @@ function connect() {
 }
 
 connect();
-
-// Points Management.
-listeners['pointsUpdate'] = function(pointValue) {
-    var lastRenown = 1,
-        soFar = 0;
-
-    if ( pointValue == Infinity ) soFar = 0;
-    else if ( pointValue <= 12 ) soFar = pointValue;
-    else {
-        while ( pointValue > lastRenown * 12 ) lastRenown *= 12;
-        soFar = pointValue - lastRenown;
-    }
-
-    $("#progressBar").css('width', 
-        "calc( (100% - 40px) *" + (soFar / (lastRenown * 12 - lastRenown)) + ")"
-    );
-
-    $("#progressBar").fadeIn(200).fadeOut(1000);
-};
 
 // User List Management.
 listeners['listRefresh'] = function() {

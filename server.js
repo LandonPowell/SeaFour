@@ -695,7 +695,7 @@ socketServer.on('connection', function(socket) {
     socket.rooms = [];
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
-    if ( ipEmits[socket._socket.remoteAddress] > 12 || 
+    if ( ipEmits[socket._socket.remoteAddress] > 12 ||
          moderatorSettings.superBanList.indexOf(socket._socket.remoteAddress) + 1 ||
          collection === undefined ) { // If the collection is undefined, they've joined so quickly the server couldn't even startup.
 
