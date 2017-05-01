@@ -19,6 +19,11 @@ var parser = {
     /*  Can you believe that all this was once done with a 
      *  metric fuckton of regex replaces? 
      */
+        var stylizedData = {
+            htmlString : "",
+            image : false,
+        };
+
         // Operators
         var operators = {
             basic: {
@@ -81,6 +86,7 @@ var parser = {
         
         function linkHandler(string) { // Fucking regex.
             if ( regexEquals(string, /[\w]{1,8}:\/\/[\w\-.]+\/[^\s<]+\.(jpg|gif|svg|png|jpeg)/gi) ) {
+                stylizedData.image = string;
                 return "<a href=\""+string+"\" target=\"_blank\">               \
                             <img class=\"inlineimage\" src=\"/img/"+string+"\"></img>\
                         </a>";
@@ -99,7 +105,7 @@ var parser = {
         }
 
         // S-Expression Evaluator.
-        function evaluate(tree) { 
+        function evaluate(tree) {
             var operator = tree.shift();
             var parsed;
 
@@ -152,7 +158,7 @@ var parser = {
             return parsed + "</span>";
         }
 
-        // This returns the result of the evaluation. 
+        // This returns the result of the evaluation.
         return evaluate( nest( tokenize( string ) ) ).replace(/ </g, "<");
     }
 };

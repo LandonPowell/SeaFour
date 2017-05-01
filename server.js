@@ -162,7 +162,7 @@ var commands = {
     // Simple messages.s
     'roomMessage' : {
         function(socket, message, roomName) {
-            addEmit( socket._socket.remoteAddress, socket ); // Room messages count for double usage.
+            addEmit( socket.ip, socket ); // Room messages count for double usage.
 
             var room = serverData.rooms[roomName];
 
@@ -305,7 +305,7 @@ var commands = {
                             'listRefresh', serverData.roomUsers(socket.rooms[x]).join("\u0004"));
                     }
 
-                    moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket._socket.remoteAddress;
+                    moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket.ip;
                 });
             });
         },
@@ -365,7 +365,7 @@ var commands = {
                 socketServer.roomBroadcast(roomName,
                     'listRefresh', serverData.roomUsers(roomName).join("\u0004"));
 
-                moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket._socket.remoteAddress;
+                moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket.ip;
             }
             else {
                 socket.send(delimit('systemMessage',
@@ -691,15 +691,16 @@ var commands = {
 
 // RTC server using Web Sockets. Wew lad, we're in the future now.
 socketServer.on('connection', function(socket) {
-    addEmit( socket._socket.remoteAddress, socket );
+    addEmit( socket.ip, socket );
+    socket.ip = socket.upgradeReq.headers['x-forwarded-for'] || socket.upgradeReq.connection.remoteAddress;
     socket.rooms = [];
 
     // Handles banned users. Basically the asshole bouncer of SeaFour.
-    if ( ipEmits[socket._socket.remoteAddress] > 12 ||
-         moderatorSettings.superBanList.indexOf(socket._socket.remoteAddress) + 1 ||
+    if ( ipEmits[socket.ip] > 12 ||
+         moderatorSettings.superBanList.indexOf(socket.ip) + 1 ||
          collection === undefined ) { // If the collection is undefined, they've joined so quickly the server couldn't even startup.
 
-        console.log("Spammer detected at " + socket._socket.remoteAddress);
+        console.log("Spammer detected at " + socket.ip);
         socket.close();
 
         return false;
@@ -708,10 +709,10 @@ socketServer.on('connection', function(socket) {
     // Handlng the more 'front end' aspect of joining.
     socket.nick = Math.random().toString(16).substr(2,6);
     socket.send(delimit( 'nickRefresh', socket.nick ));
-    moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket._socket.remoteAddress;
+    moderatorSettings.ipLog[nameSanitize( socket.nick )] = socket.ip;
 
     socket.on('message', function(data) {
-        addEmit( socket._socket.remoteAddress, socket );
+        addEmit( socket.ip, socket );
 
         var parameters = data.split("\u0004");
 
@@ -722,7 +723,7 @@ socketServer.on('connection', function(socket) {
             return false;
         }
 
-        if ( moderatorSettings.banList.indexOf( socket._socket.remoteAddress ) + 1 ) { // If the user is banned. 
+        if ( moderatorSettings.banList.indexOf( socket.ip ) + 1 ) { // If the user is banned. 
             return false;
         }
 
