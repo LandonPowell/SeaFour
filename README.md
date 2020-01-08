@@ -1,5 +1,5 @@
 # SeaFour
-SeaFour is the SeaFour.club community's chat engine. 
+Running instance at [https://seafour.pro/]
 `Powered by Node.js`
 
 ### Depends Upon
